@@ -21,6 +21,7 @@ $messages['en'] = [
 	'action-wiki_claim'						=> 'claim a wiki',
 	'action-wiki_claims'					=> 'view wiki claims',
 	'wiki_claim_error'						=> 'Error - Wiki Claim',
+	'wiki_claim_disabled'					=> 'The wiki claims system has been disabled on this wiki.',
 	'send_claim'							=> 'Send Claim',
 	'wiki_claim_question_0'					=> 'Why do you want to become an administrator for this wiki?',
 	'wiki_claim_question_1'					=> 'Describe your past experience working on wiki projects:',
