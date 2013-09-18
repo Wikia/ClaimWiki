@@ -66,6 +66,7 @@
 
 	#claimlist th {
 		background-color: #ddd;
+		color: black;
 	}
 
 	#claimlist .sortable th span[data-sort] {
