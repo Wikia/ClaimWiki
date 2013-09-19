@@ -50,6 +50,13 @@ class skin_wikiclaims {
 			</fieldset>
 		</form>
 	</div>
+	<div class='buttons'>
+		<div class='legend approved'>
+			<span class='swatch'></span> Approved
+		</div><div class='legend denied'>
+			<span class='swatch'></span> Denied
+		</div>
+	</div>
 	<table id='claimlist'>
 		<thead>
 			<tr class='sortable' data-sort-dir='".($sortDir == 'desc' ? 'desc' : 'asc')."'>
