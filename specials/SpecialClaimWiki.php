@@ -147,10 +147,10 @@ class SpecialClaimWiki extends SpecialPage {
 				$success = $this->claim->save();
 
 				if ($success) {
-					global $claimWikiEmailTo, $wgSitename, $wgPasswordSender;
+					global $claimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName;
 					$this->mouse->output->loadTemplate('claimemails');
 
-					$emailTo		= $claimWikiEmailTo." <{$claimWikiEmailTo}>";
+					$emailTo		= $claimWikiEmailTo;
 					$emailSubject	= wfMessage('claim_wiki_email_subject', $this->claim->getUser()->getName())->text();
 
 					$emailExtra		= [
@@ -161,9 +161,10 @@ class SpecialClaimWiki extends SpecialPage {
 					];
 					$emailBody		= $this->mouse->output->claimemails->claimWikiNotice($emailExtra);
 
-					$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$wgPasswordSender}\r\nReply-To: {$wgPasswordSender}\r\nX-Mailer: Hydra/1.0";
+					$emailFrom		= $wgPasswordSenderName." <{$wgPasswordSender}>";
+					$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nX-Mailer: Hydra/1.0";
 
-					$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, '-f'.$wgPasswordSender);
+					$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, '-f'.$emailFrom);
 
 					return true;
 				} else {
