@@ -117,6 +117,7 @@ HTML;
 	 * @return	string	Built HTML
 	 */
 	public function viewClaim($claim) {
+        global $wgServer, $wgScriptPath;
 		$answers = $claim->getAnswers();
 		$HTML .= "
 		<div id='claim_wiki_form'>
@@ -126,6 +127,7 @@ HTML;
 			$HTML .= "<h3>".wfMessage($questionKey)->text()."</h3>
 			<p>{$answer}</p>";
 		}
+        $HTML .= "<a href='{$wgServer}{$wgScriptPath}/Special:Contributions/".$claim->getUser()->getName()."' target='_blank'>User Contributions</a>";
 		$HTML .= "</div>";
 		return $HTML;
 	}
