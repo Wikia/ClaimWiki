@@ -64,6 +64,7 @@ $messages['en'] = [
 	'wiki_claim_already_guardian'			=> 'You are already a guardian of this wiki.',
 	'claim_denied'							=> 'Sorry, your claim to be a wiki guardian on this wiki has been denied.  Please check your email for further information.',
 	'approved'								=> 'approved',
-	'denied'								=> 'denied'
+	'denied'								=> 'denied',
+	'claim_user_contributions'				=> 'View User Contributions'
 ];
 ?>
