@@ -117,7 +117,7 @@ HTML;
 	 * @return	string	Built HTML
 	 */
 	public function viewClaim($claim) {
-        global $wgServer, $wgScriptPath;
+		global $wgServer, $wgScriptPath;
 		$answers = $claim->getAnswers();
 		$HTML .= "
 		<div id='claim_wiki_form'>
