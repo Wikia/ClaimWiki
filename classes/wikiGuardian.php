@@ -66,12 +66,12 @@ class guardianReminderEmail extends Maintenance {
 			$oldTimestamp = time() - 2592000;
 			if ($timestamp <= $oldTimestamp) {
 				//Send a reminder email.
-				$this->mouse->output->loadTemplate('dsemails');
+				$this->mouse->output->loadTemplate('claimemails');
 
 				$emailTo		= $claim->getUser()->getName()." <".$claim->getUser()->getEmail().">";
 				$emailSubject	= 'Inactive Wiki Guardian Notification - '.$wgSitename;
 
-				$emailBody		= $this->mouse->output->dsemails->wikiGuardianInactive($row, $wgSitename);
+				$emailBody		= $this->mouse->output->claimemails->wikiGuardianInactive($row, $wgSitename);
 
 				$emailFrom		= $wgEmergencyContact;
 				$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nX-Mailer: Hydra/1.0";
