@@ -66,7 +66,7 @@ $messages['en'] = [
 	'approved'								=> 'approved',
 	'denied'								=> 'denied',
 	'claim_user_contributions'				=> 'View User Contributions',
-    'list_search'                           => 'Search',
-    'list_reset'                            => 'Reset'
+	'list_search'							=> 'Search',
+	'list_reset'							=> 'Reset'
 ];
 ?>

@@ -117,10 +117,10 @@ HTML;
 	 * @return	string	Built HTML
 	 */
 	public function viewClaim($claim) {
-        global $wgServer, $wgScriptPath;
+		global $wgServer, $wgScriptPath;
 
-        $wikiContributionsPage	= Title::newFromText('Special:Contributions');
-        $wikiContributionsURL	= $wikiContributionsPage->getFullURL();
+		$wikiContributionsPage	= Title::newFromText('Special:Contributions');
+		$wikiContributionsURL	= $wikiContributionsPage->getFullURL();
 
 		$answers = $claim->getAnswers();
 		$HTML .= "
@@ -134,6 +134,7 @@ HTML;
 		$HTML .= "
 			<a href='{$wikiContributionsURL}/".$claim->getUser()->getName()."' target='_blank'>".wfMessage('claim_user_contributions')->escaped()."</a>
 		</div>";
+
 		return $HTML;
 	}
 }
