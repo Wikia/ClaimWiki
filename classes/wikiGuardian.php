@@ -29,12 +29,6 @@ class guardianReminderEmail extends Maintenance {
 			define('SITE_DIR', dirname(dirname(dirname(__DIR__))));
 		}
 
-		if (!class_exists('mouseHole')) {
-			require_once(SITE_DIR.'/mouse/mouse.php');
-		}
-		$this->mouse = mouseHole::instance(array('output' => 'mouseOutputOutput'), array());
-		$this->mouse->output->addTemplateFolder(CW_EXT_DIR.'/templates');
-
 		parent::__construct();
 	}
 
@@ -45,8 +39,16 @@ class guardianReminderEmail extends Maintenance {
 	 * @return	void
 	 */
 	public function execute() {
-		global $wgEmergencyContact, $wgSitename;
+		global $wgEmergencyContact, $wgSitename, $claimWikiEmailTo;
 		$this->DB = wfGetDB(DB_MASTER);
+
+		$settings['file'] = SITE_DIR.'/LocalSettings.php';
+		if (!class_exists('mouseHole')) {
+			require_once(SITE_DIR.'/mouse/mouse.php');
+		}
+
+		$this->mouse = mouseHole::instance(['output' => 'mouseOutputOutput', 'config' => 'mouseConfigMediawiki', 'redis' => 'mouseCacheRedis'], $settings);
+		$this->mouse->output->addTemplateFolder(CW_EXT_DIR.'/templates');
 
 		$results = $this->DB->select(
 			['wiki_claims'],
@@ -62,8 +64,18 @@ class guardianReminderEmail extends Maintenance {
 			}
 			$claim = new wikiClaim($user);
 
+			$redisEmailKey = wfWikiID().':guardianReminderEmail:timeSent:'.$row['user_id'];
+
 			$timestamp = wfTimestamp(TS_UNIX, $user->getTouched());
-			$oldTimestamp = time() - 2592000;
+			$oldTimestamp = time() - 2592000; //Thirty Days
+			$emailReminderExpired = time() - 1296000; //Fifteen Days
+
+			$emailSent = $this->mouse->redis->get($redisEmailKey);
+			if ($emailSent > 0 && $emailSent > $emailReminderExpired) {
+				$this->mouse->output->sendLine("SKIP - Reminder email already send to ".$user->getName()." and resend is on cool down.", time());
+				continue;
+			}
+
 			if ($timestamp <= $oldTimestamp) {
 				//Send a reminder email.
 				$this->mouse->output->loadTemplate('claimemails');
@@ -74,11 +86,13 @@ class guardianReminderEmail extends Maintenance {
 				$emailBody		= $this->mouse->output->claimemails->wikiGuardianInactive($row, $wgSitename);
 
 				$emailFrom		= $wgEmergencyContact;
-				$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nX-Mailer: Hydra/1.0";
+				$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nCC: {$claimWikiEmailTo}\r\nX-Mailer: Hydra/1.0";
 
 				$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, "-f{$emailFrom}");
 				if ($success) {
 					$this->mouse->output->sendLine("SUCCESS - Reminder email send to {$emailTo}.", time());
+					$this->mouse->redis->set($redisEmailKey, time());
+					$this->mouse->redis->expire($redisEmailKey, 1296000);
 				} else {
 					$this->mouse->output->sendLine("ERROR - Failed to send a reminder email to {$emailTo}.", time());
 				}
