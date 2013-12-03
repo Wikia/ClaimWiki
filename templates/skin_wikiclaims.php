@@ -118,6 +118,10 @@ HTML;
 	 */
 	public function viewClaim($claim) {
 		global $wgServer, $wgScriptPath;
+
+		$wikiContributionsPage	= Title::newFromText('Special:Contributions');
+		$wikiContributionsURL	= $wikiContributionsPage->getFullURL();
+
 		$answers = $claim->getAnswers();
 		$HTML .= "
 		<div id='claim_wiki_form'>
@@ -128,8 +132,9 @@ HTML;
 			<p>{$answer}</p>";
 		}
 		$HTML .= "
-			<a href='{$wgServer}{$wgScriptPath}/Special:Contributions/".$claim->getUser()->getName()."' target='_blank'>".wfMessage('claim_user_contributions')->escaped()."</a>
+			<a href='{$wikiContributionsURL}/".$claim->getUser()->getName()."' target='_blank'>".wfMessage('claim_user_contributions')->escaped()."</a>
 		</div>";
+
 		return $HTML;
 	}
 }
