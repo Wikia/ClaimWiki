@@ -60,7 +60,7 @@ class skin_wikiclaims {
 	<table id='claimlist'>
 		<thead>
 			<tr class='sortable' data-sort-dir='".($sortDir == 'desc' ? 'desc' : 'asc')."'>
-				<th class='unsortable'>".wfMessage('user_name')->escaped()."</th>
+				<th class='unsortable'>".wfMessage('claim_user')->escaped()."</th>
 				<th".($sortKey == 'claim_timestamp' ? " data-selected='true'" : '')."><span data-sort='claim_timestamp'".($sortKey == 'claim_timestamp' ? " data-selected='true'" : '').">".wfMessage('claim_timestamp')->escaped()."</span></th>
 				<th".($sortKey == 'start_timestamp' ? " data-selected='true'" : '')."><span data-sort='start_timestamp'".($sortKey == 'start_timestamp' ? " data-selected='true'" : '').">".wfMessage('start_timestamp')->escaped()."</span></th>
 				<th".($sortKey == 'end_timestamp' ? " data-selected='true'" : '')."><span data-sort='end_timestamp'".($sortKey == 'end_timestamp' ? " data-selected='true'" : '').">".wfMessage('end_timestamp')->escaped()."</span></th>
