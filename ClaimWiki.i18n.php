@@ -50,6 +50,7 @@ $messages['en'] = [
 	'deny_claim'							=> 'Deny Claim',
 	'end_claim'								=> "End Claim",
 	'delete_claim'							=> 'Delete Claim',
+	'pending_claim'                         => 'Pending Claim',
 	'no_claims_found'						=> 'No Claims Found!',
 	'claim_user'							=> 'User',
 	'claim_timestamp'						=> 'Claim Date',

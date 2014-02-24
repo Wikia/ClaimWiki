@@ -85,6 +85,9 @@ class SpecialWikiClaims extends SpecialPage {
 			case 'deny':
 				$this->denyClaim();
 				break;
+			case 'pending':
+				$this->pendingClaim();
+				break;
 			case 'delete':
 				$this->deleteClaim();
 				break;
@@ -242,6 +245,28 @@ class SpecialWikiClaims extends SpecialPage {
 		}
 
 		$this->claim->setApproved(false);
+		$this->claim->save();
+		$this->claim->getUser()->removeGroup('wiki_guardian');
+
+		$this->sendEmail(false);
+
+		$page = Title::newFromText('Special:WikiClaims');
+		$this->output->redirect($page->getFullURL());
+	}
+
+	/**
+	 * Pending Claim
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function pendingClaim() {
+		$this->loadClaim();
+		if (!$this->claim) {
+			return;
+		}
+
+		$this->claim->setPending(true);
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
