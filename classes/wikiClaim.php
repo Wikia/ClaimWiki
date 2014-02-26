@@ -230,6 +230,44 @@ class wikiClaim {
 	}
 
 	/**
+	 * Set the pending status on this claim.
+	 * True - pending
+	 *
+	 * @access	public
+	 * @param	boolean	[Optional] pending status for this claim.  Defaults to true.
+	 * @return	void
+	 */
+	public function setPending($approved = true) {
+		if ($approved === null) {
+			$this->data['pending'] = null;
+		} elseif ($approved === true) {
+			$this->data['pending'] = 1;
+		} elseif ($approved === false) {
+			$this->data['pending'] = 0;
+		} else {
+			$this->data['pending'] = null;
+		}
+	}
+
+	/**
+	 * Is this claim pending?
+	 *
+	 * @access	public
+	 * @return	mixed	Boolean true or false for pending, null if neither decision has been made.
+	 */
+	public function isPending() {
+		if ($this->data['pending'] === null) {
+			return null;
+		} elseif ($this->data['pending'] == 1) {
+			return true;
+		} elseif ($this->data['pending'] == 0) {
+			return false;
+		} else {
+			return null;
+		}
+	}
+
+	/**
 	 * Sets an answer for the provided question key.
 	 *
 	 * @access	public

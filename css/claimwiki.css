@@ -170,6 +170,10 @@
 		background: none repeat scroll 0 0 pink;
 	}
 
+    #claimlist .pending, .legend.pending span.swatch {
+        background: none repeat scroll 0 0 orange;
+    }
+
 	#claimlist ul {
 		list-style: none outside none;
 		margin: 0;

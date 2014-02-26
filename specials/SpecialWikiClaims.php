@@ -270,7 +270,7 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
-		$this->sendEmail(false);
+		$this->sendEmail('pending');
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -344,7 +344,12 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->mouse->output->loadTemplate('claimemails');
 
 		$emailTo		= $this->claim->getUser()->getName()." <".$this->claim->getUser()->getEmail().">";
-		$emailSubject	= wfMessage('claim_status_email_subject', ($status ? wfMessage('approved')->text() : wfMessage('denied')->text()))->text();
+
+		if ($status === 'pending'){
+			$emailSubject	= wfMessage('claim_status_email_subject', wfMessage('email_pending')->text())->text();
+		} else {
+			$emailSubject	= wfMessage('claim_status_email_subject', ($status ? wfMessage('approved')->text() : wfMessage('denied')->text()))->text();
+		}
 
 		$emailExtra		= [
 			'user'			=> $this->wgUser,
