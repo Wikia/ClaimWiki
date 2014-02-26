@@ -135,7 +135,8 @@ HTML;
 			<p>{$answer}</p>";
 		}
 		$HTML .= "
-			<a href='{$wikiContributionsURL}/".$claim->getUser()->getName()."' target='_blank'>".wfMessage('claim_user_contributions')->escaped()."</a>
+			<a href='{$wikiContributionsURL}/".$claim->getUser()->getName()."' target='_blank'>".wfMessage('claim_user_contributions')->escaped()."</a><br />
+			<a  href='".$claim->getUser()->getUserPage()->getFullURL()."'>View User Page for ".$claim->getUser()->getName()."</a>
 		</div>";
 
 		return $HTML;

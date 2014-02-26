@@ -169,6 +169,16 @@ class wikiClaim {
 	}
 
 	/**
+	 * Returns the guidelines text for the wiki claim terms.
+	 *
+	 * @access	public
+	 * @return	string	Guidlines Text.
+	 */
+	public function getGuidelinesText() {
+		return wfMessage('wiki_claim_more_info')->parseAsBlock();
+	}
+
+	/**
 	 * Are the terms accepted by this user?
 	 *
 	 * @access	public
