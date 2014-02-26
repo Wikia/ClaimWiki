@@ -214,8 +214,10 @@ class wikiClaim {
 			$this->data['approved'] = null;
 		} elseif ($approved === true) {
 			$this->data['approved'] = 1;
+			$this->data['pending'] = null;
 		} elseif ($approved === false) {
 			$this->data['approved'] = 0;
+			$this->data['pending'] = null;
 		} else {
 			$this->data['approved'] = null;
 		}
@@ -252,6 +254,7 @@ class wikiClaim {
 			$this->data['pending'] = null;
 		} elseif ($approved === true) {
 			$this->data['pending'] = 1;
+			$this->data['approved'] = null;
 		} elseif ($approved === false) {
 			$this->data['pending'] = 0;
 		} else {
