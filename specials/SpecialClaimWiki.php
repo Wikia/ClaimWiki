@@ -96,6 +96,11 @@ class SpecialClaimWiki extends SpecialPage {
 			return;
 		}
 
+		if ($this->wgUser->getEditCount() < 1){
+			$this->output->showErrorPage('wiki_claim_error', 'wiki_claim_zero_contributions');
+			return;
+		}
+
 		$this->claim = new wikiClaim($this->wgUser);
 
 		$this->claimForm();
