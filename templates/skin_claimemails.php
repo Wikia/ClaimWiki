@@ -47,17 +47,7 @@ Please visit <a href='".$page->getFullURL()."'>the wiki claims page</a> to appro
 	 */
 	public function claimStatusNotice($emailExtra = array()) {
 		global $defaultPortal, $wgEmergencyContact, $claimWikiEmailSignature;
-		if ($emailExtra['claim']->isPending() === true) {
-			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
-<br/>
-Thank you very much for your recent application to become the Wiki Guardian for this project. We very much appreciate your enthusiasm for the project, but feel that at this moment in time there is either not enough activity to warrant having an administrator for now, or that we would really like to see more of a contribution history from you before accepting your request. The admin tools that are granted by this position are generally used very infrequently and do not confer any type of status or rank on the wiki, merely the ability to perform certain custodial tasks and we generally like to choose individuals who have demonstrated a continued interest in contributing to the project at all levels.<br/>
-<br/>
-For now, we have kept your application on file and would ask that you contact a Curse staff member on their userpage or e-mail ".$wgEmergencyContact." after continuing to contribute to this project in the meantime. If you have need of an administrator in the meantime, please post on the [[Project:Admin_noticeboard|Admin Noticeboard]] and we will be happy to assist!
-<br/>
-Thanks,
-<br/>
---{$claimWikiEmailSignature}";
-		} elseif ($emailExtra['claim']->isApproved() === true) {
+		if ($emailExtra['claim']->isApproved() === true) {
 			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
 <br/>
 We’re happy to say that your Claim-a-Wiki application has been accepted! After reviewing your responses, we are confident that you are going to be a welcome addition to this wiki and ".str_replace(['http://', 'https://'], '', $defaultPortal)." in general.  We assume you’re pretty up to speed with the basics, but remember that you have now been granted the technical ability to perform certain special actions on this wiki.  This includes the ability to block users from editing, protect pages from editing, delete pages, rename pages without restriction, and use certain other tools.  We ask that you use these tools in the pursuit of excellence, and never for spiteful or personal reasons.  If you ever have any questions, comments, concerns, or any type of issue you’re not sure how to handle please feel free to contact the wiki team either via email at ".$wgEmergencyContact." or by leaving a message on a wiki administrator's talk page.<br/>
