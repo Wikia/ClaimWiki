@@ -55,6 +55,8 @@ class skin_wikiclaims {
 			<span class='swatch'></span> Approved
 		</div><div class='legend denied'>
 			<span class='swatch'></span> Denied
+		</div><div class='legend pending'>
+			<span class='swatch'></span> Pending
 		</div>
 	</div>
 	<table id='claimlist'>
@@ -73,7 +75,7 @@ class skin_wikiclaims {
 			foreach ($claims as $claim) {
 				$claim = $claim['claimObj'];
 				$HTML .= "
-				<tr class='".($claim->isApproved() === true ? 'approved' : null).($claim->isApproved() === false ? 'denied' : null)."'>
+				<tr class='".($claim->isApproved() === true ? 'approved' : null).($claim->isApproved() === false ? 'denied' : null).($claim->isPending() === true ? 'pending' : null)."'>
 					<td><a href='{$wikiClaimsURL}?do=view&amp;user_id=".$claim->getUser()->getId()."'>".$claim->getUser()->getName()."</a></td>
 					<td><span data-sort='claim_timestamp'".($sortKey == 'claim_timestamp' ? " data-selected='true'" : '').">".($claim->getTimestamp('claim') ? date('Y-m-d H:i e', $claim->getTimestamp('claim')) : wfMessage('never')->escaped())."</span></td>
 					<td><span data-sort='start_timestamp'".($sortKey == 'start_timestamp' ? " data-selected='true'" : '').">".($claim->getTimestamp('start') ? date('Y-m-d H:i e', $claim->getTimestamp('start')) : wfMessage('never')->escaped())."</span></td>
@@ -85,6 +87,7 @@ class skin_wikiclaims {
 								".($claim->isApproved() !== true ? "<a href='{$wikiClaimsURL}?do=approve&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('approve_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/green_check.png'/>".wfMessage('approve_claim')->escaped()."</a>" : null)."
 								".($claim->isApproved() === true ? "<a href='{$wikiClaimsURL}?do=end&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('end_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/yellow_check.png'/>".wfMessage('end_claim')->escaped()."</a>" : null)."
 								".($claim->isApproved() === null ? "<a href='{$wikiClaimsURL}?do=deny&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('deny_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/red-x.png'/>".wfMessage('deny_claim')->escaped()."</a>" : null)."
+								".($claim->isPending() === null ? "<a href='{$wikiClaimsURL}?do=pending&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('pending_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/pending.png'/>".wfMessage('pending_claim')->escaped()."</a>" : null)."
 								".($claim->isApproved() === null ? "<a href='{$wikiClaimsURL}?do=delete&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('delete_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/delete.png'/>".wfMessage('delete_claim')->escaped()."</a>" : null)."
 							</span>
 						</div>
@@ -132,7 +135,8 @@ HTML;
 			<p>{$answer}</p>";
 		}
 		$HTML .= "
-			<a href='{$wikiContributionsURL}/".$claim->getUser()->getName()."' target='_blank'>".wfMessage('claim_user_contributions')->escaped()."</a>
+			<a href='{$wikiContributionsURL}/".$claim->getUser()->getName()."' target='_blank'>".wfMessage('claim_user_contributions')->escaped()."</a><br />
+			<a  href='".$claim->getUser()->getUserPage()->getFullURL()."'>View User Page for ".$claim->getUser()->getName()."</a>
 		</div>";
 
 		return $HTML;

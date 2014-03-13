@@ -41,7 +41,7 @@ class skin_claimwiki {
 				<a href='{$mainPageURL}'>".wfMessage('returnto', $wgSitename)->escaped()."</a>";
 			}
 		} else {
-			$HTML .= "
+			$HTML .= "<p>".$claim->getGuidelinesText()."</p>
 			<form id='claim_wiki_form' method='post' action='?do=save'>
 				<fieldset>
 					<h3>User Name: <span class='plain'>".$claim->getUser()->getName()."</span></h3>

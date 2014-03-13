@@ -169,6 +169,16 @@ class wikiClaim {
 	}
 
 	/**
+	 * Returns the guidelines text for the wiki claim terms.
+	 *
+	 * @access	public
+	 * @return	string	Guidlines Text.
+	 */
+	public function getGuidelinesText() {
+		return wfMessage('wiki_claim_more_info')->parseAsBlock();
+	}
+
+	/**
 	 * Are the terms accepted by this user?
 	 *
 	 * @access	public
@@ -204,8 +214,10 @@ class wikiClaim {
 			$this->data['approved'] = null;
 		} elseif ($approved === true) {
 			$this->data['approved'] = 1;
+			$this->data['pending'] = null;
 		} elseif ($approved === false) {
 			$this->data['approved'] = 0;
+			$this->data['pending'] = null;
 		} else {
 			$this->data['approved'] = null;
 		}
@@ -223,6 +235,45 @@ class wikiClaim {
 		} elseif ($this->data['approved'] == 1) {
 			return true;
 		} elseif ($this->data['approved'] == 0) {
+			return false;
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Set the pending status on this claim.
+	 * True - pending
+	 *
+	 * @access	public
+	 * @param	boolean	[Optional] pending status for this claim.  Defaults to true.
+	 * @return	void
+	 */
+	public function setPending($approved = true) {
+		if ($approved === null) {
+			$this->data['pending'] = null;
+		} elseif ($approved === true) {
+			$this->data['pending'] = 1;
+			$this->data['approved'] = null;
+		} elseif ($approved === false) {
+			$this->data['pending'] = 0;
+		} else {
+			$this->data['pending'] = null;
+		}
+	}
+
+	/**
+	 * Is this claim pending?
+	 *
+	 * @access	public
+	 * @return	mixed	Boolean true or false for pending, null if neither decision has been made.
+	 */
+	public function isPending() {
+		if ($this->data['pending'] === null) {
+			return null;
+		} elseif ($this->data['pending'] == 1) {
+			return true;
+		} elseif ($this->data['pending'] == 0) {
 			return false;
 		} else {
 			return null;

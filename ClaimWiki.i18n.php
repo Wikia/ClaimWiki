@@ -39,6 +39,7 @@ $messages['en'] = [
 	<li>Lead by example and to behave in a respectful, civil manner in your interactions with others.</li>
 	<li>Never share your password or account with any other person, for any reason. If you find out that your password has been compromised, or your account has been otherwise compromised (even by an editor or individual you know and trust), you should attempt to change it immediately, or otherwise report it to wiki staff members immediately.</li>
 </ol>',
+	'wiki_claim_more_info'                  => 'Before applying as a Wiki Guardian, please read the [[Project:Administrators_Guide|Administrator’s Guide]]. Becoming a Wiki Guardian or Administrator does not confer any special rank or status, but merely grants the user the ability to use certain tools to assist in the maintenance of the project. Please consider spending some time contributing to the project before applying to become a Guardian. In most cases, applications will only be considered for users that have a significant contribution history on the project.',
 	'claim_agree'							=> 'I agree to the terms stated above.',
 	'claim_agree_error'						=> 'You must agree to the terms to submit a wiki claim.',
 	'fill_out_field'						=> 'This field must be filled out.',
@@ -66,6 +67,7 @@ $messages['en'] = [
 	'claim_denied'							=> 'Sorry, your claim to be a wiki guardian on this wiki has been denied.  Please check your email for further information.',
 	'approved'								=> 'approved',
 	'denied'								=> 'denied',
+	'email_pending'                         => 'reviewed',
 	'claim_user_contributions'				=> 'View User Contributions',
 	'list_search'							=> 'Search',
 	'list_reset'							=> 'Reset'
