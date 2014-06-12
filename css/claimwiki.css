@@ -9,23 +9,23 @@
 	text-decoration: none;
 }
 
-#p-claimWiki .body {
-	background-image: none !important;
-	margin: 0 0 0 5px !important;
-	padding: 0 !important;
+div#mw-panel div.portal#p-claimWiki .body {
+	background-image: none;
+	margin: 0 0 0 5px;
+	padding: 0;
 }
 
-.collapsible-nav #p-claimWiki {
-	margin: 0 0 1.5em !important;
+#mw-panel.collapsible-nav .portal#p-claimWiki {
+	margin: 0 0 1.5em;
 }
 
-#p-claimWiki > h5, .collapsible-nav #p-claimWiki > h5 {
-	background-image: none !important;
-	display: none !important;
+div#mw-panel div.portal#p-claimWiki > h5, #mw-panel.collapsible-nav .portal#p-claimWiki > h5 {
+	background-image: none;
+	display: none;
 }
 
-.collapsible-nav #p-claimWiki .body {
-	display: block !important;
+#mw-panel.collapsible-nav .portal#p-claimWiki .body {
+	display: block;
 }
 
 #claim_wiki_form {
