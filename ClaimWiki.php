@@ -86,4 +86,5 @@ $wgGroupPermissions['user']['claim_wiki']			= true;
 $wgGroupPermissions['bureaucrat']['wiki_claims']	= true;
 
 $wgGroupPermissions['wiki_guardian'] = $wgGroupPermissions['sysop'];
-?>
+
+$wgMessagesDirs['ClaimWiki'] = __DIR__ . '/i18n';
