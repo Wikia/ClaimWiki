@@ -27,7 +27,7 @@ class skin_claimemails {
 	 * @param	array	Extra information for email body template.
 	 * @return	string	Built HTML
 	 */
-	public function claimWikiNotice($emailExtra = array()) {
+	public function claimWikiNotice($emailExtra = []) {
 		$page = Title::newFromText('Special:WikiClaims');
 
 		$HTML = '';
@@ -47,7 +47,7 @@ Please visit <a href='".$page->getFullURL()."'>the wiki claims page</a> to appro
 	 * @param	array	Extra information for email body template.
 	 * @return	string	Built HTML
 	 */
-	public function claimStatusNotice($emailExtra = array()) {
+	public function claimStatusNotice($emailExtra = []) {
 		global $defaultPortal, $wgEmergencyContact, $claimWikiEmailSignature;
 
 		$HTML = '';
@@ -96,10 +96,10 @@ Your status as Wiki Guardian has been removed due to inactivity.  Please contact
 	 * @param	string	Wiki Name
 	 * @return	string	Built HTML
 	 */
-	public function wikiGuardianInactive($userClaimRow, $wikiName) {
+	public function wikiGuardianInactive($userName, $wikiName) {
 		$HTML = '';
 
-		$HTML .= "Dear ".$userClaimRow['user_name'].",<br/>
+		$HTML .= "Dear {$userName},<br/>
 <br/>
 Your status as Wiki Guardian on ".$wikiName." will be removed soon due to inactivity.  Please visit the wiki to retain your status or contact a wiki administrator if you wish to reinstate your status if it has already been removed.";
 

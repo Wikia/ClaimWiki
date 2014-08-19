@@ -64,7 +64,7 @@ class guardianReminderEmail extends Maintenance {
 			}
 			$claim = new wikiClaim($user);
 
-			$redisEmailKey = wfWikiID().':guardianReminderEmail:timeSent:'.$row['user_id'];
+			$redisEmailKey = wfWikiID().':guardianReminderEmail:timeSent:'.$user->mId;
 
 			$timestamp = wfTimestamp(TS_UNIX, $user->getTouched());
 			$oldTimestamp = time() - 2592000; //Thirty Days
@@ -83,7 +83,7 @@ class guardianReminderEmail extends Maintenance {
 				$emailTo		= $claim->getUser()->getName()." <".$claim->getUser()->getEmail().">";
 				$emailSubject	= 'Inactive Wiki Guardian Notification - '.$wgSitename;
 
-				$emailBody		= $this->mouse->output->claimemails->wikiGuardianInactive($row, $wgSitename);
+				$emailBody		= $this->mouse->output->claimemails->wikiGuardianInactive($user->mName, $wgSitename);
 
 				$emailFrom		= $wgEmergencyContact;
 				$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nCC: {$claimWikiEmailTo}\r\nX-Mailer: Hydra/1.0";
