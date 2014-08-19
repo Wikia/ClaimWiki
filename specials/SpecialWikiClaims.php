@@ -49,7 +49,7 @@ class SpecialWikiClaims extends SpecialPage {
 	public function execute($subpage) {
 		global $wgSitename, $claimWikiEnabled;
 		if (!$this->wgUser->isAllowed('wiki_claims')) {
-			$this->output->permissionRequired('wiki_claims');
+			throw new PermissionsError('wiki_claims');
 			return;
 		}
 		if (!defined('CW_EXT_DIR')) {

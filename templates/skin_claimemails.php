@@ -30,6 +30,8 @@ class skin_claimemails {
 	public function claimWikiNotice($emailExtra = array()) {
 		$page = Title::newFromText('Special:WikiClaims');
 
+		$HTML = '';
+
 		$HTML .= "~*~*~*~*~*~*~*~ ".strtoupper($emailExtra['environment'])." ~*~*~*~*~*~*~*~<br/>
 <br/>
 ".$emailExtra['user']->getName()." submitted a claim to administrate {$emailExtra['site_name']} at ".date('c', $emailExtra['claim']->getTimestamp('claim')).".<br/>
@@ -47,6 +49,9 @@ Please visit <a href='".$page->getFullURL()."'>the wiki claims page</a> to appro
 	 */
 	public function claimStatusNotice($emailExtra = array()) {
 		global $defaultPortal, $wgEmergencyContact, $claimWikiEmailSignature;
+
+		$HTML = '';
+
 		if ($emailExtra['claim']->isPending() === true) {
 			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
 <br/>
@@ -92,6 +97,8 @@ Your status as Wiki Guardian has been removed due to inactivity.  Please contact
 	 * @return	string	Built HTML
 	 */
 	public function wikiGuardianInactive($userClaimRow, $wikiName) {
+		$HTML = '';
+
 		$HTML .= "Dear ".$userClaimRow['user_name'].",<br/>
 <br/>
 Your status as Wiki Guardian on ".$wikiName." will be removed soon due to inactivity.  Please visit the wiki to retain your status or contact a wiki administrator if you wish to reinstate your status if it has already been removed.";

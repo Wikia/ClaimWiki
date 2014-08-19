@@ -60,7 +60,7 @@ class SpecialClaimWiki extends SpecialPage {
 		}
 
 		if (!$this->wgUser->isAllowed('claim_wiki')) {
-			$this->output->permissionRequired('claim_wiki');
+			throw new PermissionsError('claim_wiki');
 			return;
 		}
 
