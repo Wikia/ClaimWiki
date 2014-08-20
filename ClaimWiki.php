@@ -47,12 +47,13 @@ $wgHooks['BeforePageDisplay'][]						= 'ClaimWikiHooks::onBeforePageDisplay';
 $wgHooks['SkinBuildSidebar'][]                      = 'ClaimWikiHooks::onSkinBuildSidebar';
 $wgHooks['LoadExtensionSchemaUpdates'][]			= 'ClaimWikiHooks::onLoadExtensionSchemaUpdates';
 
-$wgResourceModules['ext.claimWiki'] = array(
+$wgResourceModules['ext.claimWiki'] = [
 	'localBasePath'	=> __DIR__,
 	'remoteExtPath'	=> 'ClaimWiki',
-	'scripts'		=> array('js/listSorter.js'),
-	'styles'		=> array('css/claimwiki.css')
-);
+	'scripts'		=> ['js/listSorter.js'],
+	'styles'		=> ['css/claimwiki.css'],
+	'dependencies'	=> ['ext.curse.pagination']
+];
 
 /******************************************/
 /* Settings and Permissions               */

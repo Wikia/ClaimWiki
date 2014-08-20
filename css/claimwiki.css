@@ -257,33 +257,6 @@ div#mw-panel div.portal#p-claimWiki > h5, #mw-panel.collapsible-nav .portal#p-cl
 	margin-bottom: 6px;
 }
 
-.pagination {
-	display: inline-block;
-	margin-left: 0;
-}
-
-	.pagination li {
-		border: 1px solid black;
-		display: inline-block;
-		float: left;
-		font-weight: bold;
-		list-style: none inside none;
-		margin: 0 3px;
-		padding: 1px 5px;
-	}
-
-		.pagination li.selected {
-			background-color: #ccc;
-		}
-
-		.pagination li:first-child {
-			margin-left: 0;
-		}
-
-		.pagination li:last-child {
-			margin-right: 0;
-		}
-
 .legend {
 	display: inline-block;
 	font: 300 11px/30px Helvetica,Arial,sans-serif;
