@@ -67,7 +67,7 @@ class guardianReminderEmail extends Maintenance {
 			$redisEmailKey = wfWikiID().':guardianReminderEmail:timeSent:'.$user->mId;
 
 			$timestamp = wfTimestamp(TS_UNIX, $user->getTouched());
-			$oldTimestamp = time() - 2592000; //Thirty Days
+			$oldTimestamp = time() - 5184000; //Thirty Days
 			$emailReminderExpired = time() - 1296000; //Fifteen Days
 
 			$emailSent = $this->mouse->redis->get($redisEmailKey);
