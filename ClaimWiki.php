@@ -46,6 +46,7 @@ $wgSpecialPageGroups['WikiClaims']					= 'claimwiki';
 $wgHooks['BeforePageDisplay'][]						= 'ClaimWikiHooks::onBeforePageDisplay';
 $wgHooks['SkinBuildSidebar'][]                      = 'ClaimWikiHooks::onSkinBuildSidebar';
 $wgHooks['LoadExtensionSchemaUpdates'][]			= 'ClaimWikiHooks::onLoadExtensionSchemaUpdates';
+$wgHooks['UserRights'][]							= 'ClaimWikiHooks::onUserRights';
 
 $wgResourceModules['ext.claimWiki'] = [
 	'localBasePath'	=> __DIR__,

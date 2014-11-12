@@ -70,6 +70,27 @@ class ClaimWikiHooks {
 	}
 
 	/**
+	 * Detect changes to the user groups and update users in the wiki_guardian group as needed.
+	 *
+	 * @access	public
+	 * @param	object	User or UserRightsProxy object changed.
+	 * @return	boolean	True
+	 */
+	public function onUserRights($user, array $add, array $remove) {
+		if (!$user instanceOf User || !$user->getId()) {
+			return true;
+		}
+
+		if (in_array('wiki_guardian', $remove)) {
+			$claim = new wikiClaim($user);
+			if (!$claim) {
+				return true;
+			}
+			$claim->delete();
+		}
+	}
+
+	/**
 	 * Setups and Modifies Database Information
 	 *
 	 * @access	public
