@@ -88,6 +88,7 @@ class ClaimWikiHooks {
 			}
 			$claim->delete();
 		}
+		return true;
 	}
 
 	/**
