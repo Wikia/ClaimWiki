@@ -39,7 +39,12 @@ class guardianReminderEmail extends Maintenance {
 	 * @return	void
 	 */
 	public function execute() {
-		global $wgEmergencyContact, $wgSitename, $claimWikiEmailTo;
+		global $wgEmergencyContact, $wgSitename, $claimWikiEmailTo, $claimWikiEnabled;
+
+		if (!$claimWikiEnabled) {
+			return;
+		}
+
 		$this->DB = wfGetDB(DB_MASTER);
 
 		$settings['file'] = SITE_DIR.'/LocalSettings.php';
