@@ -39,7 +39,7 @@ class skin_wikiclaims {
 
 		$HTML = "
 	<div>{$pagination}</div>
-	<div class='list_search'>
+	<div class='search_bar'>
 		<form method='get' action='{$wikiClaimsURL}'>
 			<fieldset>
 				<input type='hidden' name='section' value='list' />
