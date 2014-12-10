@@ -53,7 +53,7 @@ $wgResourceModules['ext.claimWiki'] = [
 	'remoteExtPath'	=> 'ClaimWiki',
 	'scripts'		=> ['js/listSorter.js'],
 	'styles'		=> ['css/claimwiki.css'],
-	'dependencies'	=> ['ext.curse.pagination']
+	'dependencies'	=> ['ext.curse.pagination', 'ext.curse.button']
 ];
 
 /******************************************/
