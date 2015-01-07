@@ -94,6 +94,9 @@ class SpecialWikiClaims extends SpecialPage {
 			case 'end':
 				$this->endClaim();
 				break;
+			case 'inactive':
+				$this->inactiveClaim();
+				break;
 			case 'view':
 				$this->viewClaim();
 				break;
@@ -226,7 +229,7 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->addGroup('wiki_guardian');
 
-		$this->sendEmail(true);
+		$this->sendEmail('approved');
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -244,11 +247,11 @@ class SpecialWikiClaims extends SpecialPage {
 			return;
 		}
 
-		$this->claim->setApproved(false);
+		$this->claim->setDenied();
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
-		$this->sendEmail(false);
+		$this->sendEmail('denied');
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -266,7 +269,7 @@ class SpecialWikiClaims extends SpecialPage {
 			return;
 		}
 
-		$this->claim->setPending(true);
+		$this->claim->setPending();
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
@@ -288,10 +291,33 @@ class SpecialWikiClaims extends SpecialPage {
 			return;
 		}
 
-		$this->claim->setApproved(null);
+		$this->claim->setNew();
 		$this->claim->setTimestamp(time(), 'end');
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
+
+		$page = Title::newFromText('Special:WikiClaims');
+		$this->output->redirect($page->getFullURL());
+	}
+
+	/**
+	 * Inactive Claim
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function inactiveClaim() {
+		$this->loadClaim();
+		if (!$this->claim) {
+			return;
+		}
+
+		$this->claim->setInactive();
+		$this->claim->setTimestamp(time(), 'end');
+		$this->claim->save();
+		$this->claim->getUser()->removeGroup('wiki_guardian');
+
+		$this->sendEmail('inactive');
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -345,11 +371,7 @@ class SpecialWikiClaims extends SpecialPage {
 
 		$emailTo		= $this->claim->getUser()->getName()." <".$this->claim->getUser()->getEmail().">";
 
-		if ($status === 'pending'){
-			$emailSubject	= wfMessage('claim_status_email_subject', wfMessage('email_pending')->text())->text();
-		} else {
-			$emailSubject	= wfMessage('claim_status_email_subject', ($status ? wfMessage('approved')->text() : wfMessage('denied')->text()))->text();
-		}
+		$emailSubject	= wfMessage('claim_status_email_subject', wfMessage('subject_'.$status)->text())->text();
 
 		$emailExtra		= [
 			'user'			=> $this->wgUser,

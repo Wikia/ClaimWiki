@@ -129,6 +129,7 @@ class wikiClaim {
 		if ($data['cid'] > 0) {
 			//Load existing data.
 			$this->data = $data;
+			$this->data['status'] = intval($this->data['status']);
 
 			//Load existing answers.
 			$result = $this->DB->select(

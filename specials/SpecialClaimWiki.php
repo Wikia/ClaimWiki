@@ -87,7 +87,7 @@ class SpecialClaimWiki extends SpecialPage {
 		$result = $this->DB->select(
 			'wiki_claims',
 			['COUNT(*) as total'],
-			'approved = 1 AND end_timestamp = 0',
+			'status = '.intval(wikiClaim::CLAIM_APPROVED).' AND end_timestamp = 0',
 			__METHOD__
 		);
 		$total = $result->fetchRow();

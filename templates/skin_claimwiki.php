@@ -33,7 +33,7 @@ class skin_claimwiki {
 		if ($wgRequest->getVal('success') == 'true' || ($claim->isAgreed() && $claim->getTimestamp('claim') > 0)) {
 			$mainPage		= new Title();
 			$mainPageURL	= $mainPage->getFullURL();
-			if ($claim->isApproved() === false) {
+			if ($claim->isDenied()) {
 				$HTML .= "<div class='errorbox'>".wfMessage('claim_denied')."</div><br style='clear: both;'/>
 				<a href='{$mainPageURL}'>".wfMessage('returnto', $wgSitename)->escaped()."</a>";
 			} else {
