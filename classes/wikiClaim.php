@@ -14,25 +14,60 @@
 
 class wikiClaim {
 	/**
+	 * Production Environment Domain
+	 *
+	 * @var		constant
+	 */
+	const CLAIM_NEW = 0;
+
+	/**
+	 * Staging Environment Domain
+	 *
+	 * @var		constant
+	 */
+	const CLAIM_PENDING = 1;
+
+	/**
+	 * Development Environment Domain
+	 *
+	 * @var		constant
+	 */
+	const CLAIM_APPROVED = 2;
+
+	/**
+	 * Local Environment Domain
+	 *
+	 * @var		constant
+	 */
+	const CLAIM_DENIED = 3;
+
+	/**
+	 * Redirect Domain
+	 *
+	 * @var		constant
+	 */
+	const CLAIM_INACTIVE = 4;
+
+	/**
 	 * Claim Data
 	 *
 	 * @var		array
 	 */
-	private $data = array();
+	private $data = [];
 
 	/**
 	 * Claim Question
 	 *
 	 * @var		array
 	 */
-	private $questions = array();
+	private $questions = [];
 
 	/**
 	 * Claim Answers
 	 *
 	 * @var		array
 	 */
-	private $answers = array();
+	private $answers = [];
 
 	/**
 	 * Mediawiki User object for this claim.
@@ -230,12 +265,26 @@ class wikiClaim {
 	 * @return	mixed	Boolean true or false for approval, null if neither decision has been made.
 	 */
 	public function isApproved() {
-		if ($this->data['approved'] === null) {
-			return null;
-		} elseif ($this->data['approved'] == 1) {
+		if ($this->data['approved'] == 1) {
 			return true;
 		} elseif ($this->data['approved'] == 0) {
 			return false;
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Is this claim denied?
+	 *
+	 * @access	public
+	 * @return	mixed	Boolean true or false for denied, null if neither decision has been made.
+	 */
+	public function isDenied() {
+		if ($this->data['approved'] == 1) {
+			return false;
+		} elseif ($this->data['approved'] == 0) {
+			return true;
 		} else {
 			return null;
 		}
@@ -463,8 +512,8 @@ class wikiClaim {
 			__METHOD__
 		);
 
-		$this->data = array();
-		$this->answers = array();
+		$this->data = [];
+		$this->answers = [];
 
 		return true;
 	}
