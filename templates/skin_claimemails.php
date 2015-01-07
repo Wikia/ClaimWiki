@@ -44,15 +44,16 @@ Please visit <a href='".$page->getFullURL()."'>the wiki claims page</a> to appro
 	 * Claim Wiki Status
 	 *
 	 * @access	public
+	 * @param	string	Status email type to send.
 	 * @param	array	Extra information for email body template.
 	 * @return	string	Built HTML
 	 */
-	public function claimStatusNotice($emailExtra = []) {
+	public function claimStatusNotice($status, $emailExtra) {
 		global $defaultPortal, $wgEmergencyContact, $claimWikiEmailSignature;
 
 		$HTML = '';
 
-		if ($emailExtra['claim']->isPending() === true) {
+		if ($status == "pending") {
 			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
 <br/>
 Thank you very much for your recent application to become the Wiki Guardian for this project. We very much appreciate your enthusiasm for the project, but feel that at this moment in time there is either not enough activity to warrant having an administrator for now, or that we would really like to see more of a contribution history from you before accepting your request. The admin tools that are granted by this position are generally used very infrequently and do not confer any type of status or rank on the wiki, merely the ability to perform certain custodial tasks and we generally like to choose individuals who have demonstrated a continued interest in contributing to the project at all levels.<br/>
@@ -62,7 +63,7 @@ For now, we have kept your application on file and would ask that you contact a 
 Thanks,
 <br/>
 --{$claimWikiEmailSignature}";
-		} elseif ($emailExtra['claim']->isApproved()) {
+		} elseif ($status == "approved") {
 			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
 <br/>
 We’re happy to say that your Claim-a-Wiki application has been accepted! After reviewing your responses, we are confident that you are going to be a welcome addition to this wiki and ".str_replace(['http://', 'https://'], '', $defaultPortal)." in general.  We assume you’re pretty up to speed with the basics, but remember that you have now been granted the technical ability to perform certain special actions on this wiki.  This includes the ability to block users from editing, protect pages from editing, delete pages, rename pages without restriction, and use certain other tools.  We ask that you use these tools in the pursuit of excellence, and never for spiteful or personal reasons.  If you ever have any questions, comments, concerns, or any type of issue you’re not sure how to handle please feel free to contact the wiki team either via email at ".$wgEmergencyContact." or by leaving a message on a wiki administrator's talk page.<br/>
@@ -70,7 +71,7 @@ We’re happy to say that your Claim-a-Wiki application has been accepted! After
 Congratulations, and welcome!<br/>
 <br/>
 --{$claimWikiEmailSignature}";
-		} elseif ($emailExtra['claim']->isDenied()) {
+		} elseif ($status == "denied") {
 			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
 <br/>
 After reviewing your Claim-a-Wiki application we must unfortunately decline your application.  It’s nothing personal, but for one reason or another we felt that you were not eligible to be elevated to an administrator level on this project.  If you are still interested you are welcome to apply again although please note that your previous application will still be on file and so it may be in your interest to wait a short while and gain some more experience on-wiki before trying again. If you would like to contact us directly about your application, feel free to e-mail us at ".$wgEmergencyContact." or leave a message on a wiki administrator's talk page.<br/>
@@ -78,10 +79,16 @@ After reviewing your Claim-a-Wiki application we must unfortunately decline your
 Thank you for your interest,<br/>
 <br/>
 --{$claimWikiEmailSignature}";
-		} elseif ($emailExtra['claim']->isInactive()) {
+		} elseif ($status == "inactive") {
 			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
 <br/>
 Your status as Wiki Guardian has been removed due to inactivity.  Please contact a wiki administrator if you wish to reinstate your status.<br/>
+<br/>
+--{$claimWikiEmailSignature}";
+		} elseif ($status == "resumed") {
+			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
+<br/>
+Your status as a Wiki Guardian has been restored after its removal for inactivity. <br/>
 <br/>
 --{$claimWikiEmailSignature}";
 		}

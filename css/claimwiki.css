@@ -162,6 +162,10 @@ div#mw-panel div.portal#p-claimWiki > h5, #mw-panel.collapsible-nav .portal#p-cl
 		background: none repeat scroll 0 0 #8DDD62;
 	}
 
+	#claimlist tbody tr td:first-child a {
+		color: black;
+	}
+
 	#claimlist .approved, .legend.approved span.swatch {
 		background: none repeat scroll 0 0 greenyellow;
 	}
@@ -175,7 +179,7 @@ div#mw-panel div.portal#p-claimWiki > h5, #mw-panel.collapsible-nav .portal#p-cl
     }
 
 	#claimlist .inactive, .legend.inactive span.swatch {
-		background: none repeat scroll 0 0 #d667f5;
+		background: none repeat scroll 0 0 #8B87E8;
 	}
 
 	.skin-hydradark #claimlist .approved, .skin-hydradark .legend.approved span.swatch, .skin-hydradark #claimlist .pending, .skin-hydradark .legend.pending span.swatch, .skin-hydradark #claimlist .denied, .skin-hydradark .legend.denied span.swatch, .skin-hydradark #claimlist .inactive {

@@ -82,6 +82,9 @@ class SpecialWikiClaims extends SpecialPage {
 			case 'approve':
 				$this->approveClaim();
 				break;
+			case 'resume':
+				$this->resumeClaim();
+				break;
 			case 'deny':
 				$this->denyClaim();
 				break;
@@ -236,6 +239,29 @@ class SpecialWikiClaims extends SpecialPage {
 	}
 
 	/**
+	 * Resume Claim
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function resumeClaim() {
+		$this->loadClaim();
+		if (!$this->claim) {
+			return;
+		}
+
+		$this->claim->setApproved();
+		$this->claim->setTimestamp(0, 'end');
+		$this->claim->save();
+		$this->claim->getUser()->addGroup('wiki_guardian');
+
+		$this->sendEmail('resumed');
+
+		$page = Title::newFromText('Special:WikiClaims');
+		$this->output->redirect($page->getFullURL());
+	}
+
+	/**
 	 * Deny Claim
 	 *
 	 * @access	public
@@ -378,7 +404,7 @@ class SpecialWikiClaims extends SpecialPage {
 			'claim'			=> $this->claim,
 			'site_name'		=> $wgSitename
 		];
-		$emailBody		= $this->mouse->output->claimemails->claimStatusNotice($emailExtra);
+		$emailBody		= $this->mouse->output->claimemails->claimStatusNotice($status, $emailExtra);
 
 		$emailFrom		= $this->wgUser->getEmail();
 		$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nX-Mailer: Hydra/1.0";

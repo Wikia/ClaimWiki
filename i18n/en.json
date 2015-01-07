@@ -28,6 +28,7 @@
 	"claim_status_email_subject": "Your claim on {{SITENAME}} has been $1.",
 	"wikiclaims": "Wiki Claims",
 	"approve_claim": "Approve and Promote",
+	"resume_claim": "Resume and Promote",
 	"deny_claim": "Deny Claim",
 	"end_claim": "Reset to New Claim",
 	"delete_claim": "Delete Record",
@@ -54,6 +55,7 @@
 	"subject_denied": "denied",
 	"subject_inactive": "inactive",
 	"subject_pending": "reviewed",
+	"subject_resumed": "resumed",
 	"claim_user_contributions": "View User Contributions",
 	"list_search": "Search",
 	"list_reset": "Reset"
