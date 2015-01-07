@@ -14,35 +14,35 @@
 
 class wikiClaim {
 	/**
-	 * Production Environment Domain
+	 * New Claim
 	 *
 	 * @var		constant
 	 */
 	const CLAIM_NEW = 0;
 
 	/**
-	 * Staging Environment Domain
+	 * Pending Claim
 	 *
 	 * @var		constant
 	 */
 	const CLAIM_PENDING = 1;
 
 	/**
-	 * Development Environment Domain
+	 * Approved Claim
 	 *
 	 * @var		constant
 	 */
 	const CLAIM_APPROVED = 2;
 
 	/**
-	 * Local Environment Domain
+	 * Denied Claim
 	 *
 	 * @var		constant
 	 */
 	const CLAIM_DENIED = 3;
 
 	/**
-	 * Redirect Domain
+	 * Inactive Claim
 	 *
 	 * @var		constant
 	 */
@@ -235,98 +235,103 @@ class wikiClaim {
 	}
 
 	/**
-	 * Set the approved status on this claim.
-	 * True - Approved
-	 * False - Denied
-	 * Null - Undecided
+	 * Set the new status on this claim.
 	 *
 	 * @access	public
-	 * @param	boolean	[Optional] Approval status for this claim.  Defaults to true.
 	 * @return	void
 	 */
-	public function setApproved($approved = true) {
-		if ($approved === null) {
-			$this->data['approved'] = null;
-		} elseif ($approved === true) {
-			$this->data['approved'] = 1;
-			$this->data['pending'] = null;
-		} elseif ($approved === false) {
-			$this->data['approved'] = 0;
-			$this->data['pending'] = null;
-		} else {
-			$this->data['approved'] = null;
-		}
+	public function setNew() {
+		$this->data['status'] = self::CLAIM_NEW;
 	}
 
 	/**
-	 * Is this claim approved?
+	 * Is this claim new?
 	 *
 	 * @access	public
-	 * @return	mixed	Boolean true or false for approval, null if neither decision has been made.
+	 * @return	boolean
 	 */
-	public function isApproved() {
-		if ($this->data['approved'] == 1) {
-			return true;
-		} elseif ($this->data['approved'] == 0) {
-			return false;
-		} else {
-			return null;
-		}
-	}
-
-	/**
-	 * Is this claim denied?
-	 *
-	 * @access	public
-	 * @return	mixed	Boolean true or false for denied, null if neither decision has been made.
-	 */
-	public function isDenied() {
-		if ($this->data['approved'] == 1) {
-			return false;
-		} elseif ($this->data['approved'] == 0) {
-			return true;
-		} else {
-			return null;
-		}
+	public function isNew() {
+		return $this->data['status'] === self::CLAIM_NEW;
 	}
 
 	/**
 	 * Set the pending status on this claim.
-	 * True - pending
 	 *
 	 * @access	public
-	 * @param	boolean	[Optional] pending status for this claim.  Defaults to true.
 	 * @return	void
 	 */
-	public function setPending($approved = true) {
-		if ($approved === null) {
-			$this->data['pending'] = null;
-		} elseif ($approved === true) {
-			$this->data['pending'] = 1;
-			$this->data['approved'] = null;
-		} elseif ($approved === false) {
-			$this->data['pending'] = 0;
-		} else {
-			$this->data['pending'] = null;
-		}
+	public function setPending() {
+		$this->data['status'] = self::CLAIM_PENDING;
 	}
 
 	/**
 	 * Is this claim pending?
 	 *
 	 * @access	public
-	 * @return	mixed	Boolean true or false for pending, null if neither decision has been made.
+	 * @return	boolean
 	 */
 	public function isPending() {
-		if ($this->data['pending'] === null) {
-			return null;
-		} elseif ($this->data['pending'] == 1) {
-			return true;
-		} elseif ($this->data['pending'] == 0) {
-			return false;
-		} else {
-			return null;
-		}
+		return $this->data['status'] === self::CLAIM_PENDING;
+	}
+
+	/**
+	 * Set the approved status on this claim.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function setApproved() {
+		$this->data['status'] = self::CLAIM_APPROVED;
+	}
+
+	/**
+	 * Is this claim approved?
+	 *
+	 * @access	public
+	 * @return	boolean
+	 */
+	public function isApproved() {
+		return $this->data['status'] === self::CLAIM_APPROVED;
+	}
+
+	/**
+	 * Set the denied status on this claim.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function setDenied() {
+		$this->data['status'] = self::CLAIM_DENIED;
+	}
+
+	/**
+	 * Is this claim denied?
+	 *
+	 * @access	public
+	 * @return	boolean
+	 */
+	public function isDenied() {
+		return $this->data['status'] === self::CLAIM_DENIED;
+	}
+
+	/**
+	 * Set the inactive status on this claim.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function setInactive() {
+		$this->data['status'] = self::CLAIM_INACTIVE;
+	}
+
+	/**
+	 * Is this claim inactive?
+	 *
+	 * @access	public
+	 * @return	boolean
+	 */
+	public function isInactive() {
+		return $this->data['status'] === self::CLAIM_INACTIVE;
 	}
 
 	/**
