@@ -53,10 +53,15 @@ class skin_wikiclaims {
 	<div class='buttons'>
 		<div class='legend approved'>
 			<span class='swatch'></span> Approved
-		</div><div class='legend denied'>
+		</div>
+		<div class='legend denied'>
 			<span class='swatch'></span> Denied
-		</div><div class='legend pending'>
+		</div>
+		<div class='legend pending'>
 			<span class='swatch'></span> Pending
+		</div>
+		<div class='legend inactive'>
+			<span class='swatch'></span> Inactive
 		</div>
 	</div>
 	<table id='claimlist'>
@@ -75,7 +80,7 @@ class skin_wikiclaims {
 			foreach ($claims as $claim) {
 				$claim = $claim['claimObj'];
 				$HTML .= "
-				<tr class='".($claim->isApproved() ? 'approved' : null).($claim->isDenied() ? 'denied' : null).($claim->isPending() ? 'pending' : null)."'>
+				<tr class='".($claim->isApproved() ? 'approved' : null).($claim->isDenied() ? 'denied' : null).($claim->isPending() ? 'pending' : null).($claim->isInactive() ? 'inactive' : null)."'>
 					<td><a href='{$wikiClaimsURL}?do=view&amp;user_id=".$claim->getUser()->getId()."'>".$claim->getUser()->getName()."</a></td>
 					<td><span data-sort='claim_timestamp'".($sortKey == 'claim_timestamp' ? " data-selected='true'" : '').">".($claim->getTimestamp('claim') ? date('Y-m-d H:i e', $claim->getTimestamp('claim')) : wfMessage('never')->escaped())."</span></td>
 					<td><span data-sort='start_timestamp'".($sortKey == 'start_timestamp' ? " data-selected='true'" : '').">".($claim->getTimestamp('start') ? date('Y-m-d H:i e', $claim->getTimestamp('start')) : wfMessage('never')->escaped())."</span></td>
