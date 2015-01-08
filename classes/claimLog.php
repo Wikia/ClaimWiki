@@ -12,7 +12,7 @@
  *
 **/
 
-class claimLog {
+class claimLogPager extends ReverseChronologicalPager {
 	/**
 	 * Log Entries
 	 *
@@ -21,50 +21,57 @@ class claimLog {
 	private $entries = [];
 
 	/**
-	 * Constructor
+	 * Return query arguments.
 	 *
 	 * @access	public
-	 * @return	void
+	 * @return	array
 	 */
-	public function __construct() {
-		$this->DB = wfGetDB(DB_MASTER);
-	}
-
-	/**
-	 * Function Documentation
-	 *
-	 * @access	public
-	 * @return	void
-	 */
-	public function load($start, $itemsPerPage) {
-		$result = $this->DB->select(
-			['wiki_claims_log'],
-			['*'],
-			[],
-			__METHOD__,
-			[
-				'ORDER BY'	=> 'timestamp DESC',
-				'OFFSET'	=> $start,
-				'LIMIT'		=> $itemsPerPage
+	public function getQueryInfo() {
+		$query = [
+			'tables'		=> [
+				'l' => 'wiki_claims_log',
+				'c'	=> 'wiki_claims'
+			],
+			'fields'		=> [
+				'l.*', 'c.user_id'
+			],
+			'conds'			=> [],
+			'options'		=> [
+				'ORDER BY'	=> 'timestamp DESC'
+			],
+			'join_conds'	=> [
+				'wiki_claims' => [
+					'INNER JOIN', 'wiki_claims.cid = wiki_claims_log.claim_id'
+				]
 			]
-		);
+		];
 
-		while ($row = $result->fetchRow()) {
-			$user = User::newFromId($row['user_id']);
-			$row['claimObj'] = new wikiClaim($user);
-			$this->entries[$row['lid']] = $row;
-			$this->entries[$row['lid']][$row['claimObj']->getClaimId()] = $row;
-		}
+		return $query;
 	}
 
 	/**
-	 * Return loaded entries.
+	 * Return index(sort) field
+	 *
+	 * @access	public
+	 * @return	string
+	 */
+	function getIndexField() {
+		return 'timestamp';
+	}
+
+	/**
+	 * Return a formatted database row.
 	 *
 	 * @access	public
 	 * @return	void
 	 */
-	public function getEntries() {
-		return $this->entries;
+	public function formatRow($row) {
+		$user = User::newFromId($row->user_id);
+		$claim = new wikiClaim($user);
+
+		$actor = User::newFromId($row->actor_id);
+
+		return Html::rawElement('li', [], "Claim by ".$claim->getUser()->getName()." was changed to ".wfMessage('status_'.$row->status)->escaped().".  ".$actor->getName());
 	}
 }
 
@@ -98,7 +105,7 @@ class claimLogEntry {
 	 * @return	void
 	 */
 	public function setActor(User $user) {
-		$this->user = $user;
+		$this->actor = $user;
 	}
 
 	/**
@@ -112,7 +119,7 @@ class claimLogEntry {
 			'wiki_claims_log',
 			[
 				'claim_id'	=> $this->claim->getClaimId(),
-				'user_id'	=> $this->user->getId(),
+				'actor_id'	=> $this->actor->getId(),
 				'status'	=> $this->claim->getStatus(),
 				'timestamp'	=> time()
 			],

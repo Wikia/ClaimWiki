@@ -228,12 +228,18 @@ class SpecialWikiClaims extends SpecialPage {
 		$start = $this->wgRequest->getVal('start');
 		$itemsPerPage = 50;
 
-		$logEntries = new claimLog();
-		$logEntries->load($start, $itemsPerPage);
+		$pager = new claimLogPager($this->getContext(), []);
+
+		$body = $pager->getBody();
+
+		//$this->content .= $pager->getPageHeader();
+		if ($body) {
+			$this->content .= $pager->getNavigationBar().Html::rawElement('ul', [], $body).$pager->getNavigationBar();
+		} else {
+			
+		}
 
 		$this->output->setPageTitle(wfMessage('claim_log')->escaped());
-		$this->mouse->output->loadTemplate('wikiclaims');
-		$this->content = $this->mouse->output->wikiclaims->showLog($logEntries->getEntries());
 	}
 
 	/**

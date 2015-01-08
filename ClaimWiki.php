@@ -36,6 +36,7 @@ $wgAutoloadClasses['ClaimWikiHooks']				= "{$extDir}/ClaimWiki.hooks.php";
 $wgAutoloadClasses['SpecialClaimWiki']				= "{$extDir}/specials/SpecialClaimWiki.php";
 $wgAutoloadClasses['SpecialWikiClaims']				= "{$extDir}/specials/SpecialWikiClaims.php";
 $wgAutoloadClasses['wikiClaim']						= "{$extDir}/classes/wikiClaim.php";
+$wgAutoloadClasses['claimLogPager']					= "{$extDir}/classes/claimLog.php";
 $wgAutoloadClasses['claimLogEntry']					= "{$extDir}/classes/claimLog.php";
 
 $wgSpecialPages['ClaimWiki']						= 'SpecialClaimWiki';
