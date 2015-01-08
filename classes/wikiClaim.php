@@ -215,6 +215,16 @@ class wikiClaim {
 	}
 
 	/**
+	 * Return the status code for this claim.
+	 *
+	 * @access	public
+	 * @return	integer	Status Code
+	 */
+	public function getStatus() {
+		return intval($this->data['status']);
+	}
+
+	/**
 	 * Are the terms accepted by this user?
 	 *
 	 * @access	public
@@ -462,6 +472,12 @@ class wikiClaim {
 				$this->data['cid'] = $this->DB->insertId();
 			}
 			$this->DB->commit();
+
+			global $wgUser;
+			$logEntry = new claimLogEntry();
+			$logEntry->setClaim($this);
+			$logEntry->setActor($wgUser);
+			$logEntry->insert();
 		}
 
 		$this->DB->delete(

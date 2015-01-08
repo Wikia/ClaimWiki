@@ -102,9 +102,10 @@ class ClaimWikiHooks {
 		$extDir = __DIR__;
 
 		//Tables
-		//2013-08-21
+		//2015-01-08
 		$updater->addExtensionUpdate(['addTable', 'wiki_claims', "{$extDir}/install/sql/claimwiki_table_wiki_claims.sql", true]);
 		$updater->addExtensionUpdate(['addTable', 'wiki_claims_answers', "{$extDir}/install/sql/claimwiki_table_wiki_claims_answers.sql", true]);
+		$updater->addExtensionUpdate(['addTable', 'wiki_claims_log', "{$extDir}/install/sql/claimwiki_table_wiki_claims_log.sql", true]);
 
 		//2015-01-07
 		$updater->addExtensionUpdate(['modifyField', 'wiki_claims', 'approved', "{$extDir}/upgrade/sql/claimwiki_upgrade_wiki_claims_status_change.sql", true]);

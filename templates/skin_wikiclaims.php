@@ -147,5 +147,35 @@ HTML;
 
 		return $HTML;
 	}
+
+	/**
+	 * Claim View
+	 *
+	 * @access	public
+	 * @param	array	Array of Claim Information
+	 * @return	string	Built HTML
+	 */
+	public function showLog($entries) {
+		global $wgServer, $wgScriptPath;
+
+		$wikiContributionsPage	= Title::newFromText('Special:Contributions');
+		$wikiContributionsURL	= $wikiContributionsPage->getFullURL();
+
+		$answers = $claim->getAnswers();
+		$HTML .= "
+		<div id='claim_wiki_form'>
+			<h3>User Name: <span class='plain'>".$claim->getUser()->getName()."</span></h3>
+			<h3>Email: <a href='mailto:".$claim->getUser()->getEmail()."?subject=".urlencode(wfMessage('claim_questions'))."'><span class='plain'>".$claim->getUser()->getEmail()."</span></a></h3>";
+		foreach ($answers as $questionKey => $answer) {
+			$HTML .= "<h3>".wfMessage($questionKey)->text()."</h3>
+			<p>{$answer}</p>";
+		}
+		$HTML .= "
+			<a href='{$wikiContributionsURL}/".$claim->getUser()->getName()."' target='_blank'>".wfMessage('claim_user_contributions')->escaped()."</a><br />
+			<a  href='".$claim->getUser()->getUserPage()->getFullURL()."'>View User Page for ".$claim->getUser()->getName()."</a>
+		</div>";
+
+		return $HTML;
+	}
 }
 ?>

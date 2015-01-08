@@ -74,35 +74,39 @@ class SpecialWikiClaims extends SpecialPage {
 			return;
 		}
 
-		switch ($this->wgRequest->getVal('do')) {
-			default:
-			case 'claims':
-				$this->wikiClaims();
-				break;
-			case 'approve':
-				$this->approveClaim();
-				break;
-			case 'resume':
-				$this->resumeClaim();
-				break;
-			case 'deny':
-				$this->denyClaim();
-				break;
-			case 'pending':
-				$this->pendingClaim();
-				break;
-			case 'delete':
-				$this->deleteClaim();
-				break;
-			case 'end':
-				$this->endClaim();
-				break;
-			case 'inactive':
-				$this->inactiveClaim();
-				break;
-			case 'view':
-				$this->viewClaim();
-				break;
+		if ($subpage == 'log') {
+			$this->showLog();
+		} else {
+			switch ($this->wgRequest->getVal('do')) {
+				default:
+				case 'claims':
+					$this->wikiClaims();
+					break;
+				case 'approve':
+					$this->approveClaim();
+					break;
+				case 'resume':
+					$this->resumeClaim();
+					break;
+				case 'deny':
+					$this->denyClaim();
+					break;
+				case 'pending':
+					$this->pendingClaim();
+					break;
+				case 'delete':
+					$this->deleteClaim();
+					break;
+				case 'end':
+					$this->endClaim();
+					break;
+				case 'inactive':
+					$this->inactiveClaim();
+					break;
+				case 'view':
+					$this->viewClaim();
+					break;
+			}
 		}
 
 		$this->output->addHTML($this->content);
@@ -212,6 +216,24 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->output->setPageTitle(wfMessage('view_claim').' - '.$this->claim->getUser()->getName());
 		$this->mouse->output->loadTemplate('wikiclaims');
 		$this->content = $this->mouse->output->wikiclaims->viewClaim($this->claim);
+	}
+
+	/**
+	 * Show Claim Log
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function showLog() {
+		$start = $this->wgRequest->getVal('start');
+		$itemsPerPage = 50;
+
+		$logEntries = new claimLog();
+		$logEntries->load($start, $itemsPerPage);
+
+		$this->output->setPageTitle(wfMessage('claim_log')->escaped());
+		$this->mouse->output->loadTemplate('wikiclaims');
+		$this->content = $this->mouse->output->wikiclaims->showLog($logEntries->getEntries());
 	}
 
 	/**
