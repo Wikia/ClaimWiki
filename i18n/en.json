@@ -65,5 +65,5 @@
 	"list_search": "Search",
 	"list_reset": "Reset",
 	"claim_log": "Wiki Claims Log",
-	"claim_log_row": "$6 - Claim $1 by $2 was changed to $3 - $4 $5."
+	"claim_log_row": "$6 - Claim $1 by $2 was changed to $3 - $4 $5"
 }
