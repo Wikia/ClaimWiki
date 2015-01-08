@@ -71,7 +71,24 @@ class claimLogPager extends ReverseChronologicalPager {
 
 		$actor = User::newFromId($row->actor_id);
 
-		return Html::rawElement('li', [], "Claim by ".$claim->getUser()->getName()." was changed to ".wfMessage('status_'.$row->status)->escaped().".  ".$actor->getName());
+		$wikiClaimsPage	= Title::newFromText('Special:WikiClaims');
+		$wikiClaimsURL	= $wikiClaimsPage->getFullURL();
+
+		$timestamp = new MWTimestamp($row->timestamp);
+
+		return Html::rawElement(
+			'li',
+			[],
+			wfMessage(
+				"claim_log_row",
+				"<a href='{$wikiClaimsURL}?do=view&amp;user_id=".$claim->getUser()->getId()."'>#".$row->claim_id."</a>",
+				Linker::userLink($claim->getUser()->getId(),$claim->getUser()->getName()),
+				wfMessage('status_'.$row->status)->escaped(),
+				Linker::userLink($actor->getId(), $actor->getName()),
+				Linker::userToolLinks($actor->getId(), $actor->getName()),
+				$timestamp->getHumanTimestamp()
+			)->text()
+		);
 	}
 }
 
