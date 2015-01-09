@@ -63,6 +63,7 @@ class skin_wikiclaims {
 		<div class='legend inactive'>
 			<span class='swatch'></span> Inactive
 		</div>
+		<a href='{$wikiClaimsURL}/log' class='button'>".wfMessage('claim_log')->escaped()."</a>
 	</div>
 	<table id='claimlist'>
 		<thead>
