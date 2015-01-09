@@ -64,10 +64,7 @@ class SpecialClaimWiki extends SpecialPage {
 			return;
 		}
 
-		if (!class_exists('mouseHole')) {
-			require_once(SITE_DIR.'/mouse/mouse.php');
-		}
-		$this->mouse = mouseHole::instance(array('output' => 'mouseOutputOutput'), array());
+		$this->mouse = mouseNest::getMouse();
 		$this->mouse->output->addTemplateFolder(CW_EXT_DIR.'/templates');
 
 		$this->output->addModules('ext.claimWiki');
@@ -152,13 +149,29 @@ class SpecialClaimWiki extends SpecialPage {
 				$success = $this->claim->save();
 
 				if ($success) {
-					global $claimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName;
+					global $claimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName, $dsSiteKey;
 					$this->mouse->output->loadTemplate('claimemails');
 
-					$emailTo		= $claimWikiEmailTo;
-					$emailSubject	= wfMessage('claim_wiki_email_subject', $this->claim->getUser()->getName())->text();
+					$emailTo[] = $claimWikiEmailTo;
 
-					$emailExtra		= [
+					$siteManagers = @unserialize($this->mouse->redis->hget('dynamicsettings:siteInfo:'.$dsSiteKey, 'wiki_managers'));
+					$siteManager = false;
+					if (is_array($siteManagers) && count($siteManagers)) {
+						$siteManager = current($siteManagers);
+						$user = User::newFromName($siteManager);
+						$user->load();
+						if ($user->getId()) {
+							$wikiManager = $user->getEmail();
+						}
+					}
+
+					if (filter_var($wikiManager, FILTER_VALIDATE_EMAIL)) {
+						$emailTo[] = $wikiManager;
+					}
+					$emailTo = implode(', ', $emailTo);
+					$emailSubject = wfMessage('claim_wiki_email_subject', $this->claim->getUser()->getName())->text();
+
+					$emailExtra = [
 						'environment'	=> (!empty($_SERVER['PHP_ENV']) ? $_SERVER['PHP_ENV'] : $_SERVER['SERVER_NAME']),
 						'user'			=> $this->wgUser,
 						'claim'			=> $this->claim,

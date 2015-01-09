@@ -62,7 +62,7 @@ class SpecialWikiClaims extends SpecialPage {
 		if (!class_exists('mouseHole')) {
 			require_once(SITE_DIR.'/mouse/mouse.php');
 		}
-		$this->mouse = mouseHole::instance(array('output' => 'mouseOutputOutput'), array());
+		$this->mouse = mouseNest::getMouse();
 		$this->mouse->output->addTemplateFolder(CW_EXT_DIR.'/templates');
 
 		$this->output->addModules('ext.claimWiki');
