@@ -163,19 +163,19 @@ div#mw-panel div.portal#p-claimWiki > h5, #mw-panel.collapsible-nav .portal#p-cl
 	}
 
 	#claimlist .approved, .legend.approved span.swatch {
-		background: none repeat scroll 0 0 greenyellow;
+		background: none repeat scroll 0 0 rgba(173, 255, 47, 0.5);
 	}
 
 	#claimlist .denied, .legend.denied span.swatch {
-		background: none repeat scroll 0 0 pink;
+		background: none repeat scroll 0 0 rgba(255, 192, 203, 0.5);
 	}
 
     #claimlist .pending, .legend.pending span.swatch {
-        background: none repeat scroll 0 0 orange;
+        background: none repeat scroll 0 0 rgba(255, 165, 0, 0.5);
     }
 
 	#claimlist .inactive, .legend.inactive span.swatch {
-		background: none repeat scroll 0 0 #F16C46;
+		background: none repeat scroll 0 0 rgba(204, 108, 70, 0.5);
 	}
 
 	.skin-hydradark #claimlist .approved, .skin-hydradark .legend.approved span.swatch, .skin-hydradark #claimlist .pending, .skin-hydradark .legend.pending span.swatch, .skin-hydradark #claimlist .denied, .skin-hydradark .legend.denied span.swatch, .skin-hydradark #claimlist .inactive {
