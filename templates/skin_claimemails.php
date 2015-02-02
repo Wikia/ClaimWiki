@@ -51,6 +51,8 @@ Please visit <a href='".$page->getFullURL()."'>the wiki claims page</a> to appro
 	public function claimStatusNotice($status, $emailExtra) {
 		global $defaultPortal, $wgEmergencyContact, $claimWikiEmailSignature;
 
+		$page = Title::newFromText('Project:Admin_noticeboard');
+
 		$HTML = '';
 
 		if ($status == "pending") {
@@ -58,7 +60,7 @@ Please visit <a href='".$page->getFullURL()."'>the wiki claims page</a> to appro
 <br/>
 Thank you very much for your recent application to become the Wiki Guardian for this project. We very much appreciate your enthusiasm for the project, but feel that at this moment in time there is either not enough activity to warrant having an administrator for now, or that we would really like to see more of a contribution history from you before accepting your request. The admin tools that are granted by this position are generally used very infrequently and do not confer any type of status or rank on the wiki, merely the ability to perform certain custodial tasks and we generally like to choose individuals who have demonstrated a continued interest in contributing to the project at all levels.<br/>
 <br/>
-For now, we have kept your application on file and would ask that you contact a Curse staff member on their userpage or e-mail ".$wgEmergencyContact." after continuing to contribute to this project in the meantime. If you have need of an administrator in the meantime, please post on the [[Project:Admin_noticeboard|Admin Noticeboard]] and we will be happy to assist!
+For now, we have kept your application on file and would ask that you contact a Curse staff member on their userpage or e-mail ".$wgEmergencyContact." after continuing to contribute to this project in the meantime. If you have need of an administrator in the meantime, please post on the <a href='".$page->getFullURL()."'>Admin Noticeboard</a> and we will be happy to assist!
 <br/>
 Thanks,
 <br/>
