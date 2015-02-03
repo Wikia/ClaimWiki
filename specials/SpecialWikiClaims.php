@@ -232,11 +232,12 @@ class SpecialWikiClaims extends SpecialPage {
 
 		$body = $pager->getBody();
 
-		//$this->content .= $pager->getPageHeader();
+		$this->content .= "<div id='contentSub'><span>".wfMessage('back_to_wiki_claims')->parse()."</span></div>";
+
 		if ($body) {
 			$this->content .= $pager->getNavigationBar().Html::rawElement('ul', [], $body).$pager->getNavigationBar();
 		} else {
-			
+			$this->content .= wfMessage('no_log_entries_found')->escaped();
 		}
 
 		$this->output->setPageTitle(wfMessage('claim_log')->escaped());
