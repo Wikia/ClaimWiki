@@ -14,25 +14,60 @@
 
 class wikiClaim {
 	/**
+	 * New Claim
+	 *
+	 * @var		constant
+	 */
+	const CLAIM_NEW = 0;
+
+	/**
+	 * Pending Claim
+	 *
+	 * @var		constant
+	 */
+	const CLAIM_PENDING = 1;
+
+	/**
+	 * Approved Claim
+	 *
+	 * @var		constant
+	 */
+	const CLAIM_APPROVED = 2;
+
+	/**
+	 * Denied Claim
+	 *
+	 * @var		constant
+	 */
+	const CLAIM_DENIED = 3;
+
+	/**
+	 * Inactive Claim
+	 *
+	 * @var		constant
+	 */
+	const CLAIM_INACTIVE = 4;
+
+	/**
 	 * Claim Data
 	 *
 	 * @var		array
 	 */
-	private $data = array();
+	private $data = [];
 
 	/**
 	 * Claim Question
 	 *
 	 * @var		array
 	 */
-	private $questions = array();
+	private $questions = [];
 
 	/**
 	 * Claim Answers
 	 *
 	 * @var		array
 	 */
-	private $answers = array();
+	private $answers = [];
 
 	/**
 	 * Mediawiki User object for this claim.
@@ -94,6 +129,7 @@ class wikiClaim {
 		if ($data['cid'] > 0) {
 			//Load existing data.
 			$this->data = $data;
+			$this->data['status'] = intval($this->data['status']);
 
 			//Load existing answers.
 			$result = $this->DB->select(
@@ -179,6 +215,16 @@ class wikiClaim {
 	}
 
 	/**
+	 * Return the status code for this claim.
+	 *
+	 * @access	public
+	 * @return	integer	Status Code
+	 */
+	public function getStatus() {
+		return intval($this->data['status']);
+	}
+
+	/**
 	 * Are the terms accepted by this user?
 	 *
 	 * @access	public
@@ -200,84 +246,103 @@ class wikiClaim {
 	}
 
 	/**
-	 * Set the approved status on this claim.
-	 * True - Approved
-	 * False - Denied
-	 * Null - Undecided
+	 * Set the new status on this claim.
 	 *
 	 * @access	public
-	 * @param	boolean	[Optional] Approval status for this claim.  Defaults to true.
 	 * @return	void
 	 */
-	public function setApproved($approved = true) {
-		if ($approved === null) {
-			$this->data['approved'] = null;
-		} elseif ($approved === true) {
-			$this->data['approved'] = 1;
-			$this->data['pending'] = null;
-		} elseif ($approved === false) {
-			$this->data['approved'] = 0;
-			$this->data['pending'] = null;
-		} else {
-			$this->data['approved'] = null;
-		}
+	public function setNew() {
+		$this->data['status'] = self::CLAIM_NEW;
 	}
 
 	/**
-	 * Is this claim approved?
+	 * Is this claim new?
 	 *
 	 * @access	public
-	 * @return	mixed	Boolean true or false for approval, null if neither decision has been made.
+	 * @return	boolean
 	 */
-	public function isApproved() {
-		if ($this->data['approved'] === null) {
-			return null;
-		} elseif ($this->data['approved'] == 1) {
-			return true;
-		} elseif ($this->data['approved'] == 0) {
-			return false;
-		} else {
-			return null;
-		}
+	public function isNew() {
+		return $this->data['status'] === self::CLAIM_NEW;
 	}
 
 	/**
 	 * Set the pending status on this claim.
-	 * True - pending
 	 *
 	 * @access	public
-	 * @param	boolean	[Optional] pending status for this claim.  Defaults to true.
 	 * @return	void
 	 */
-	public function setPending($approved = true) {
-		if ($approved === null) {
-			$this->data['pending'] = null;
-		} elseif ($approved === true) {
-			$this->data['pending'] = 1;
-			$this->data['approved'] = null;
-		} elseif ($approved === false) {
-			$this->data['pending'] = 0;
-		} else {
-			$this->data['pending'] = null;
-		}
+	public function setPending() {
+		$this->data['status'] = self::CLAIM_PENDING;
 	}
 
 	/**
 	 * Is this claim pending?
 	 *
 	 * @access	public
-	 * @return	mixed	Boolean true or false for pending, null if neither decision has been made.
+	 * @return	boolean
 	 */
 	public function isPending() {
-		if ($this->data['pending'] === null) {
-			return null;
-		} elseif ($this->data['pending'] == 1) {
-			return true;
-		} elseif ($this->data['pending'] == 0) {
-			return false;
-		} else {
-			return null;
-		}
+		return $this->data['status'] === self::CLAIM_PENDING;
+	}
+
+	/**
+	 * Set the approved status on this claim.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function setApproved() {
+		$this->data['status'] = self::CLAIM_APPROVED;
+	}
+
+	/**
+	 * Is this claim approved?
+	 *
+	 * @access	public
+	 * @return	boolean
+	 */
+	public function isApproved() {
+		return $this->data['status'] === self::CLAIM_APPROVED;
+	}
+
+	/**
+	 * Set the denied status on this claim.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function setDenied() {
+		$this->data['status'] = self::CLAIM_DENIED;
+	}
+
+	/**
+	 * Is this claim denied?
+	 *
+	 * @access	public
+	 * @return	boolean
+	 */
+	public function isDenied() {
+		return $this->data['status'] === self::CLAIM_DENIED;
+	}
+
+	/**
+	 * Set the inactive status on this claim.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function setInactive() {
+		$this->data['status'] = self::CLAIM_INACTIVE;
+	}
+
+	/**
+	 * Is this claim inactive?
+	 *
+	 * @access	public
+	 * @return	boolean
+	 */
+	public function isInactive() {
+		return $this->data['status'] === self::CLAIM_INACTIVE;
 	}
 
 	/**
@@ -407,6 +472,12 @@ class wikiClaim {
 				$this->data['cid'] = $this->DB->insertId();
 			}
 			$this->DB->commit();
+
+			global $wgUser;
+			$logEntry = new claimLogEntry();
+			$logEntry->setClaim($this);
+			$logEntry->setActor($wgUser);
+			$logEntry->insert();
 		}
 
 		$this->DB->delete(
@@ -463,8 +534,8 @@ class wikiClaim {
 			__METHOD__
 		);
 
-		$this->data = array();
-		$this->answers = array();
+		$this->data = [];
+		$this->answers = [];
 
 		return true;
 	}

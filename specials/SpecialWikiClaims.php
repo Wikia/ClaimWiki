@@ -62,7 +62,7 @@ class SpecialWikiClaims extends SpecialPage {
 		if (!class_exists('mouseHole')) {
 			require_once(SITE_DIR.'/mouse/mouse.php');
 		}
-		$this->mouse = mouseHole::instance(array('output' => 'mouseOutputOutput'), array());
+		$this->mouse = mouseNest::getMouse();
 		$this->mouse->output->addTemplateFolder(CW_EXT_DIR.'/templates');
 
 		$this->output->addModules('ext.claimWiki');
@@ -74,29 +74,39 @@ class SpecialWikiClaims extends SpecialPage {
 			return;
 		}
 
-		switch ($this->wgRequest->getVal('do')) {
-			default:
-			case 'claims':
-				$this->wikiClaims();
-				break;
-			case 'approve':
-				$this->approveClaim();
-				break;
-			case 'deny':
-				$this->denyClaim();
-				break;
-			case 'pending':
-				$this->pendingClaim();
-				break;
-			case 'delete':
-				$this->deleteClaim();
-				break;
-			case 'end':
-				$this->endClaim();
-				break;
-			case 'view':
-				$this->viewClaim();
-				break;
+		if ($subpage == 'log') {
+			$this->showLog();
+		} else {
+			switch ($this->wgRequest->getVal('do')) {
+				default:
+				case 'claims':
+					$this->wikiClaims();
+					break;
+				case 'approve':
+					$this->approveClaim();
+					break;
+				case 'resume':
+					$this->resumeClaim();
+					break;
+				case 'deny':
+					$this->denyClaim();
+					break;
+				case 'pending':
+					$this->pendingClaim();
+					break;
+				case 'delete':
+					$this->deleteClaim();
+					break;
+				case 'end':
+					$this->endClaim();
+					break;
+				case 'inactive':
+					$this->inactiveClaim();
+					break;
+				case 'view':
+					$this->viewClaim();
+					break;
+			}
 		}
 
 		$this->output->addHTML($this->content);
@@ -209,6 +219,31 @@ class SpecialWikiClaims extends SpecialPage {
 	}
 
 	/**
+	 * Show Claim Log
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function showLog() {
+		$start = $this->wgRequest->getVal('start');
+		$itemsPerPage = 50;
+
+		$pager = new claimLogPager($this->getContext(), []);
+
+		$body = $pager->getBody();
+
+		$this->content .= "<div id='contentSub'><span>".wfMessage('back_to_wiki_claims')->parse()."</span></div>";
+
+		if ($body) {
+			$this->content .= $pager->getNavigationBar().Html::rawElement('ul', [], $body).$pager->getNavigationBar();
+		} else {
+			$this->content .= wfMessage('no_log_entries_found')->escaped();
+		}
+
+		$this->output->setPageTitle(wfMessage('claim_log')->escaped());
+	}
+
+	/**
 	 * Approve Claim
 	 *
 	 * @access	public
@@ -226,7 +261,30 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->addGroup('wiki_guardian');
 
-		$this->sendEmail(true);
+		$this->sendEmail('approved');
+
+		$page = Title::newFromText('Special:WikiClaims');
+		$this->output->redirect($page->getFullURL());
+	}
+
+	/**
+	 * Resume Claim
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function resumeClaim() {
+		$this->loadClaim();
+		if (!$this->claim) {
+			return;
+		}
+
+		$this->claim->setApproved();
+		$this->claim->setTimestamp(0, 'end');
+		$this->claim->save();
+		$this->claim->getUser()->addGroup('wiki_guardian');
+
+		$this->sendEmail('resumed');
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -244,11 +302,11 @@ class SpecialWikiClaims extends SpecialPage {
 			return;
 		}
 
-		$this->claim->setApproved(false);
+		$this->claim->setDenied();
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
-		$this->sendEmail(false);
+		$this->sendEmail('denied');
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -266,7 +324,7 @@ class SpecialWikiClaims extends SpecialPage {
 			return;
 		}
 
-		$this->claim->setPending(true);
+		$this->claim->setPending();
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
@@ -288,10 +346,33 @@ class SpecialWikiClaims extends SpecialPage {
 			return;
 		}
 
-		$this->claim->setApproved(null);
+		$this->claim->setNew();
 		$this->claim->setTimestamp(time(), 'end');
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
+
+		$page = Title::newFromText('Special:WikiClaims');
+		$this->output->redirect($page->getFullURL());
+	}
+
+	/**
+	 * Inactive Claim
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	public function inactiveClaim() {
+		$this->loadClaim();
+		if (!$this->claim) {
+			return;
+		}
+
+		$this->claim->setInactive();
+		$this->claim->setTimestamp(time(), 'end');
+		$this->claim->save();
+		$this->claim->getUser()->removeGroup('wiki_guardian');
+
+		$this->sendEmail('inactive');
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -345,18 +426,14 @@ class SpecialWikiClaims extends SpecialPage {
 
 		$emailTo		= $this->claim->getUser()->getName()." <".$this->claim->getUser()->getEmail().">";
 
-		if ($status === 'pending'){
-			$emailSubject	= wfMessage('claim_status_email_subject', wfMessage('email_pending')->text())->text();
-		} else {
-			$emailSubject	= wfMessage('claim_status_email_subject', ($status ? wfMessage('approved')->text() : wfMessage('denied')->text()))->text();
-		}
+		$emailSubject	= wfMessage('claim_status_email_subject', wfMessage('subject_'.$status)->text())->text();
 
 		$emailExtra		= [
 			'user'			=> $this->wgUser,
 			'claim'			=> $this->claim,
 			'site_name'		=> $wgSitename
 		];
-		$emailBody		= $this->mouse->output->claimemails->claimStatusNotice($emailExtra);
+		$emailBody		= $this->mouse->output->claimemails->claimStatusNotice($status, $emailExtra);
 
 		$emailFrom		= $this->wgUser->getEmail();
 		$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nX-Mailer: Hydra/1.0";

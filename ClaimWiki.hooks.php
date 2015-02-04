@@ -52,7 +52,7 @@ class ClaimWikiHooks {
 		$result = $DB->select(
 			'wiki_claims',
 			['COUNT(*) as total'],
-			'approved = 1 AND end_timestamp = 0',
+			'status = '.intval(wikiClaim::CLAIM_APPROVED).' AND end_timestamp = 0',
 			__METHOD__
 		);
 		$total = $result->fetchRow();
@@ -102,11 +102,13 @@ class ClaimWikiHooks {
 		$extDir = __DIR__;
 
 		//Tables
-		//2013-08-21
-		$updater->addExtensionUpdate(array('addTable', 'wiki_claims', "{$extDir}/install/sql/claimwiki_table_wiki_claims.sql", true));
-		$updater->addExtensionUpdate(array('addTable', 'wiki_claims_answers', "{$extDir}/install/sql/claimwiki_table_wiki_claims_answers.sql", true));
+		//2015-01-08
+		$updater->addExtensionUpdate(['addTable', 'wiki_claims', "{$extDir}/install/sql/claimwiki_table_wiki_claims.sql", true]);
+		$updater->addExtensionUpdate(['addTable', 'wiki_claims_answers', "{$extDir}/install/sql/claimwiki_table_wiki_claims_answers.sql", true]);
+		$updater->addExtensionUpdate(['addTable', 'wiki_claims_log', "{$extDir}/install/sql/claimwiki_table_wiki_claims_log.sql", true]);
 
-		$updater->addExtensionUpdate(['addField', 'wiki_claims', 'pending', "{$extDir}/upgrade/sql/claimwiki_upgrade_wiki_claims_add_pending.sql", true]);
+		//2015-01-07
+		$updater->addExtensionUpdate(['modifyField', 'wiki_claims', 'approved', "{$extDir}/upgrade/sql/claimwiki_upgrade_wiki_claims_status_change.sql", true]);
 
 		return true;
 	}

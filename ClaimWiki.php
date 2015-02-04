@@ -20,7 +20,7 @@ $wgExtensionCredits['specialpage'][] = array(
 	'name'				=> 'Claim Wiki',
 	'author'			=> 'Alexia E. Smith, Curse Inc&copy;',
 	'descriptionmsg'	=> 'claimwiki_description',
-	'version'			=> '1.0' //Must be a string or Mediawiki will turn it into an integer.
+	'version'			=> '1.1' //Must be a string or Mediawiki will turn it into an integer.
 );
 
 /******************************************/
@@ -36,6 +36,8 @@ $wgAutoloadClasses['ClaimWikiHooks']				= "{$extDir}/ClaimWiki.hooks.php";
 $wgAutoloadClasses['SpecialClaimWiki']				= "{$extDir}/specials/SpecialClaimWiki.php";
 $wgAutoloadClasses['SpecialWikiClaims']				= "{$extDir}/specials/SpecialWikiClaims.php";
 $wgAutoloadClasses['wikiClaim']						= "{$extDir}/classes/wikiClaim.php";
+$wgAutoloadClasses['claimLogPager']					= "{$extDir}/classes/claimLog.php";
+$wgAutoloadClasses['claimLogEntry']					= "{$extDir}/classes/claimLog.php";
 
 $wgSpecialPages['ClaimWiki']						= 'SpecialClaimWiki';
 $wgSpecialPages['WikiClaims']						= 'SpecialWikiClaims';
@@ -53,7 +55,8 @@ $wgResourceModules['ext.claimWiki'] = [
 	'remoteExtPath'	=> 'ClaimWiki',
 	'scripts'		=> ['js/listSorter.js'],
 	'styles'		=> ['css/claimwiki.css'],
-	'dependencies'	=> ['ext.curse.pagination', 'ext.curse.button']
+	'dependencies'	=> ['ext.curse.pagination', 'ext.curse.button'],
+	'position'		=> 'top'
 ];
 
 /******************************************/

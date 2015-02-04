@@ -53,11 +53,17 @@ class skin_wikiclaims {
 	<div class='buttons'>
 		<div class='legend approved'>
 			<span class='swatch'></span> Approved
-		</div><div class='legend denied'>
+		</div>
+		<div class='legend denied'>
 			<span class='swatch'></span> Denied
-		</div><div class='legend pending'>
+		</div>
+		<div class='legend pending'>
 			<span class='swatch'></span> Pending
 		</div>
+		<div class='legend inactive'>
+			<span class='swatch'></span> Inactive
+		</div>
+		<a href='{$wikiClaimsURL}/log' class='button'>".wfMessage('claim_log')->escaped()."</a>
 	</div>
 	<table id='claimlist'>
 		<thead>
@@ -75,7 +81,7 @@ class skin_wikiclaims {
 			foreach ($claims as $claim) {
 				$claim = $claim['claimObj'];
 				$HTML .= "
-				<tr class='".($claim->isApproved() === true ? 'approved' : null).($claim->isApproved() === false ? 'denied' : null).($claim->isPending() === true ? 'pending' : null)."'>
+				<tr class='".($claim->isApproved() ? 'approved' : null).($claim->isDenied() ? 'denied' : null).($claim->isPending() ? 'pending' : null).($claim->isInactive() ? 'inactive' : null)."'>
 					<td><a href='{$wikiClaimsURL}?do=view&amp;user_id=".$claim->getUser()->getId()."'>".$claim->getUser()->getName()."</a></td>
 					<td><span data-sort='claim_timestamp'".($sortKey == 'claim_timestamp' ? " data-selected='true'" : '').">".($claim->getTimestamp('claim') ? date('Y-m-d H:i e', $claim->getTimestamp('claim')) : wfMessage('never')->escaped())."</span></td>
 					<td><span data-sort='start_timestamp'".($sortKey == 'start_timestamp' ? " data-selected='true'" : '').">".($claim->getTimestamp('start') ? date('Y-m-d H:i e', $claim->getTimestamp('start')) : wfMessage('never')->escaped())."</span></td>
@@ -84,11 +90,12 @@ class skin_wikiclaims {
 						<div class='controls_container'>
 							<img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/wikilist/tools.png'/>
 							<span class='dropdown'>
-								".($claim->isApproved() !== true ? "<a href='{$wikiClaimsURL}?do=approve&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('approve_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/green_check.png'/>".wfMessage('approve_claim')->escaped()."</a>" : null)."
-								".($claim->isApproved() === true ? "<a href='{$wikiClaimsURL}?do=end&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('end_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/yellow_check.png'/>".wfMessage('end_claim')->escaped()."</a>" : null)."
-								".($claim->isApproved() === null ? "<a href='{$wikiClaimsURL}?do=deny&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('deny_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/red-x.png'/>".wfMessage('deny_claim')->escaped()."</a>" : null)."
-								".($claim->isPending() === null ? "<a href='{$wikiClaimsURL}?do=pending&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('pending_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/pending.png'/>".wfMessage('pending_claim')->escaped()."</a>" : null)."
-								".($claim->isApproved() === null ? "<a href='{$wikiClaimsURL}?do=delete&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('delete_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/delete.png'/>".wfMessage('delete_claim')->escaped()."</a>" : null)."
+								".($claim->isNew() || $claim->isPending() || $claim->isDenied() ? "<a href='{$wikiClaimsURL}?do=approve&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('approve_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/green_check.png'/>".wfMessage('approve_claim')->escaped()."</a>" : null)."
+								".($claim->isInactive() ? "<a href='{$wikiClaimsURL}?do=resume&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('resume_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/green_check.png'/>".wfMessage('resume_claim')->escaped()."</a>" : null)."
+								".($claim->isApproved() ? "<a href='{$wikiClaimsURL}?do=inactive&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('mark_inactive')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/yellow_check.png'/>".wfMessage('mark_inactive')->escaped()."</a>" : null)."
+								".(!$claim->isDenied() ? "<a href='{$wikiClaimsURL}?do=deny&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('deny_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/red-x.png'/>".wfMessage('deny_claim')->escaped()."</a>" : null)."
+								".($claim->isNew() ? "<a href='{$wikiClaimsURL}?do=pending&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('pending_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/pending.png'/>".wfMessage('pending_claim')->escaped()."</a>" : null)."
+								".($claim->isNew() || $claim->isInactive() || $claim->isDenied() ? "<a href='{$wikiClaimsURL}?do=delete&amp;user_id=".$claim->getUser()->getId()."' title='".wfMessage('delete_claim')->escaped()."'><img src='{$wgServer}{$wgScriptPath}/extensions/ClaimWiki/images/delete.png'/>".wfMessage('delete_claim')->escaped()."</a>" : null)."
 							</span>
 						</div>
 					</td>

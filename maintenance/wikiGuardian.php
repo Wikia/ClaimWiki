@@ -58,7 +58,7 @@ class guardianReminderEmail extends Maintenance {
 		$results = $this->DB->select(
 			['wiki_claims'],
 			['*'],
-			"agreed = 1 AND approved = 1 AND start_timestamp > 0 AND end_timestamp = 0",
+			"agreed = 1 AND status = ".intval(wikiClaim::CLAIM_APPROVED)." AND start_timestamp > 0 AND end_timestamp = 0",
 			__METHOD__
 		);
 
