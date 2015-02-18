@@ -45,10 +45,10 @@ $wgSpecialPages['WikiClaims']						= 'SpecialWikiClaims';
 $wgSpecialPageGroups['ClaimWiki']					= 'claimwiki';
 $wgSpecialPageGroups['WikiClaims']					= 'claimwiki';
 
-/*$wgHooks['BeforePageDisplay'][]						= 'ClaimWikiHooks::onBeforePageDisplay';
-$wgHooks['SkinBuildSidebar'][]                      = 'ClaimWikiHooks::onSkinBuildSidebar';*/
+$wgHooks['BeforePageDisplay'][]						= 'ClaimWikiHooks::onBeforePageDisplay';
+$wgHooks['SkinBuildSidebar'][]                      = 'ClaimWikiHooks::onSkinBuildSidebar';
 $wgHooks['LoadExtensionSchemaUpdates'][]			= 'ClaimWikiHooks::onLoadExtensionSchemaUpdates';
-//$wgHooks['UserRights'][]							= 'ClaimWikiHooks::onUserRights';
+$wgHooks['UserRights'][]							= 'ClaimWikiHooks::onUserRights';
 
 $wgResourceModules['ext.claimWiki'] = [
 	'localBasePath'	=> __DIR__,
