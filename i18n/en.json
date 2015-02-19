@@ -26,6 +26,7 @@
 	"claim_successful": "Your claim to this wiki has been sent to a global administrator.  You will be notified by email if your claim to administrate this wiki is approved or denied.  You should receive a response within 24 hours.",
 	"claim_wiki_email_subject": "A claim has been made on {{SITENAME}} by $1.",
 	"claim_status_email_subject": "Your claim on {{SITENAME}} has been $1.",
+	"claim_status_email_subject_dev": "~~ DEVELOPMENT ~~ Your claim on {{SITENAME}} has been $1.",
 	"wikiclaims": "Wiki Claims",
 	"approve_claim": "Approve and Promote",
 	"resume_claim": "Resume and Promote",
