@@ -424,9 +424,13 @@ class SpecialWikiClaims extends SpecialPage {
 	private function sendEmail($status) {
 		$this->mouse->output->loadTemplate('claimemails');
 
-		$emailTo		= $this->claim->getUser()->getName()." <".$this->claim->getUser()->getEmail().">";
-
-		$emailSubject	= wfMessage('claim_status_email_subject', wfMessage('subject_'.$status)->text())->text();
+		if ($_SERVER['PHP_ENV'] != 'development') {
+			$emailTo = $this->claim->getUser()->getName() . " <" . $this->claim->getUser()->getEmail() . ">";
+			$emailSubject = wfMessage('claim_status_email_subject', wfMessage('subject_' . $status)->text())->text();
+		} else {
+			$emailTo = 'Hydra Testers' . " <wikitest@curse.com>";
+			$emailSubject = wfMessage('claim_status_email_subject_dev', wfMessage('subject_' . $status)->text())->text();
+		}
 
 		$emailExtra		= [
 			'user'			=> $this->wgUser,

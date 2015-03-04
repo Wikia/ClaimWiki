@@ -85,8 +85,13 @@ class guardianReminderEmail extends Maintenance {
 				//Send a reminder email.
 				$this->mouse->output->loadTemplate('claimemails');
 
-				$emailTo		= $claim->getUser()->getName()." <".$claim->getUser()->getEmail().">";
-				$emailSubject	= 'Inactive Wiki Guardian Notification - '.$wgSitename;
+				if ($_SERVER['PHP_ENV'] != 'development') {
+					$emailTo = $claim->getUser()->getName() . " <" . $claim->getUser()->getEmail() . ">";
+					$emailSubject = 'Inactive Wiki Guardian Notification - ' . $wgSitename;
+				} else {
+					$emailTo = 'Hydra Testers' . " <wikitest@curse.com>";
+					$emailSubject = '~~ DEVELOPMENT WIKI GUARDIAN EMAIL ~~ ' . $wgSitename;
+				}
 
 				$emailBody		= $this->mouse->output->claimemails->wikiGuardianInactive($user->mName, $wgSitename);
 
