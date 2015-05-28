@@ -76,7 +76,7 @@ class ClaimWikiHooks {
 	 * @param	object	User or UserRightsProxy object changed.
 	 * @return	boolean	True
 	 */
-	public function onUserRights($user, array $add, array $remove) {
+	static public function onUserRights($user, array $add, array $remove) {
 		if (!$user instanceOf User || !$user->getId()) {
 			return true;
 		}
