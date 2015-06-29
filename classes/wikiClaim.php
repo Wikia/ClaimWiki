@@ -87,6 +87,7 @@ class wikiClaim {
 	 * Constructor
 	 *
 	 * @access	public
+	 * @param	mixed	User or UserRightProxy
 	 * @return	void
 	 */
 	public function __construct($user) {

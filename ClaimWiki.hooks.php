@@ -21,7 +21,7 @@ class ClaimWikiHooks {
 	 * @param	object	Mediawiki Skin Object
 	 * @return	boolean True
 	 */
-	static public function onBeforePageDisplay(&$output, &$skin) {
+	static public function onBeforePageDisplay(OutputPage &$output, Skin &$skin) {
 		global $claimWikiEnabled;
 
 		if (!$claimWikiEnabled) {
@@ -55,16 +55,16 @@ class ClaimWikiHooks {
 			'status = '.intval(wikiClaim::CLAIM_APPROVED).' AND end_timestamp = 0',
 			__METHOD__
 		);
+
 		$total = $result->fetchRow();
-		if ($total['total'] >= $claimWikiGuardianTotal) {
-			return true;
+
+		if ($total['total'] < $claimWikiGuardianTotal) {
+			$page = Title::newFromText('Special:ClaimWiki');
+
+			$claimSidebarContent = "<div class='claimSidebar'><a href='" . $page->getFullURL() . "'>&nbsp;</a></div>";
+			$_bar['claimWiki'] = $claimSidebarContent;
+			$bar = array_merge($_bar, $bar);
 		}
-
-		$page = Title::newFromText('Special:ClaimWiki');
-
-		$claimSidebarContent = "<div class='claimSidebar'><a href='".$page->getFullURL()."'>&nbsp;</a></div>";
-		$_bar['claimWiki'] = $claimSidebarContent;
-		$bar = array_merge($_bar, $bar);
 
 		return true;
 	}
@@ -83,10 +83,9 @@ class ClaimWikiHooks {
 
 		if (in_array('wiki_guardian', $remove)) {
 			$claim = new wikiClaim($user);
-			if (!$claim) {
-				return true;
+			if ($claim) {
+				$claim->delete();
 			}
-			$claim->delete();
 		}
 		return true;
 	}
@@ -98,7 +97,7 @@ class ClaimWikiHooks {
 	 * @param	object	[Optional] DatabaseUpdater Object
 	 * @return	boolean	true
 	 */
-	static public function onLoadExtensionSchemaUpdates($updater = null) {
+	static public function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
 		$extDir = __DIR__;
 
 		//Tables
@@ -113,4 +112,3 @@ class ClaimWikiHooks {
 		return true;
 	}
 }
-?>

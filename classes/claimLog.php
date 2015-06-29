@@ -63,7 +63,7 @@ class claimLogPager extends ReverseChronologicalPager {
 	 * Return a formatted database row.
 	 *
 	 * @access	public
-	 * @return	void
+	 * @return	html
 	 */
 	public function formatRow($row) {
 		$user = User::newFromId($row->user_id);
@@ -97,7 +97,6 @@ class claimLogEntry {
 	 * Constructor
 	 *
 	 * @access	public
-	 * @return	void
 	 */
 	public function __construct() {
 		$this->DB = wfGetDB(DB_MASTER);
@@ -106,9 +105,9 @@ class claimLogEntry {
 	/**
 	 * Set the wikiClaim object.
 	 *
-	 * @access	public
-	 * @param	object	wikiClaim
-	 * @return	void
+	 * @access		public
+	 * @param		wikiClaim $claim
+	 * @internal	param wikiClaim $object
 	 */
 	public function setClaim(wikiClaim $claim) {
 		$this->claim = $claim;
@@ -117,9 +116,9 @@ class claimLogEntry {
 	/**
 	 * Set the User object.
 	 *
-	 * @access	public
-	 * @param	object	wikiClaim
-	 * @return	void
+	 * @access		public
+	 * @param		User $user
+	 * @internal	param wikiClaim $object
 	 */
 	public function setActor(User $user) {
 		$this->actor = $user;
@@ -129,7 +128,7 @@ class claimLogEntry {
 	 * Function Documentation
 	 *
 	 * @access	public
-	 * @return	void
+	 * @return	bool
 	 */
 	public function insert() {
 		$success = $this->DB->insert(

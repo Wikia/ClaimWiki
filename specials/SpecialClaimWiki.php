@@ -61,7 +61,6 @@ class SpecialClaimWiki extends SpecialPage {
 
 		if (!$this->wgUser->isAllowed('claim_wiki')) {
 			throw new PermissionsError('claim_wiki');
-			return;
 		}
 
 		$this->mouse = mouseNest::getMouse();
@@ -217,4 +216,3 @@ class SpecialClaimWiki extends SpecialPage {
 		return true;
 	}
 }
-?>
