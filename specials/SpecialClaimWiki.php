@@ -12,7 +12,7 @@
  *
 **/
 
-class SpecialClaimWiki extends SpecialPage {
+class SpecialClaimWiki extends Curse\SpecialPage {
 	/**
 	 * Output HTML
 	 *
@@ -27,20 +27,7 @@ class SpecialClaimWiki extends SpecialPage {
 	 * @return	void
 	 */
 	public function __construct() {
-		global $wgRequest, $wgUser, $wgOut;
-
 		parent::__construct('ClaimWiki', 'wiki_claims', false);
-
-		$this->wgRequest	= $wgRequest;
-		$this->wgUser		= $wgUser;
-		$this->output		= $this->getOutput();
-
-		if (!defined('DS_EXT_DIR')) {
-			define('DS_EXT_DIR', dirname(__DIR__));
-		}
-
-		//HOW CAN YOU FAIL SO BADLY, MEDIAWIKI?
-		$this->DB = wfGetDB(DB_MASTER);
 	}
 
 	/**

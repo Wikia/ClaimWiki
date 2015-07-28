@@ -12,7 +12,7 @@
  *
 **/
 
-class SpecialWikiClaims extends SpecialPage {
+class SpecialWikiClaims extends Curse\SpecialPage {
 	/**
 	 * Output HTML
 	 *
@@ -27,16 +27,7 @@ class SpecialWikiClaims extends SpecialPage {
 	 * @return	void
 	 */
 	public function __construct() {
-		global $wgRequest, $wgUser, $wgOut;
-
 		parent::__construct('WikiClaims', 'wiki_claims');
-
-		$this->wgRequest	= $wgRequest;
-		$this->wgUser		= $wgUser;
-		$this->output		= $this->getOutput();
-
-		//HOW CAN YOU FAIL SO BADLY, MEDIAWIKI?
-		$this->DB = wfGetDB(DB_MASTER);
 	}
 
 	/**
@@ -442,20 +433,6 @@ class SpecialWikiClaims extends SpecialPage {
 		$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, "-f{$emailFrom}");
 
 		return $success;
-	}
-
-	/**
-	 * Hides special page from SpecialPages special page.
-	 *
-	 * @access	public
-	 * @return	boolean	False
-	 */
-	public function isListed() {
-		if (!$this->wgUser->isAllowed('wiki_claims')) {
-			return false;
-		} else {
-			return true;
-		}
 	}
 
 	public function getGroupName() {
