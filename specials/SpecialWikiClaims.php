@@ -29,7 +29,7 @@ class SpecialWikiClaims extends SpecialPage {
 	public function __construct() {
 		global $wgRequest, $wgUser, $wgOut;
 
-		parent::__construct('WikiClaims');
+		parent::__construct('WikiClaims', 'wiki_claims');
 
 		$this->wgRequest	= $wgRequest;
 		$this->wgUser		= $wgUser;
@@ -48,10 +48,7 @@ class SpecialWikiClaims extends SpecialPage {
 	 */
 	public function execute($subpage) {
 		global $wgSitename, $claimWikiEnabled;
-		if (!$this->wgUser->isAllowed('wiki_claims')) {
-			throw new PermissionsError('wiki_claims');
-			return;
-		}
+		$this->checkPermissions();
 		if (!defined('CW_EXT_DIR')) {
 			define('CW_EXT_DIR', dirname(__DIR__));
 		}
@@ -461,14 +458,7 @@ class SpecialWikiClaims extends SpecialPage {
 		}
 	}
 
-	/**
-	 * Lets others determine that this special page is restricted.
-	 *
-	 * @access	public
-	 * @return	boolean	True
-	 */
-	public function isRestricted() {
-		return true;
+	public function getGroupName() {
+		return 'claimwiki';
 	}
 }
-?>

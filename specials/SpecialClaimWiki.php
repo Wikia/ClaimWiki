@@ -29,7 +29,7 @@ class SpecialClaimWiki extends SpecialPage {
 	public function __construct() {
 		global $wgRequest, $wgUser, $wgOut;
 
-		parent::__construct('ClaimWiki');
+		parent::__construct('ClaimWiki', 'wiki_claims', false);
 
 		$this->wgRequest	= $wgRequest;
 		$this->wgUser		= $wgUser;
@@ -59,9 +59,7 @@ class SpecialClaimWiki extends SpecialPage {
 			define('SITE_DIR', dirname(dirname(dirname(__DIR__))));
 		}
 
-		if (!$this->wgUser->isAllowed('claim_wiki')) {
-			throw new PermissionsError('claim_wiki');
-		}
+		$this->checkPermissions();
 
 		$this->mouse = mouseNest::getMouse();
 		$this->mouse->output->addTemplateFolder(CW_EXT_DIR.'/templates');
@@ -196,23 +194,7 @@ class SpecialClaimWiki extends SpecialPage {
 		return $errors;
 	}
 
-	/**
-	 * Hides special page from SpecialPages special page.
-	 *
-	 * @access	public
-	 * @return	boolean	False
-	 */
-	public function isListed() {
-		return false;
-	}
-
-	/**
-	 * Lets others determine that this special page is restricted.
-	 *
-	 * @access	public
-	 * @return	boolean	True
-	 */
-	public function isRestricted() {
-		return true;
+	public function getGroupName() {
+		return 'claimwiki';
 	}
 }

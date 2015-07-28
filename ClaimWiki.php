@@ -42,9 +42,6 @@ $wgAutoloadClasses['claimLogEntry']					= "{$extDir}/classes/claimLog.php";
 $wgSpecialPages['ClaimWiki']						= 'SpecialClaimWiki';
 $wgSpecialPages['WikiClaims']						= 'SpecialWikiClaims';
 
-$wgSpecialPageGroups['ClaimWiki']					= 'claimwiki';
-$wgSpecialPageGroups['WikiClaims']					= 'claimwiki';
-
 $wgHooks['BeforePageDisplay'][]						= 'ClaimWikiHooks::onBeforePageDisplay';
 $wgHooks['SkinBuildSidebar'][]                      = 'ClaimWikiHooks::onSkinBuildSidebar';
 $wgHooks['LoadExtensionSchemaUpdates'][]			= 'ClaimWikiHooks::onLoadExtensionSchemaUpdates';
