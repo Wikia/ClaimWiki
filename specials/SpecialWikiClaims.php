@@ -179,9 +179,8 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 				$claims = $found;
 			}
 
-			$pagination = $this->mouse->output->generatePagination(count($claims), $itemsPerPage, $start);
-			$pagination = $this->mouse->output->paginationTemplate($pagination);
-			$claims = array_slice($claims, $start, $itemsPerPage, true);
+			$pagination = Curse::generatePaginationHtml(count($claims), $itemsPerPage, $start);
+				$claims = array_slice($claims, $start, $itemsPerPage, true);
 		}
 
 		$this->output->setPageTitle(wfMessage('wikiclaims'));
