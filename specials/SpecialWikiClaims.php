@@ -47,13 +47,10 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 			define('SITE_DIR', dirname(dirname(dirname(__DIR__))));
 		}
 
-		if (!class_exists('mouseHole')) {
-			require_once(SITE_DIR.'/mouse/mouse.php');
-		}
 		$this->mouse = mouseNest::getMouse();
 		$this->mouse->output->addTemplateFolder(CW_EXT_DIR.'/templates');
 
-		$this->output->addModules('ext.claimWiki');
+		$this->output->addModules(['ext.claimWiki']);
 
 		$this->setHeaders();
 
