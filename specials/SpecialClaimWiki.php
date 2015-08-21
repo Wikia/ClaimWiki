@@ -27,7 +27,7 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 	 * @return	void
 	 */
 	public function __construct() {
-		parent::__construct('ClaimWiki', 'wiki_claims', false);
+		parent::__construct('ClaimWiki', 'claim_wiki', false);
 	}
 
 	/**

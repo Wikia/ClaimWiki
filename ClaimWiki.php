@@ -29,6 +29,7 @@ $wgExtensionCredits['specialpage'][] = array(
 $extDir = __DIR__;
 
 $wgAvailableRights[] = 'claim_wiki';
+$wgAvailableRights[] = 'wiki_claims';
 
 $wgExtensionMessagesFiles['ClaimWiki']				= "{$extDir}/ClaimWiki.i18n.php";
 
