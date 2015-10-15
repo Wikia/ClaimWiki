@@ -40,6 +40,10 @@ $wgAutoloadClasses['wikiClaim']						= "{$extDir}/classes/wikiClaim.php";
 $wgAutoloadClasses['claimLogPager']					= "{$extDir}/classes/claimLog.php";
 $wgAutoloadClasses['claimLogEntry']					= "{$extDir}/classes/claimLog.php";
 
+$wgAutoloadClasses['TemplateClaimEmails']			= "{$extDir}/specials/TemplateClaimEmails.php";
+$wgAutoloadClasses['TemplateClaimWiki']				= "{$extDir}/specials/TemplateClaimWiki.php";
+$wgAutoloadClasses['TemplateWikiClaims']			= "{$extDir}/specials/TemplateWikiClaims.php";
+
 $wgSpecialPages['ClaimWiki']						= 'SpecialClaimWiki';
 $wgSpecialPages['WikiClaims']						= 'SpecialWikiClaims';
 
@@ -61,29 +65,19 @@ $wgResourceModules['ext.claimWiki'] = [
 /* Settings and Permissions               */
 /******************************************/
 //Is the system enabled?
-if (!isset($claimWikiEnabled)) {
-	$claimWikiEnabled = true;
-}
+$claimWikiEnabled = true;
 
 //Number of questions on the form.  This can be overrided and custom language strings added.
-if (!isset($claimWikiNumberOfQuestions)) {
-	$claimWikiNumberOfQuestions = 4;
-}
+$claimWikiNumberOfQuestions = 4;
 
 //Who should receive emails when a new claim is submitted?
-if (!isset($claimWikiEmailTo)) {
-	$claimWikiEmailTo = $wgEmergencyContact;
-}
+$claimWikiEmailTo = $wgEmergencyContact;
 
 //The tag line that will show up at the bottom of approval and denial emails.
-if (!isset($claimWikiEmailSignature)) {
-	$claimWikiEmailSignature = 'The Wiki Team';
-}
+$claimWikiEmailSignature = 'The Wiki Team';
 
 //Number of wiki guardians that are approved before the side bar button disappears.
-if (!isset($claimWikiGuardianTotal)) {
-	$claimWikiGuardianTotal = 1;
-}
+$claimWikiGuardianTotal = 1;
 
 $wgGroupPermissions['user']['claim_wiki']			= true;
 $wgGroupPermissions['bureaucrat']['wiki_claims']	= true;
