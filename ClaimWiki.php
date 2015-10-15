@@ -40,9 +40,9 @@ $wgAutoloadClasses['wikiClaim']						= "{$extDir}/classes/wikiClaim.php";
 $wgAutoloadClasses['claimLogPager']					= "{$extDir}/classes/claimLog.php";
 $wgAutoloadClasses['claimLogEntry']					= "{$extDir}/classes/claimLog.php";
 
-$wgAutoloadClasses['TemplateClaimEmails']			= "{$extDir}/specials/TemplateClaimEmails.php";
-$wgAutoloadClasses['TemplateClaimWiki']				= "{$extDir}/specials/TemplateClaimWiki.php";
-$wgAutoloadClasses['TemplateWikiClaims']			= "{$extDir}/specials/TemplateWikiClaims.php";
+$wgAutoloadClasses['TemplateClaimEmails']			= "{$extDir}/templates/TemplateClaimEmails.php";
+$wgAutoloadClasses['TemplateClaimWiki']				= "{$extDir}/templates/TemplateClaimWiki.php";
+$wgAutoloadClasses['TemplateWikiClaims']			= "{$extDir}/templates/TemplateWikiClaims.php";
 
 $wgSpecialPages['ClaimWiki']						= 'SpecialClaimWiki';
 $wgSpecialPages['WikiClaims']						= 'SpecialWikiClaims';
