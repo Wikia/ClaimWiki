@@ -47,7 +47,6 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 			define('SITE_DIR', dirname(dirname(dirname(__DIR__))));
 		}
 
-		$this->mouse = mouseNest::getMouse();
 		$this->templateWikiClaims = new TemplateWikiClaims;
 		$this->templateClaimEmails = new TemplateClaimEmails;
 
