@@ -47,13 +47,7 @@ class guardianReminderEmail extends Maintenance {
 
 		$this->DB = wfGetDB(DB_MASTER);
 
-		$settings['file'] = SITE_DIR.'/LocalSettings.php';
-		if (!class_exists('mouseHole')) {
-			require_once(SITE_DIR.'/mouse/mouse.php');
-		}
-
-		$this->mouse = mouseHole::instance(['output' => 'mouseOutputOutput', 'config' => 'mouseConfigMediawiki', 'redis' => 'mouseCacheRedis'], $settings);
-		$this->mouse->output->addTemplateFolder(CW_EXT_DIR.'/templates');
+		$this->mouse = mouseNest::getMouse();
 
 		$results = $this->DB->select(
 			['wiki_claims'],
