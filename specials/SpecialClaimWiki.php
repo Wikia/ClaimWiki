@@ -49,7 +49,8 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 		$this->checkPermissions();
 
 		$this->mouse = mouseNest::getMouse();
-		$this->mouse->output->addTemplateFolder(CW_EXT_DIR.'/templates');
+		$this->templateClaimWiki = new TemplateClaimWiki;
+		$this->templateClaimEmails = new TemplateClaimEmails;
 
 		$this->output->addModules('ext.claimWiki');
 
@@ -99,8 +100,7 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 		$errors = $this->claimSave();
 
 		$this->output->setPageTitle(wfMessage('claim_this_wiki'));
-		$this->mouse->output->loadTemplate('claimwiki');
-		$this->content = $this->mouse->output->claimwiki->claimForm($this->claim, $errors);
+		$this->content = $this->templateClaimWiki->claimForm($this->claim, $errors);
 	}
 
 	/**
@@ -134,7 +134,6 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 
 				if ($success) {
 					global $claimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName, $dsSiteKey;
-					$this->mouse->output->loadTemplate('claimemails');
 
 					$emailTo[] = $claimWikiEmailTo;
 
@@ -161,11 +160,11 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 						'claim'			=> $this->claim,
 						'site_name'		=> $wgSitename
 					];
-					$emailBody		= $this->mouse->output->claimemails->claimWikiNotice($emailExtra);
+					$emailBody		= $this->templateClaimEmails->claimWikiNotice($emailExtra);
 
 					$emailFrom		= $wgPasswordSenderName." <{$wgPasswordSender}>";
 					$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nX-Mailer: Hydra/1.0";
-
+					//@TODO: User built in UserMailer.
 					$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, '-f'.$emailFrom);
 
 					return true;

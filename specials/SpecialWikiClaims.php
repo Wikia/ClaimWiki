@@ -48,7 +48,8 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 		}
 
 		$this->mouse = mouseNest::getMouse();
-		$this->mouse->output->addTemplateFolder(CW_EXT_DIR.'/templates');
+		$this->templateWikiClaims = new TemplateWikiClaims;
+		$this->templateClaimEmails = new TemplateClaimEmails;
 
 		$this->output->addModules(['ext.claimWiki']);
 
@@ -181,8 +182,7 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 		}
 
 		$this->output->setPageTitle(wfMessage('wikiclaims'));
-		$this->mouse->output->loadTemplate('wikiclaims');
-		$this->content = $this->mouse->output->wikiclaims->wikiClaims($claims, $pagination, $sortKey, $sortDir, $searchTerm);
+		$this->content = $this->templateWikiClaims->wikiClaims($claims, $pagination, $sortKey, $sortDir, $searchTerm);
 	}
 
 	/**
@@ -198,8 +198,7 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 		}
 
 		$this->output->setPageTitle(wfMessage('view_claim').' - '.$this->claim->getUser()->getName());
-		$this->mouse->output->loadTemplate('wikiclaims');
-		$this->content = $this->mouse->output->wikiclaims->viewClaim($this->claim);
+		$this->content = $this->templateWikiClaims->viewClaim($this->claim);
 	}
 
 	/**
@@ -406,8 +405,6 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 	 * @return	void
 	 */
 	private function sendEmail($status) {
-		$this->mouse->output->loadTemplate('claimemails');
-
 		if ($_SERVER['PHP_ENV'] != 'development') {
 			$emailTo = $this->claim->getUser()->getName() . " <" . $this->claim->getUser()->getEmail() . ">";
 			$emailSubject = wfMessage('claim_status_email_subject', wfMessage('subject_' . $status)->text())->text();
@@ -421,16 +418,22 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 			'claim'			=> $this->claim,
 			'site_name'		=> $wgSitename
 		];
-		$emailBody		= $this->mouse->output->claimemails->claimStatusNotice($status, $emailExtra);
+		$emailBody		= $this->templateClaimEmails->claimStatusNotice($status, $emailExtra);
 
 		$emailFrom		= $this->wgUser->getEmail();
 		$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nX-Mailer: Hydra/1.0";
-
+		//@TODO: User built in UserMailer.
 		$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, "-f{$emailFrom}");
 
 		return $success;
 	}
 
+	/**
+	 * Return the group name for this special page.
+	 *
+	 * @access public
+	 * @return string
+	 */
 	public function getGroupName() {
 		return 'claimwiki';
 	}

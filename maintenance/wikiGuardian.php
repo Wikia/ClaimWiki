@@ -83,8 +83,9 @@ class guardianReminderEmail extends Maintenance {
 
 			if ($timestamp <= $oldTimestamp) {
 				//Send a reminder email.
-				$this->mouse->output->loadTemplate('claimemails');
+				$this->templateClaimEmails = new TemplateClaimEmails;
 
+				//@TODO: Use the built in UserMailer.
 				if ($_SERVER['PHP_ENV'] != 'development') {
 					$emailTo = $claim->getUser()->getName() . " <" . $claim->getUser()->getEmail() . ">";
 					$emailSubject = 'Inactive Wiki Guardian Notification - ' . $wgSitename;
@@ -93,7 +94,7 @@ class guardianReminderEmail extends Maintenance {
 					$emailSubject = '~~ DEVELOPMENT WIKI GUARDIAN EMAIL ~~ ' . $wgSitename;
 				}
 
-				$emailBody		= $this->mouse->output->claimemails->wikiGuardianInactive($user->mName, $wgSitename);
+				$emailBody		= $this->templateClaimEmails->wikiGuardianInactive($user->mName, $wgSitename);
 
 				$emailFrom		= $wgEmergencyContact;
 				$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nCC: {$claimWikiEmailTo}\r\nX-Mailer: Hydra/1.0";
