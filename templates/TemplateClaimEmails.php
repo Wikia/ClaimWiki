@@ -12,7 +12,7 @@
  *
 **/
 
-class skin_claimemails {
+class TemplateClaimEmails {
 	/**
 	 * Output HTML
 	 *
@@ -115,4 +115,3 @@ Your status as Wiki Guardian on ".$wikiName." will be removed soon due to inacti
 		return $HTML;
 	}
 }
-?>

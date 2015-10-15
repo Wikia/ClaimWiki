@@ -12,7 +12,7 @@
  *
 **/
 
-class skin_claimwiki {
+class TemplateClaimWiki {
 	/**
 	 * Output HTML
 	 *
@@ -21,7 +21,7 @@ class skin_claimwiki {
 	private $HMTL;
 
 	/**
-	 * Group Permission Form
+	 * Claim Wiki Form
 	 *
 	 * @access	public
 	 * @param	array	Array of claim information
@@ -67,4 +67,3 @@ class skin_claimwiki {
 		return $HTML;
 	}
 }
-?>

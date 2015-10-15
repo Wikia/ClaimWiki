@@ -12,7 +12,7 @@
  *
 **/
 
-class skin_wikiclaims {
+class TemplateWikiClaims {
 	/**
 	 * Output HTML
 	 *
@@ -149,4 +149,3 @@ HTML;
 		return $HTML;
 	}
 }
-?>
