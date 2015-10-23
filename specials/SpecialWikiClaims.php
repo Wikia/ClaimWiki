@@ -423,7 +423,7 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 	/**
 	 * Return the group name for this special page.
 	 *
-	 * @access	public
+	 * @access	protected
 	 * @return	string
 	 */
 	protected function getGroupName() {

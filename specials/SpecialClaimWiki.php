@@ -174,6 +174,12 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 		return $errors;
 	}
 
+	/**
+	 * Return the group name for this special page.
+	 *
+	 * @access	protected
+	 * @return	string
+	 */
 	protected function getGroupName() {
 		return 'claimwiki';
 	}
