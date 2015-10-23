@@ -103,10 +103,6 @@ class wikiClaim {
 
 		$this->settings['number_of_questions'] = $claimWikiNumberOfQuestions;
 
-		if (!defined('SITE_DIR')) {
-			define('SITE_DIR', dirname(dirname(dirname(__DIR__))));
-		}
-
 		$this->DB = wfGetDB(DB_MASTER);
 
 		$this->init();

@@ -39,13 +39,6 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 	 */
 	public function execute($subpage) {
 		global $wgSitename, $claimWikiEnabled;
-		$this->checkPermissions();
-		if (!defined('CW_EXT_DIR')) {
-			define('CW_EXT_DIR', dirname(__DIR__));
-		}
-		if (!defined('SITE_DIR')) {
-			define('SITE_DIR', dirname(dirname(dirname(__DIR__))));
-		}
 
 		$this->templateWikiClaims = new TemplateWikiClaims;
 		$this->templateClaimEmails = new TemplateClaimEmails;
@@ -433,7 +426,7 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 	 * @access	public
 	 * @return	string
 	 */
-	public function getGroupName() {
+	protected function getGroupName() {
 		return 'claimwiki';
 	}
 }

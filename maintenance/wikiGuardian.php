@@ -22,13 +22,6 @@ class guardianReminderEmail extends Maintenance {
 	 * @return	void
 	 */
 	public function __construct() {
-		if (!defined('CW_EXT_DIR')) {
-			define('CW_EXT_DIR', dirname(__DIR__));
-		}
-		if (!defined('SITE_DIR')) {
-			define('SITE_DIR', dirname(dirname(dirname(__DIR__))));
-		}
-
 		parent::__construct();
 	}
 

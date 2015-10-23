@@ -27,6 +27,7 @@ $wgExtensionCredits['specialpage'][] = array(
 /* Language Strings, Page Aliases, Hooks  */
 /******************************************/
 $extDir = __DIR__;
+define('CW_EXT_DIR', $extDir);
 
 $wgAvailableRights[] = 'claim_wiki';
 $wgAvailableRights[] = 'wiki_claims';
