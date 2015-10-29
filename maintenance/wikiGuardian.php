@@ -64,7 +64,7 @@ class guardianReminderEmail extends Maintenance {
 
 			$emailSent = $this->mouse->redis->get($redisEmailKey);
 			if ($emailSent > 0 && $emailSent > $emailReminderExpired) {
-				$this->mouse->output->sendLine("SKIP - Reminder email already send to ".$user->getName()." and resend is on cool down.", time());
+				$this->output("SKIP - Reminder email already send to ".$user->getName()." and resend is on cool down.\n");
 				continue;
 			}
 
@@ -88,11 +88,11 @@ class guardianReminderEmail extends Maintenance {
 
 				$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, "-f{$emailFrom}");
 				if ($success) {
-					$this->mouse->output->sendLine("SUCCESS - Reminder email send to {$emailTo}.", time());
+					$this->output("SUCCESS - Reminder email send to {$emailTo}.\n");
 					$this->mouse->redis->set($redisEmailKey, time());
 					$this->mouse->redis->expire($redisEmailKey, 1296000);
 				} else {
-					$this->mouse->output->sendLine("ERROR - Failed to send a reminder email to {$emailTo}.", time());
+					$this->output("ERROR - Failed to send a reminder email to {$emailTo}.\n");
 				}
 			}
 		}
