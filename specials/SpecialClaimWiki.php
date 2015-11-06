@@ -42,7 +42,7 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 
 		$this->checkPermissions();
 
-		$this->redis = RedisCache::getMaster();
+		$this->redis = RedisCache::getClient('cache');
 		$this->templateClaimWiki = new TemplateClaimWiki;
 		$this->templateClaimEmails = new TemplateClaimEmails;
 

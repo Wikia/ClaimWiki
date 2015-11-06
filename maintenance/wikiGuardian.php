@@ -40,7 +40,7 @@ class guardianReminderEmail extends Maintenance {
 
 		$this->DB = wfGetDB(DB_MASTER);
 
-		$this->redis = RedisCache::getMaster();
+		$this->redis = RedisCache::getClient('cache');
 
 		$results = $this->DB->select(
 			['wiki_claims'],
