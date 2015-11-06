@@ -40,7 +40,7 @@ class guardianReminderEmail extends Maintenance {
 
 		$this->DB = wfGetDB(DB_MASTER);
 
-		$this->mouse = mouseNest::getMouse();
+		$this->redis = RedisCache::getMaster();
 
 		$results = $this->DB->select(
 			['wiki_claims'],
@@ -62,7 +62,7 @@ class guardianReminderEmail extends Maintenance {
 			$oldTimestamp = time() - 5184000; //Thirty Days
 			$emailReminderExpired = time() - 1296000; //Fifteen Days
 
-			$emailSent = $this->mouse->redis->get($redisEmailKey);
+			$emailSent = $this->redis->get($redisEmailKey);
 			if ($emailSent > 0 && $emailSent > $emailReminderExpired) {
 				$this->output("SKIP - Reminder email already send to ".$user->getName()." and resend is on cool down.\n");
 				continue;
@@ -89,8 +89,8 @@ class guardianReminderEmail extends Maintenance {
 				$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, "-f{$emailFrom}");
 				if ($success) {
 					$this->output("SUCCESS - Reminder email send to {$emailTo}.\n");
-					$this->mouse->redis->set($redisEmailKey, time());
-					$this->mouse->redis->expire($redisEmailKey, 1296000);
+					$this->redis->set($redisEmailKey, time());
+					$this->redis->expire($redisEmailKey, 1296000);
 				} else {
 					$this->output("ERROR - Failed to send a reminder email to {$emailTo}.\n");
 				}

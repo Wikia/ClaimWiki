@@ -42,7 +42,7 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 
 		$this->checkPermissions();
 
-		$this->mouse = mouseNest::getMouse();
+		$this->redis = RedisCache::getMaster();
 		$this->templateClaimWiki = new TemplateClaimWiki;
 		$this->templateClaimEmails = new TemplateClaimEmails;
 
@@ -131,7 +131,7 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 
 					$emailTo[] = $claimWikiEmailTo;
 
-					$siteManagers = @unserialize($this->mouse->redis->hget('dynamicsettings:siteInfo:'.$dsSiteKey, 'wiki_managers'));
+					$siteManagers = @unserialize($this->redis->hget('dynamicsettings:siteInfo:'.$dsSiteKey, 'wiki_managers'));
 					$siteManager = false;
 					if (is_array($siteManagers) && count($siteManagers)) {
 						$siteManager = current($siteManagers);
