@@ -66,7 +66,9 @@ $wgResourceModules['ext.claimWiki'] = [
 /* Settings and Permissions               */
 /******************************************/
 //Is the system enabled?
-$claimWikiEnabled = true;
+if (!isset($claimWikiEnabled)) {
+	$claimWikiEnabled = true;
+}
 
 //Number of questions on the form.  This can be overrided and custom language strings added.
 $claimWikiNumberOfQuestions = 4;
