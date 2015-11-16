@@ -131,7 +131,11 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 
 					$emailTo[] = $claimWikiEmailTo;
 
-					$siteManagers = @unserialize($this->redis->hGet('dynamicsettings:siteInfo:'.$dsSiteKey, 'wiki_managers'));
+					try {
+						$siteManagers = @unserialize($this->redis->hGet('dynamicsettings:siteInfo:'.$dsSiteKey, 'wiki_managers'));
+					} catch (RedisException $e) {
+						wfDebug(__METHOD__.": Caught RedisException - ".$e->getMessage());
+					}
 					$siteManager = false;
 					if (is_array($siteManagers) && count($siteManagers)) {
 						$siteManager = current($siteManagers);

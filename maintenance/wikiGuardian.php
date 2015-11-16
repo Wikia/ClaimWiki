@@ -62,7 +62,11 @@ class guardianReminderEmail extends Maintenance {
 			$oldTimestamp = time() - 5184000; //Thirty Days
 			$emailReminderExpired = time() - 1296000; //Fifteen Days
 
-			$emailSent = $this->redis->get($redisEmailKey);
+			try {
+				$emailSent = $this->redis->get($redisEmailKey);
+			} catch (RedisException $e) {
+				wfDebug(__METHOD__.": Caught RedisException - ".$e->getMessage());
+			}
 			if ($emailSent > 0 && $emailSent > $emailReminderExpired) {
 				$this->output("SKIP - Reminder email already send to ".$user->getName()." and resend is on cool down.\n");
 				continue;
@@ -89,8 +93,12 @@ class guardianReminderEmail extends Maintenance {
 				$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, "-f{$emailFrom}");
 				if ($success) {
 					$this->output("SUCCESS - Reminder email send to {$emailTo}.\n");
-					$this->redis->set($redisEmailKey, time());
-					$this->redis->expire($redisEmailKey, 1296000);
+					try {
+						$this->redis->set($redisEmailKey, time());
+						$this->redis->expire($redisEmailKey, 1296000);
+					} catch (RedisException $e) {
+						$this->output(__METHOD__.": Caught RedisException - ".$e->getMessage());
+					}
 				} else {
 					$this->output("ERROR - Failed to send a reminder email to {$emailTo}.\n");
 				}
