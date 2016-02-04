@@ -1,0 +1,77 @@
+{
+	"name": "Claim Wiki",
+	"version": "1.1",
+	"author": "Alexia E. Smith, Curse Inc&copy;",
+	"descriptionmsg": "claimwiki_description",
+	"type": "specialpage",
+	"GroupPermissions": {
+		"user": {
+			"claim_wiki": true
+		},
+		"bureaucrat": {
+			"wiki_claims": true
+		},
+		"wiki_guardian": null
+	},
+	"AvailableRights": [
+		"claim_wiki",
+		"wiki_claims"
+	],
+	"SpecialPages": {
+		"ClaimWiki": "SpecialClaimWiki",
+		"WikiClaims": "SpecialWikiClaims"
+	},
+	"MessagesDirs": {
+		"ClaimWiki": [
+			"i18n"
+		]
+	},
+	"ExtensionMessagesFiles": {
+		"SpecialClaimWiki": "ClaimWiki.alias.php"
+	},
+	"AutoloadClasses": {
+		"ClaimWikiHooks": "ClaimWiki.hooks.php",
+		"SpecialClaimWiki": "specials/SpecialClaimWiki.php",
+		"SpecialWikiClaims": "specials/SpecialWikiClaims.php",
+		"wikiClaim": "classes/wikiClaim.php",
+		"claimLogPager": "classes/claimLog.php",
+		"claimLogEntry": "classes/claimLog.php",
+		"TemplateClaimEmails": "templates/TemplateClaimEmails.php",
+		"TemplateClaimWiki": "templates/TemplateClaimWiki.php",
+		"TemplateWikiClaims": "templates/TemplateWikiClaims.php"
+	},
+	"ResourceModules": {
+		"ext.claimWiki": {
+			"scripts": [
+				"js/listSorter.js"
+			],
+			"styles": [
+				"css/claimwiki.css"
+			],
+			"dependencies": [
+				"ext.curse.pagination",
+				"ext.curse.button"
+			],
+			"position": "top"
+		}
+	},
+	"ResourceFileModulePaths": {
+		"localBasePath": "",
+		"remoteExtPath": "ClaimWiki"
+	},
+	"Hooks": {
+		"BeforePageDisplay": [
+			"ClaimWikiHooks::onBeforePageDisplay"
+		],
+		"SkinBuildSidebar": [
+			"ClaimWikiHooks::onSkinBuildSidebar"
+		],
+		"LoadExtensionSchemaUpdates": [
+			"ClaimWikiHooks::onLoadExtensionSchemaUpdates"
+		],
+		"UserRights": [
+			"ClaimWikiHooks::onUserRights"
+		]
+	},
+	"manifest_version": 1
+}

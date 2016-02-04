@@ -33,6 +33,7 @@ $wgAvailableRights[] = 'claim_wiki';
 $wgAvailableRights[] = 'wiki_claims';
 
 $wgExtensionMessagesFiles['ClaimWiki']				= "{$extDir}/ClaimWiki.i18n.php";
+$wgExtensionMessagesFiles['SpecialClaimWiki']		= "{$extDir}/ClaimWiki.alias.php";
 
 $wgAutoloadClasses['ClaimWikiHooks']				= "{$extDir}/ClaimWiki.hooks.php";
 $wgAutoloadClasses['SpecialClaimWiki']				= "{$extDir}/specials/SpecialClaimWiki.php";
