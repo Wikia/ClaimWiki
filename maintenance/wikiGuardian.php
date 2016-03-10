@@ -56,7 +56,7 @@ class guardianReminderEmail extends Maintenance {
 			}
 			$claim = new wikiClaim($user);
 
-			$redisEmailKey = wfWikiID().':guardianReminderEmail:timeSent:'.$user->mId;
+			$redisEmailKey = wfWikiID().':guardianReminderEmail:timeSent:'.$user->getId();
 
 			$timestamp = wfTimestamp(TS_UNIX, $user->getTouched());
 			$oldTimestamp = time() - 5184000; //Thirty Days
@@ -76,22 +76,30 @@ class guardianReminderEmail extends Maintenance {
 				//Send a reminder email.
 				$this->templateClaimEmails = new TemplateClaimEmails;
 
-				//@TODO: Use the built in UserMailer.
+
 				if ($_SERVER['PHP_ENV'] != 'development') {
-					$emailTo = $claim->getUser()->getName() . " <" . $claim->getUser()->getEmail() . ">";
+					$ownerEmail = $claim->getUser()->getEmail();
+					if (Sanitizer::validateEmail($ownerEmail)) {
+						$address[] = new MailAddress($ownerEmail);
+					}
 					$emailSubject = 'Inactive Wiki Guardian Notification - ' . $wgSitename;
 				} else {
-					$emailTo = 'Hydra Testers' . " <wikitest@curse.com>";
+					$address[] = new MailAddress("wikitest@curse.com");
 					$emailSubject = '~~ DEVELOPMENT WIKI GUARDIAN EMAIL ~~ ' . $wgSitename;
 				}
 
-				$emailBody		= $this->templateClaimEmails->wikiGuardianInactive($user->mName, $wgSitename);
+				$from = new MailAddress($wgEmergencyContact);
+				$address[] = $from;
 
-				$emailFrom		= $wgEmergencyContact;
-				$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nCC: {$claimWikiEmailTo}\r\nX-Mailer: Hydra/1.0";
+				$email = new UserMailer();
+				$status = $email->send(
+					$address,
+					$from,
+					$emailSubject,
+					$this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename);
+				);
 
-				$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, "-f{$emailFrom}");
-				if ($success) {
+				if ($status->isOK()) {
 					$this->output("SUCCESS - Reminder email send to {$emailTo}.\n");
 					try {
 						$this->redis->set($redisEmailKey, time());
