@@ -42,6 +42,8 @@ class guardianReminderEmail extends Maintenance {
 
 		$this->redis = RedisCache::getClient('cache');
 
+		$this->templateClaimEmails = new TemplateClaimEmails;
+
 		$results = $this->DB->select(
 			['wiki_claims'],
 			['*'],
@@ -74,9 +76,6 @@ class guardianReminderEmail extends Maintenance {
 
 			if ($timestamp <= $oldTimestamp) {
 				//Send a reminder email.
-				$this->templateClaimEmails = new TemplateClaimEmails;
-
-
 				if ($_SERVER['PHP_ENV'] != 'development') {
 					$ownerEmail = $claim->getUser()->getEmail();
 					if (Sanitizer::validateEmail($ownerEmail)) {
@@ -96,7 +95,7 @@ class guardianReminderEmail extends Maintenance {
 					$address,
 					$from,
 					$emailSubject,
-					$this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename);
+					$this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename)
 				);
 
 				if ($status->isOK()) {
