@@ -106,9 +106,6 @@ class ClaimWikiHooks {
 		$updater->addExtensionUpdate(['addTable', 'wiki_claims_answers', "{$extDir}/install/sql/claimwiki_table_wiki_claims_answers.sql", true]);
 		$updater->addExtensionUpdate(['addTable', 'wiki_claims_log', "{$extDir}/install/sql/claimwiki_table_wiki_claims_log.sql", true]);
 
-		//2015-01-07
-		$updater->addExtensionUpdate(['modifyField', 'wiki_claims', 'approved', "{$extDir}/upgrade/sql/claimwiki_upgrade_wiki_claims_status_change.sql", true]);
-
 		return true;
 	}
 }
