@@ -166,7 +166,7 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 
 					$email = new UserMailer();
 					$status = $email->send(
-						$address,
+						$emailTo,
 						$from,
 						$emailSubject,
 						$this->templateClaimEmails->claimWikiNotice($emailExtra);
