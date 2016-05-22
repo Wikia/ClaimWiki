@@ -398,26 +398,43 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 	 */
 	private function sendEmail($status) {
 		if ($_SERVER['PHP_ENV'] != 'development') {
-			$emailTo = $this->claim->getUser()->getName() . " <" . $this->claim->getUser()->getEmail() . ">";
+			$ownerEmail = $this->claim->getUser()->getEmail();
+			if (Sanitizer::validateEmail($ownerEmail)) {
+				$address[] = new MailAddress($ownerEmail, $this->claim->getUser()->getName());
+			}
 			$emailSubject = wfMessage('claim_status_email_subject', wfMessage('subject_' . $status)->text())->text();
+
+			//Copy the approver/denier on the email.
+			$adminEmail = $this->wgUser->getEmail();
+			if (Sanitizer::validateEmail($adminEmail)) {
+				$address[] = new MailAddress($adminEmail, $this->wgUser->getName());
+			}
 		} else {
 			$emailTo = 'Hydra Testers' . " <wikitest@curse.com>";
+			$address[] = new MailAddress("wikitest@curse.com", 'Hydra Testers');
 			$emailSubject = wfMessage('claim_status_email_subject_dev', wfMessage('subject_' . $status)->text())->text();
 		}
 
 		$emailExtra		= [
 			'user'			=> $this->wgUser,
-			'claim'			=> $this->claim,
-			'site_name'		=> $wgSitename
+			'claim'			=> $this->claim
 		];
-		$emailBody		= $this->templateClaimEmails->claimStatusNotice($status, $emailExtra);
 
-		$emailFrom		= $this->wgUser->getEmail();
-		$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nX-Mailer: Hydra/1.0";
-		//@TODO: User built in UserMailer.
-		$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, "-f{$emailFrom}");
+		$from = new MailAddress($wgEmergencyContact);
+		$address[] = $from;
 
-		return $success;
+		$email = new UserMailer();
+		$status = $email->send(
+			$address,
+			$from,
+			$emailSubject,
+			$this->templateClaimEmails->claimStatusNotice($status, $emailExtra);
+		);
+
+		if ($status->isOK()) {
+			return true;
+		}
+		return false;
 	}
 
 	/**

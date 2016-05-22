@@ -129,7 +129,7 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 				if ($success) {
 					global $claimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName, $dsSiteKey;
 
-					$emailTo[] = $claimWikiEmailTo;
+					$emailTo[] = new MailAddress($claimWikiEmailTo);
 
 					try {
 						$siteManagers = @unserialize($this->redis->hGet('dynamicsettings:siteInfo:'.$dsSiteKey, 'wiki_managers'));
@@ -142,14 +142,15 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 						$user = User::newFromName($siteManager);
 						$user->load();
 						if ($user->getId()) {
-							$wikiManager = $user->getEmail();
+							$wikiManager = $user;
+							unset($user);
 						}
 					}
 
-					if (filter_var($wikiManager, FILTER_VALIDATE_EMAIL)) {
-						$emailTo[] = $wikiManager;
+					$wikiManagerEmail = $wikiManager->getEmail(); //This is done to prevent calling "GetEmail" hooks multiple times.
+					if (Sanitizer::validateEmail($wikiManagerEmail)) {
+						$emailTo[] = new MailAddress($wikiManagerEmail, $wikiManager->getName());
 					}
-					$emailTo = implode(', ', $emailTo);
 					$emailSubject = wfMessage('claim_wiki_email_subject', $this->claim->getUser()->getName())->text();
 
 					$emailExtra = [
@@ -158,14 +159,23 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 						'claim'			=> $this->claim,
 						'site_name'		=> $wgSitename
 					];
-					$emailBody		= $this->templateClaimEmails->claimWikiNotice($emailExtra);
 
-					$emailFrom		= $wgPasswordSenderName." <{$wgPasswordSender}>";
-					$emailHeaders	= "MIME-Version: 1.0\r\nContent-type: text/html; charset=utf-8\r\nFrom: {$emailFrom}\r\nReply-To: {$emailFrom}\r\nX-Mailer: Hydra/1.0";
-					//@TODO: User built in UserMailer.
-					$success = mail($emailTo, $emailSubject, $emailBody, $emailHeaders, '-f'.$emailFrom);
+					$emailSubject = wfMessage('claim_status_email_subject', wfMessage('subject_' . $status)->text())->text();
 
-					return true;
+					$from = new MailAddress($wgPasswordSender, $wgPasswordSenderName);
+
+					$email = new UserMailer();
+					$status = $email->send(
+						$address,
+						$from,
+						$emailSubject,
+						$this->templateClaimEmails->claimWikiNotice($emailExtra);
+					);
+
+					if ($status->isOK()) {
+						return true;
+					}
+					return false;
 				} else {
 					return false;
 				}

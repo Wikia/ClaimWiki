@@ -79,11 +79,11 @@ class guardianReminderEmail extends Maintenance {
 				if ($_SERVER['PHP_ENV'] != 'development') {
 					$ownerEmail = $claim->getUser()->getEmail();
 					if (Sanitizer::validateEmail($ownerEmail)) {
-						$address[] = new MailAddress($ownerEmail);
+						$address[] = new MailAddress($ownerEmail, $claim->getUser()->getName());
 					}
 					$emailSubject = 'Inactive Wiki Guardian Notification - ' . $wgSitename;
 				} else {
-					$address[] = new MailAddress("wikitest@curse.com");
+					$address[] = new MailAddress("wikitest@curse.com", 'Hydra Testers');
 					$emailSubject = '~~ DEVELOPMENT WIKI GUARDIAN EMAIL ~~ ' . $wgSitename;
 				}
 
