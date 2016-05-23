@@ -169,7 +169,7 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 						$emailTo,
 						$from,
 						$emailSubject,
-						$this->templateClaimEmails->claimWikiNotice($emailExtra);
+						$this->templateClaimEmails->claimWikiNotice($emailExtra)
 					);
 
 					if ($status->isOK()) {
