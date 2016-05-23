@@ -397,6 +397,8 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 	 * @return	void
 	 */
 	private function sendEmail($status) {
+		global $wgEmergencyContact;
+
 		if ($_SERVER['PHP_ENV'] != 'development') {
 			$ownerEmail = $this->claim->getUser()->getEmail();
 			if (Sanitizer::validateEmail($ownerEmail)) {
