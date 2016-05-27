@@ -95,7 +95,10 @@ class guardianReminderEmail extends Maintenance {
 					$address,
 					$from,
 					$emailSubject,
-					$this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename)
+					[
+						'text' => strip_tags($this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename)),
+						'html' => $this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename)
+					]
 				);
 
 				if ($status->isOK()) {

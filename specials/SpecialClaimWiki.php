@@ -160,8 +160,6 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 						'site_name'		=> $wgSitename
 					];
 
-					$emailSubject = wfMessage('claim_status_email_subject', wfMessage('subject_' . $status)->text())->text();
-
 					$from = new MailAddress($wgPasswordSender, $wgPasswordSenderName);
 
 					$email = new UserMailer();
@@ -169,7 +167,10 @@ class SpecialClaimWiki extends Curse\SpecialPage {
 						$emailTo,
 						$from,
 						$emailSubject,
-						$this->templateClaimEmails->claimWikiNotice($emailExtra)
+						[
+							'text' => strip_tags($this->templateClaimEmails->claimWikiNotice($emailExtra)),
+							'html' => $this->templateClaimEmails->claimWikiNotice($emailExtra)
+						]
 					);
 
 					if ($status->isOK()) {

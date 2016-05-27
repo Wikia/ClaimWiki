@@ -430,7 +430,10 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 			$address,
 			$from,
 			$emailSubject,
-			$this->templateClaimEmails->claimStatusNotice($status, $emailExtra)
+			[
+				'text' => strip_tags($this->templateClaimEmails->claimStatusNotice($status, $emailExtra)),
+				'html' => $this->templateClaimEmails->claimStatusNotice($status, $emailExtra)
+			]
 		);
 
 		if ($status->isOK()) {
