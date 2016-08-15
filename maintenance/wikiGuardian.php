@@ -52,6 +52,8 @@ class guardianReminderEmail extends Maintenance {
 		);
 
 		while ($row = $results->fetchRow()) {
+			$address = [];
+
 			$user = User::newFromId($row['user_id']);
 			if (!$user->getId()) {
 				continue;
