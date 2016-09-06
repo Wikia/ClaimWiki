@@ -185,7 +185,7 @@ class wikiClaim {
 	 * @return	array	Question Keys
 	 */
 	public function getQuestionKeys() {
-		for ($i=0; $i < $this->settings['number_of_questions']; $i++) { 
+		for ($i=0; $i < $this->settings['number_of_questions']; $i++) {
 			$keys[] = 'wiki_claim_question_'.$i;
 		}
 		return $keys;
@@ -439,7 +439,11 @@ class wikiClaim {
 	 */
 	public function save() {
 		//Do a transactional save.
-		$this->DB->begin();
+		//
+		$dbPending = $this->DB->writesOrCallbacksPending();
+		if (!$dbPending) {
+			$this->DB->begin();
+		}
 		if ($this->data['cid'] > 0) {
 			$_data = $this->data;
 			unset($_data['cid']);
@@ -462,14 +466,18 @@ class wikiClaim {
 
 		//Roll back if there was an error.
 		if (!$success) {
-			$this->DB->rollback();
+			if (!$dbPending) {
+				$this->DB->rollback();
+			}
+
 			return false;
 		} else {
 			if (!$this->data['cid']) {
 				$this->data['cid'] = $this->DB->insertId();
 			}
-			$this->DB->commit();
-
+			if (!$dbPending) {
+				$this->DB->commit();
+			}
 			global $wgUser;
 			$logEntry = new claimLogEntry();
 			$logEntry->setClaim($this);
@@ -507,7 +515,12 @@ class wikiClaim {
 	 */
 	public function delete() {
 		//Do a transactional save.
-		$this->DB->begin();
+
+
+		$dbPending = $this->DB->writesOrCallbacksPending();
+		if (!$dbPending) {
+			$this->DB->begin();
+		}
 		if ($this->data['cid'] > 0) {
 			//Do an update
 			$success = $this->DB->delete(
@@ -519,10 +532,14 @@ class wikiClaim {
 
 		//Roll back if there was an error.
 		if (!$success) {
-			$this->DB->rollback();
+			if (!$dbPending) {
+				$this->DB->rollback();
+			}
 			return false;
 		} else {
-			$this->DB->commit();
+			if (!$dbPending) {
+				$this->DB->commit();
+			}
 		}
 
 		$this->DB->delete(
