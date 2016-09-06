@@ -439,7 +439,6 @@ class wikiClaim {
 	 */
 	public function save() {
 		//Do a transactional save.
-		//
 		$dbPending = $this->DB->writesOrCallbacksPending();
 		if (!$dbPending) {
 			$this->DB->begin();
@@ -515,8 +514,6 @@ class wikiClaim {
 	 */
 	public function delete() {
 		//Do a transactional save.
-
-
 		$dbPending = $this->DB->writesOrCallbacksPending();
 		if (!$dbPending) {
 			$this->DB->begin();
