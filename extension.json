@@ -60,18 +60,11 @@
 		"remoteExtPath": "ClaimWiki"
 	},
 	"Hooks": {
-		"BeforePageDisplay": [
-			"ClaimWikiHooks::onBeforePageDisplay"
-		],
-		"SkinBuildSidebar": [
-			"ClaimWikiHooks::onSkinBuildSidebar"
-		],
-		"LoadExtensionSchemaUpdates": [
-			"ClaimWikiHooks::onLoadExtensionSchemaUpdates"
-		],
-		"UserRights": [
-			"ClaimWikiHooks::onUserRights"
-		]
+		"BeforePageDisplay": "ClaimWikiHooks::onBeforePageDisplay",
+		"SkinBuildSidebar": "ClaimWikiHooks::onSkinBuildSidebar",
+		"LoadExtensionSchemaUpdates": "ClaimWikiHooks::onLoadExtensionSchemaUpdates",
+		"UserEffectiveGroups": "ClaimWikiHooks::onUserEffectiveGroups",
+		"UserRights": "ClaimWikiHooks::onUserRights"
 	},
 	"manifest_version": 1
 }

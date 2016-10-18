@@ -52,6 +52,7 @@ $wgSpecialPages['WikiClaims']						= 'SpecialWikiClaims';
 $wgHooks['BeforePageDisplay'][]						= 'ClaimWikiHooks::onBeforePageDisplay';
 $wgHooks['SkinBuildSidebar'][]                      = 'ClaimWikiHooks::onSkinBuildSidebar';
 $wgHooks['LoadExtensionSchemaUpdates'][]			= 'ClaimWikiHooks::onLoadExtensionSchemaUpdates';
+$wgHooks['UserEffectiveGroups'][]					= 'ClaimWikiHooks::onUserEffectiveGroups';
 $wgHooks['UserRights'][]							= 'ClaimWikiHooks::onUserRights';
 
 $wgResourceModules['ext.claimWiki'] = [

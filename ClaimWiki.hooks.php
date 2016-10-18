@@ -91,6 +91,21 @@ class ClaimWikiHooks {
 	}
 
 	/**
+	 * Add sysop to effective groups when the user has wiki_guardian.
+	 *
+	 * @access	public
+	 * @param	object	User
+	 * @param	array	"Actual" user groups that should reflect the rows in the database.
+	 * @return	void
+	 */
+	static public function onUserEffectiveGroups(&$user, &$aUserGroups) {
+		if (in_array('wiki_guardian', $aUserGroups)) {
+			$aUserGroups[] = 'sysop';
+		}
+		return true;
+	}
+
+	/**
 	 * Setups and Modifies Database Information
 	 *
 	 * @access	public
