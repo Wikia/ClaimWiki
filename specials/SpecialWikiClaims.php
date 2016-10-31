@@ -12,7 +12,7 @@
  *
 **/
 
-class SpecialWikiClaims extends Curse\SpecialPage {
+class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Output HTML
 	 *
@@ -169,7 +169,7 @@ class SpecialWikiClaims extends Curse\SpecialPage {
 				$claims = $found;
 			}
 
-			$pagination = Curse::generatePaginationHtml(count($claims), $itemsPerPage, $start);
+			$pagination = HydraCore::generatePaginationHtml(count($claims), $itemsPerPage, $start);
 				$claims = array_slice($claims, $start, $itemsPerPage, true);
 		}
 

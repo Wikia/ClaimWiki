@@ -12,7 +12,7 @@
  *
 **/
 
-class SpecialClaimWiki extends Curse\SpecialPage {
+class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Output HTML
 	 *
