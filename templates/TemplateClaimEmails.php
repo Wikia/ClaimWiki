@@ -49,7 +49,7 @@ Please visit <a href='".$page->getFullURL()."'>the wiki claims page</a> to appro
 	 * @return	string	Built HTML
 	 */
 	public function claimStatusNotice($status, $emailExtra) {
-		global $defaultPortal, $wgEmergencyContact, $claimWikiEmailSignature;
+		global $defaultPortal, $wgEmergencyContact, $wgClaimWikiEmailSignature;
 
 		$page = Title::newFromText('Project:Admin_noticeboard');
 
@@ -64,7 +64,7 @@ For now, we have kept your application on file and would ask that you contact a 
 <br/>
 Thanks,
 <br/>
---{$claimWikiEmailSignature}";
+--{$wgClaimWikiEmailSignature}";
 		} elseif ($status == "approved") {
 			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
 <br/>
@@ -72,7 +72,7 @@ We’re happy to say that your Claim-a-Wiki application has been accepted! After
 <br/>
 Congratulations, and welcome!<br/>
 <br/>
---{$claimWikiEmailSignature}";
+--{$wgClaimWikiEmailSignature}";
 		} elseif ($status == "denied") {
 			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
 <br/>
@@ -80,19 +80,19 @@ After reviewing your Claim-a-Wiki application we must unfortunately decline your
 <br/>
 Thank you for your interest,<br/>
 <br/>
---{$claimWikiEmailSignature}";
+--{$wgClaimWikiEmailSignature}";
 		} elseif ($status == "inactive") {
 			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
 <br/>
 Your status as Wiki Guardian has been removed due to inactivity.  Please contact a wiki administrator if you wish to reinstate your status.<br/>
 <br/>
---{$claimWikiEmailSignature}";
+--{$wgClaimWikiEmailSignature}";
 		} elseif ($status == "resumed") {
 			$HTML .= "Dear ".$emailExtra['claim']->getUser()->getName().",<br/>
 <br/>
 Your status as a Wiki Guardian has been restored after its removal for inactivity. <br/>
 <br/>
---{$claimWikiEmailSignature}";
+--{$wgClaimWikiEmailSignature}";
 		}
 		return $HTML;
 	}

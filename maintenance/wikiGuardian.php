@@ -32,9 +32,9 @@ class GuardianReminderEmail extends Maintenance {
 	 * @return	void
 	 */
 	public function execute() {
-		global $wgEmergencyContact, $wgSitename, $claimWikiEmailTo, $claimWikiEnabled;
+		global $wgEmergencyContact, $wgSitename, $wgClaimWikiEmailTo, $wgClaimWikiEnabled;
 
-		if (!$claimWikiEnabled) {
+		if (!$wgClaimWikiEnabled) {
 			return;
 		}
 
@@ -63,7 +63,7 @@ class GuardianReminderEmail extends Maintenance {
 			if (!$user->getId()) {
 				continue;
 			}
-			$claim = new WikiClaim($user);
+			$claim = WikiClaim::newFromUser($user);
 
 			$redisEmailKey = wfWikiID().':guardianReminderEmail:timeSent:'.$user->getId();
 

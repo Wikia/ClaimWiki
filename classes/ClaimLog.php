@@ -67,7 +67,7 @@ class ClaimLogPager extends ReverseChronologicalPager {
 	 */
 	public function formatRow($row) {
 		$user = User::newFromId($row->user_id);
-		$claim = new WikiClaim($user);
+		$claim = WikiClaim::newFromUser($user);
 
 		$actor = User::newFromId($row->actor_id);
 
@@ -109,7 +109,7 @@ class ClaimLogEntry {
 	 * @param		wikiClaim $claim
 	 * @internal	param wikiClaim $object
 	 */
-	public function setClaim(wikiClaim $claim) {
+	public function setClaim(WikiClaim $claim) {
 		$this->claim = $claim;
 	}
 
@@ -134,7 +134,7 @@ class ClaimLogEntry {
 		$success = $this->DB->insert(
 			'wiki_claims_log',
 			[
-				'claim_id'	=> $this->claim->getClaimId(),
+				'claim_id'	=> $this->claim->getId(),
 				'actor_id'	=> $this->actor->getId(),
 				'status'	=> $this->claim->getStatus(),
 				'timestamp'	=> time()

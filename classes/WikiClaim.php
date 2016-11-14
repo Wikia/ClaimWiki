@@ -49,6 +49,13 @@ class WikiClaim {
 	const CLAIM_INACTIVE = 4;
 
 	/**
+	 * Object Loaded?
+	 *
+	 * @var		boolean
+	 */
+	private $isLoaded = false;
+
+	/**
 	 * Claim Data
 	 *
 	 * @var		array
@@ -74,14 +81,7 @@ class WikiClaim {
 	 *
 	 * @var		object
 	 */
-	private $user;
-
-	/**
-	 * Mediawiki DB object for this claim.
-	 *
-	 * @var		object
-	 */
-	private $DB;
+	private $user = false;
 
 	/**
 	 * Constructor
@@ -90,55 +90,163 @@ class WikiClaim {
 	 * @param	mixed	User or UserRightProxy
 	 * @return	void
 	 */
-	public function __construct($user) {
-		global $claimWikiNumberOfQuestions;
+	public function __construct() {
+		global $wgClaimWikiNumberOfQuestions;
 
-		if (!$user instanceof User || !$user->getId()) {
-			throw new MWException('Invalid user passed to '.__METHOD__.'.');
-		}
-
-		$this->user = $user;
-
-		$this->data['user_id'] = $this->user->getId();
-
-		$this->settings['number_of_questions'] = $claimWikiNumberOfQuestions;
-
-		$this->DB = wfGetDB(DB_MASTER);
-
-		$this->init();
+		$this->settings['number_of_questions'] = $wgClaimWikiNumberOfQuestions;
 	}
 
 	/**
-	 * Initialize the object.
+	 * Create a new object from an User object.
 	 *
 	 * @access	public
-	 * @return	void
+	 * @param	mixed	User or UserRightProxy
+	 * @return	mixed	WikiClaim or false on InvalidArgumentException.
 	 */
-	public function init() {
-		$result = $this->DB->select(
-			'wiki_claims',
-			array('*'),
-			'user_id = '.intval($this->data['user_id']),
-			__METHOD__
+	static public function newFromUser(User $user) {
+		$claim = new self;
+
+		if (!$user->getId()) {
+			return false;
+		}
+
+		$claim->user = $user;
+
+		$claim->newFrom = 'user';
+
+		$claim->load();
+
+		return $claim;
+	}
+
+	/**
+	 * Load a new object from a database row.
+	 *
+	 * @access	public
+	 * @param	array	Database Row
+	 * @return	mixed	WikiClaim or false on error.
+	 */
+	static public function newFromRow($row) {
+		$wikiClaim = new self;
+
+		$wikiClaim->newFrom = 'row';
+
+		$wikiClaim->load($row);
+
+		if (!$wikiClaim->getId()) {
+			return false;
+		}
+
+		return $wikiClaim;
+	}
+
+	/**
+	 * Get all wiki claims.
+	 *
+	 * @access	public
+	 * @param	integer	[Optional] Database start position.
+	 * @param	integer	[Optional] Maximum claims to retrieve.
+	 * @param	string	[Optional] Database field to sort by.
+	 * @param	string	[Optional] Sort direction.
+	 * @return	array	WikiClaim objects of [Claim ID => Object].
+	 */
+	static public function getClaims($start = 0, $maxClaims = 25, $sortKey = 'claim_timestamp', $sortDir = 'asc') {
+		$db = wfGetDB(DB_MASTER);
+
+		$sortKeys = ['claim_timestamp', 'start_timestamp', 'end_timestamp'];
+		if (!in_array($sortKey, $sortKeys)) {
+			$sortKey = 'claim_timestamp';
+		}
+
+		$result = $db->select(
+			[
+				'wiki_claims'
+			],
+			[
+				'wiki_claims.*'
+			],
+			[],
+			__METHOD__,
+			[
+				'ORDER BY' => 'wiki_claims.'.$sortKey.' '.($sortDir == 'desc' ? 'DESC' : 'ASC'),
+				'OFFSET'	=> $start,
+				'LIMIT'		=> $maxClaims
+			]
 		);
-		$data = $result->fetchRow();
 
-		if ($data['cid'] > 0) {
-			//Load existing data.
-			$this->data = $data;
-			$this->data['status'] = intval($this->data['status']);
-
-			//Load existing answers.
-			$result = $this->DB->select(
-				'wiki_claims_answers',
-				array('*'),
-				'claim_id = '.intval($data['cid']),
-				__METHOD__
-			);
-			while ($row = $result->fetchRow()) {
-				$this->setAnswer($row['question_key'], $row['answer']);
+		$claims = [];
+		while ($row = $result->fetchRow()) {
+			$claim = WikiClaim::newFromRow($row);
+			if ($claim !== false) {
+				$claims[$claim->getId()] = $claim;
 			}
 		}
+
+		return $claims;
+	}
+
+	/**
+	 * Load the object.
+	 *
+	 * @access	private
+	 * @param	array	Raw database row.
+	 * @return	boolean	Success
+	 */
+	private function load($row = null) {
+		$db = wfGetDB(DB_MASTER);
+
+		if (!$this->isLoaded) {
+			if ($this->newFrom != 'row') {
+				switch ($this->newFrom) {
+					case 'id':
+						$where = [
+							'cid' => $this->getId()
+						];
+						break;
+					case 'user':
+						$where = [
+							'user_id' => $this->getUser()->getId()
+						];
+						break;
+				}
+
+				$result = $db->select(
+					['wiki_claims'],
+					['wiki_claims.*'],
+					$where,
+					__METHOD__
+				);
+				$row = $result->fetchRow();
+			}
+
+			if ($row['cid'] > 0 && $row['user_id'] > 0) {
+				//Load existing data.
+				$this->data = $row;
+				$this->data['status'] = intval($this->data['status']);
+
+				$this->user = User::newFromId($row['user_id']);
+
+				//Load existing answers.
+				$result = $db->select(
+					'wiki_claims_answers',
+					['*'],
+					[
+						'claim_id' => intval($row['cid'])
+					],
+					__METHOD__
+				);
+
+				while ($row = $result->fetchRow()) {
+					$this->setAnswer($row['question_key'], $row['answer']);
+				}
+
+				$this->isLoaded = true;
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -147,7 +255,7 @@ class WikiClaim {
 	 * @access	public
 	 * @return	string	Claim ID
 	 */
-	public function getClaimId() {
+	public function getId() {
 		return $this->data['cid'];
 	}
 
@@ -438,25 +546,27 @@ class WikiClaim {
 	 * @return	boolean	Successful Save.
 	 */
 	public function save() {
+		$db = wfGetDB(DB_MASTER);
+
 		//Do a transactional save.
-		$dbPending = $this->DB->writesOrCallbacksPending();
+		$dbPending = $db->writesOrCallbacksPending();
 		if (!$dbPending) {
-			$this->DB->begin();
+			$db->begin();
 		}
 		if ($this->data['cid'] > 0) {
 			$_data = $this->data;
 			unset($_data['cid']);
 			//Do an update
-			$success = $this->DB->update(
+			$success = $db->update(
 				'wiki_claims',
 				$_data,
-				array('cid' => $this->data['cid']),
+				['cid' => $this->data['cid']],
 				__METHOD__
 			);
 			unset($_data);
 		} else {
 			//Do an insert
-			$success = $this->DB->insert(
+			$success = $db->insert(
 				'wiki_claims',
 				$this->data,
 				__METHOD__
@@ -466,16 +576,16 @@ class WikiClaim {
 		//Roll back if there was an error.
 		if (!$success) {
 			if (!$dbPending) {
-				$this->DB->rollback();
+				$db->rollback();
 			}
 
 			return false;
 		} else {
 			if (!$this->data['cid']) {
-				$this->data['cid'] = $this->DB->insertId();
+				$this->data['cid'] = $db->insertId();
 			}
 			if (!$dbPending) {
-				$this->DB->commit();
+				$db->commit();
 			}
 			global $wgUser;
 			$logEntry = new ClaimLogEntry();
@@ -484,9 +594,9 @@ class WikiClaim {
 			$logEntry->insert();
 		}
 
-		$this->DB->delete(
+		$db->delete(
 			'wiki_claims_answers',
-			array('claim_id' => $this->data['cid']),
+			['claim_id' => $this->data['cid']],
 			__METHOD__
 		);
 
@@ -496,7 +606,7 @@ class WikiClaim {
 				'question_key'	=> $key,
 				'answer'		=> $answer
 			];
-			$this->DB->insert(
+			$db->insert(
 				'wiki_claims_answers',
 				$answerData,
 				__METHOD__
@@ -513,16 +623,18 @@ class WikiClaim {
 	 * @return	boolean	Successful Deletion.
 	 */
 	public function delete() {
+		$db = wfGetDB(DB_MASTER);
+
 		//Do a transactional save.
-		$dbPending = $this->DB->writesOrCallbacksPending();
+		$dbPending = $db->writesOrCallbacksPending();
 		if (!$dbPending) {
-			$this->DB->begin();
+			$db->begin();
 		}
 		if ($this->data['cid'] > 0) {
 			//Do an update
-			$success = $this->DB->delete(
+			$success = $db->delete(
 				'wiki_claims',
-				array('cid' => $this->data['cid']),
+				['cid' => $this->data['cid']],
 				__METHOD__
 			);
 		}
@@ -530,18 +642,18 @@ class WikiClaim {
 		//Roll back if there was an error.
 		if (!$success) {
 			if (!$dbPending) {
-				$this->DB->rollback();
+				$db->rollback();
 			}
 			return false;
 		} else {
 			if (!$dbPending) {
-				$this->DB->commit();
+				$db->commit();
 			}
 		}
 
-		$this->DB->delete(
+		$db->delete(
 			'wiki_claims_answers',
-			array('claim_id' => $this->data['cid']),
+			['claim_id' => $this->data['cid']],
 			__METHOD__
 		);
 
@@ -551,4 +663,3 @@ class WikiClaim {
 		return true;
 	}
 }
-?>

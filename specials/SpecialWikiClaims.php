@@ -38,7 +38,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	 * @return	void	[Outputs to screen]
 	 */
 	public function execute($subpage) {
-		global $wgSitename, $claimWikiEnabled;
+		global $wgSitename, $wgClaimWikiEnabled;
 
 		$this->templateWikiClaims = new TemplateWikiClaims;
 		$this->templateClaimEmails = new TemplateClaimEmails;
@@ -47,7 +47,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 
 		$this->setHeaders();
 
-		if (!$claimWikiEnabled) {
+		if (!$wgClaimWikiEnabled) {
 			$this->output->showErrorPage('wiki_claim_error', 'wiki_claim_disabled');
 			return;
 		}
@@ -98,83 +98,31 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	 */
 	public function wikiClaims() {
 		$start = $this->wgRequest->getInt('st');
-		$itemsPerPage = 100;
-		$cond = array('c.user_id = u.user_id');
+		$itemsPerPage = 25;
 
-		$result = $this->DB->select(
-			array('c' => 'wiki_claims', 'u' => 'user'),
-			array('c.user_id', 'u.user_name', 'c.claim_timestamp', 'c.start_timestamp', 'c.end_timestamp'),
-			$cond,
-			__METHOD__,
-			array('ORDER BY' => 'c.claim_timestamp ASC')
-		);
-		while ($row = $result->fetchRow()) {
-			$user = User::newFromId($row['user_id']);
-			$row['claimObj'] = new WikiClaim($user);
-			$claims[$row['claimObj']->getClaimId()] = $row;
+		if ($this->wgRequest->getCookie('wikiClaimsSortKey') && !$this->wgRequest->getVal('sort')) {
+			$sort = $this->wgRequest->getCookie('wikiClaimsSortKey');
+		} else {
+			$sort = $this->wgRequest->getVal('sort');
 		}
+		$sortKey = $sort;
+		$this->wgRequest->response()->setcookie('wikiClaimsSortKey', $sortKey, $cookieExpire);
 
-		if (count($claims)) {
-			if ($this->wgRequest->getCookie('wikiClaimsSortKey') && !$this->wgRequest->getVal('sort')) {
-				$sort = $this->wgRequest->getCookie('wikiClaimsSortKey');
-			} else {
-				$sort = $this->wgRequest->getVal('sort');
-			}
-			if (array_key_exists($sort, reset($claims))) {
-				$sortKey = $sort;
-			} else {
-				$sortKey = 'claim_timestamp';
-			}
-			$this->wgRequest->response()->setcookie('wikiClaimsSortKey', $sortKey, $cookieExpire);
-
-			$sorter = array();
-			foreach ($claims as $key => $info) {
-				$sorter[$key] = $info[$sortKey];
-			}
-			natcasesort($sorter);
-
-			$sortedArray = array();
-			foreach ($sorter as $key => $value) {
-				$sortedArray[$key] = $claims[$key];
-			}
-			$claims = $sortedArray;
-
-			$sortDir = $this->wgRequest->getVal('sort_dir');
-			if (($this->wgRequest->getCookie('wikiClaimsSortDir') == 'desc' && !$sortDir) || strtolower($sortDir) == 'desc') {
-				$claims = array_reverse($claims);
-				$sortDir = 'desc';
-			} else {
-				$sortDir = 'asc';
-			}
-			$this->wgRequest->response()->setcookie('wikiClaimsSortDir', $sortDir, $cookieExpire);
-
-
-			$searchTerm = $this->wgRequest->getVal('list_search');
-			if (($this->wgRequest->getVal('do') == 'search' && !empty($searchTerm))) {
-				$searchKey = array('user_name');
-				$searchTerm = mb_strtolower($searchTerm, 'UTF-8');
-				$found = array();
-				foreach ($claims as $key => $info) {
-					foreach ($searchKey as $sKey) {
-						if (is_array($info[$sKey])) {
-							$_temp = mb_strtolower(implode(',', $info[$sKey]), 'UTF-8');
-						} else {
-							$_temp = mb_strtolower($info[$sKey], 'UTF-8');
-						}
-						if (strpos($_temp, $searchTerm) !== false) {
-							$found[$key] = $info;
-						}
-					}
-				}
-				$claims = $found;
-			}
-
-			$pagination = HydraCore::generatePaginationHtml(count($claims), $itemsPerPage, $start);
-				$claims = array_slice($claims, $start, $itemsPerPage, true);
+		$sortDir = $this->wgRequest->getVal('sort_dir');
+		if (($this->wgRequest->getCookie('wikiClaimsSortDir') == 'desc' && !$sortDir) || strtolower($sortDir) == 'desc') {
+			$claims = array_reverse($claims);
+			$sortDir = 'desc';
+		} else {
+			$sortDir = 'asc';
 		}
+		$this->wgRequest->response()->setcookie('wikiClaimsSortDir', $sortDir, $cookieExpire);
+
+		$claims = WikiClaim::getClaims($start, $itemsPerPage, $sortKey, $sortDir);
+
+		$pagination = HydraCore::generatePaginationHtml(count($claims), $itemsPerPage, $start);
 
 		$this->output->setPageTitle(wfMessage('wikiclaims'));
-		$this->content = $this->templateWikiClaims->wikiClaims($claims, $pagination, $sortKey, $sortDir, $searchTerm);
+		$this->content = $this->templateWikiClaims->wikiClaims($claims, $pagination, $sortKey, $sortDir);
 	}
 
 	/**
@@ -386,7 +334,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 			return false;
 		}
 
-		$this->claim = new WikiClaim($user);
+		$this->claim = WikiClaim::newFromUser($user);
 	}
 
 	/**

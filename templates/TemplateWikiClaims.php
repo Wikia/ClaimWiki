@@ -28,10 +28,9 @@ class TemplateWikiClaims {
 	 * @param	array	Pagination
 	 * @param	string	Data sorting key
 	 * @param	string	Data sorting direction
-	 * @param	string	Search Term
 	 * @return	string	Built HTML
 	 */
-	public function wikiClaims($claims, $pagination, $sortKey, $sortDir, $searchTerm) {
+	public function wikiClaims($claims, $pagination, $sortKey, $sortDir) {
 		global $wgOut, $wgUser, $wgRequest, $wgServer, $wgScriptPath;
 
 		$wikiClaimsPage	= Title::newFromText('Special:WikiClaims');
@@ -39,17 +38,6 @@ class TemplateWikiClaims {
 
 		$HTML = "
 	<div>{$pagination}</div>
-	<div class='search_bar'>
-		<form method='get' action='{$wikiClaimsURL}'>
-			<fieldset>
-				<input type='hidden' name='section' value='list' />
-				<input type='hidden' name='do' value='search' />
-				<input type='text' name='list_search' value='".htmlentities($searchTerm, ENT_QUOTES)."' class='search_field' />
-				<input type='submit' value='".wfMessage('list_search')."' class='button' />
-				<a href='{$wikiClaimsURL}?do=resetSearch' class='button'>".wfMessage('list_reset')."</a>
-			</fieldset>
-		</form>
-	</div>
 	<div class='buttons'>
 		<div class='legend approved'>
 			<span class='swatch'></span> Approved
@@ -78,8 +66,7 @@ class TemplateWikiClaims {
 		<tbody>
 		";
 		if (count($claims)) {
-			foreach ($claims as $claim) {
-				$claim = $claim['claimObj'];
+			foreach ($claims as $claimId => $claim) {
 				$HTML .= "
 				<tr class='".($claim->isApproved() ? 'approved' : null).($claim->isDenied() ? 'denied' : null).($claim->isPending() ? 'pending' : null).($claim->isInactive() ? 'inactive' : null)."'>
 					<td><a href='{$wikiClaimsURL}?do=view&amp;user_id=".$claim->getUser()->getId()."'>".$claim->getUser()->getName()."</a></td>

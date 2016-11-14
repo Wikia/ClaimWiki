@@ -38,7 +38,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	 * @return	void	[Outputs to screen]
 	 */
 	public function execute($subpage) {
-		global $wgSitename, $claimWikiEnabled, $claimWikiGuardianTotal;
+		global $wgSitename, $wgClaimWikiEnabled, $wgClaimWikiGuardianTotal;
 
 		$this->checkPermissions();
 
@@ -50,7 +50,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 
 		$this->setHeaders();
 
-		if (!$claimWikiEnabled) {
+		if (!$wgClaimWikiEnabled) {
 			$this->output->showErrorPage('wiki_claim_error', 'wiki_claim_disabled');
 			return;
 		}
@@ -67,7 +67,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 			__METHOD__
 		);
 		$total = $result->fetchRow();
-		if ($total['total'] >= $claimWikiGuardianTotal) {
+		if ($total['total'] >= $wgClaimWikiGuardianTotal) {
 			$this->output->showErrorPage('wiki_claim_error', 'wiki_claim_maximum_guardians');
 			return;
 		}
@@ -77,7 +77,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 			return;
 		}
 
-		$this->claim = new WikiClaim($this->wgUser);
+		$this->claim = WikiClaim::newFromUser($this->wgUser);
 
 		$this->claimForm();
 
@@ -127,9 +127,9 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 				$success = $this->claim->save();
 
 				if ($success) {
-					global $claimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName, $dsSiteKey;
+					global $wgClaimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName, $dsSiteKey;
 
-					$emailTo[] = new MailAddress($claimWikiEmailTo);
+					$emailTo[] = new MailAddress($wgClaimWikiEmailTo);
 
 					try {
 						$siteManagers = @unserialize($this->redis->hGet('dynamicsettings:siteInfo:'.$dsSiteKey, 'wiki_managers'));

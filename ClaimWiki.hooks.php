@@ -20,15 +20,15 @@ class ClaimWikiHooks {
 	 * @return	void
 	 */
 	static public function onRegistration() {
-		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled;
+		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgwgClaimWikiEnabled;
 
-		if (!isset($wgClaimWikiEnabled)) {
-			$wgClaimWikiEnabled = true;
+		if (!isset($wgwgClaimWikiEnabled)) {
+			$wgwgClaimWikiEnabled = true;
 		}
 
 		$wgGroupPermissions['wiki_guardian'] = $wgGroupPermissions['sysop'];
 
-		if (!isset($wgClaimWikiEmailTo) || !is_bool($wgClaimWikiEnabled)) {
+		if (!isset($wgClaimWikiEmailTo) || !is_bool($wgwgClaimWikiEnabled)) {
 			$wgClaimWikiEmailTo = $wgEmergencyContact;
 		}
 	}
@@ -42,9 +42,9 @@ class ClaimWikiHooks {
 	 * @return	boolean True
 	 */
 	static public function onBeforePageDisplay(OutputPage &$output, Skin &$skin) {
-		global $claimWikiEnabled;
+		global $wgClaimWikiEnabled;
 
-		if (!$claimWikiEnabled) {
+		if (!$wgClaimWikiEnabled) {
 			return true;
 		}
 
@@ -62,9 +62,9 @@ class ClaimWikiHooks {
 	* @return      boolean True - Must return true or the site will break.
 	*/
 	static public function onSkinBuildSidebar(Skin $skin, &$bar) {
-		global $claimWikiEnabled, $claimWikiGuardianTotal;
+		global $wgClaimWikiEnabled, $wgClaimWikiGuardianTotal;
 
-		if (!$claimWikiEnabled) {
+		if (!$wgClaimWikiEnabled) {
 			return true;
 		}
 
@@ -78,7 +78,7 @@ class ClaimWikiHooks {
 
 		$total = $result->fetchRow();
 
-		if ($total['total'] < $claimWikiGuardianTotal) {
+		if ($total['total'] < $wgClaimWikiGuardianTotal) {
 			$page = Title::newFromText('Special:ClaimWiki');
 
 			$claimSidebarContent = "<div class='claimSidebar'><a href='" . $page->getFullURL() . "'>&nbsp;</a></div>";
@@ -102,8 +102,8 @@ class ClaimWikiHooks {
 		}
 
 		if (in_array('wiki_guardian', $remove)) {
-			$claim = new WikiClaim($user);
-			if ($claim) {
+			$claim = WikiClaim::newFromUser($user);
+			if ($claim !== false) {
 				$claim->delete();
 			}
 		}
