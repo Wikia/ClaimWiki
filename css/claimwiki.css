@@ -9,10 +9,11 @@
 	text-decoration: none;
 }
 
-div#mw-panel div.portal#p-claimWiki .body {
+div#mw-panel div#p-claimWiki.portal div.body {
 	background-image: none;
-	margin: 0 0 0 5px;
+	margin: 0;
 	padding: 0;
+	width: 150px;
 }
 
 #mw-panel.collapsible-nav .portal#p-claimWiki {
