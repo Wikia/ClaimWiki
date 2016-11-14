@@ -14,7 +14,7 @@
 
 require_once(dirname(dirname(dirname(__DIR__)))."/maintenance/Maintenance.php");
 
-class guardianReminderEmail extends Maintenance {
+class GuardianReminderEmail extends Maintenance {
 	/**
 	 * Constructor
 	 *
@@ -47,7 +47,12 @@ class guardianReminderEmail extends Maintenance {
 		$results = $this->DB->select(
 			['wiki_claims'],
 			['*'],
-			"agreed = 1 AND status = ".intval(wikiClaim::CLAIM_APPROVED)." AND start_timestamp > 0 AND end_timestamp = 0",
+			[
+				'agreed' => 1,
+				'status' => intval(WikiClaim::CLAIM_APPROVED),
+				'start_timestamp > 0',
+				'end_timestamp' => 0
+			],
 			__METHOD__
 		);
 
@@ -58,7 +63,7 @@ class guardianReminderEmail extends Maintenance {
 			if (!$user->getId()) {
 				continue;
 			}
-			$claim = new wikiClaim($user);
+			$claim = new WikiClaim($user);
 
 			$redisEmailKey = wfWikiID().':guardianReminderEmail:timeSent:'.$user->getId();
 
@@ -119,6 +124,6 @@ class guardianReminderEmail extends Maintenance {
 	}
 }
 
-$maintClass = 'guardianReminderEmail';
+$maintClass = 'GuardianReminderEmail';
 require_once(RUN_MAINTENANCE_IF_MAIN);
 ?>

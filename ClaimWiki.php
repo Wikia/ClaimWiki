@@ -12,81 +12,17 @@
  *
 **/
 
-/******************************************/
-/* Credits                                */
-/******************************************/
-$wgExtensionCredits['specialpage'][] = array(
-	'path'				=> __FILE__,
-	'name'				=> 'Claim Wiki',
-	'author'			=> 'Alexia E. Smith, Curse Inc&copy;',
-	'descriptionmsg'	=> 'claimwiki_description',
-	'version'			=> '1.1' //Must be a string or Mediawiki will turn it into an integer.
-);
-
-/******************************************/
-/* Language Strings, Page Aliases, Hooks  */
-/******************************************/
-$extDir = __DIR__;
-define('CW_EXT_DIR', $extDir);
-
-$wgAvailableRights[] = 'claim_wiki';
-$wgAvailableRights[] = 'wiki_claims';
-
-$wgExtensionMessagesFiles['ClaimWiki']				= "{$extDir}/ClaimWiki.i18n.php";
-$wgExtensionMessagesFiles['SpecialClaimWiki']		= "{$extDir}/ClaimWiki.alias.php";
-
-$wgAutoloadClasses['ClaimWikiHooks']				= "{$extDir}/ClaimWiki.hooks.php";
-$wgAutoloadClasses['SpecialClaimWiki']				= "{$extDir}/specials/SpecialClaimWiki.php";
-$wgAutoloadClasses['SpecialWikiClaims']				= "{$extDir}/specials/SpecialWikiClaims.php";
-$wgAutoloadClasses['wikiClaim']						= "{$extDir}/classes/wikiClaim.php";
-$wgAutoloadClasses['claimLogPager']					= "{$extDir}/classes/claimLog.php";
-$wgAutoloadClasses['claimLogEntry']					= "{$extDir}/classes/claimLog.php";
-
-$wgAutoloadClasses['TemplateClaimEmails']			= "{$extDir}/templates/TemplateClaimEmails.php";
-$wgAutoloadClasses['TemplateClaimWiki']				= "{$extDir}/templates/TemplateClaimWiki.php";
-$wgAutoloadClasses['TemplateWikiClaims']			= "{$extDir}/templates/TemplateWikiClaims.php";
-
-$wgSpecialPages['ClaimWiki']						= 'SpecialClaimWiki';
-$wgSpecialPages['WikiClaims']						= 'SpecialWikiClaims';
-
-$wgHooks['BeforePageDisplay'][]						= 'ClaimWikiHooks::onBeforePageDisplay';
-$wgHooks['SkinBuildSidebar'][]                      = 'ClaimWikiHooks::onSkinBuildSidebar';
-$wgHooks['LoadExtensionSchemaUpdates'][]			= 'ClaimWikiHooks::onLoadExtensionSchemaUpdates';
-$wgHooks['UserEffectiveGroups'][]					= 'ClaimWikiHooks::onUserEffectiveGroups';
-$wgHooks['UserRights'][]							= 'ClaimWikiHooks::onUserRights';
-
-$wgResourceModules['ext.claimWiki'] = [
-	'localBasePath'	=> __DIR__,
-	'remoteExtPath'	=> 'ClaimWiki',
-	'scripts'		=> ['js/listSorter.js'],
-	'styles'		=> ['css/claimwiki.css'],
-	'dependencies'	=> ['ext.hydraCore.pagination', 'ext.hydraCore.button'],
-	'position'		=> 'top'
-];
-
-/******************************************/
-/* Settings and Permissions               */
-/******************************************/
-//Is the system enabled?
-if (!isset($claimWikiEnabled)) {
-	$claimWikiEnabled = true;
+if ( function_exists( 'wfLoadExtension' ) ) {
+	wfLoadExtension( 'ClaimWiki' );
+	// Keep i18n globals so mergeMessageFileList.php doesn't break
+	$wgMessagesDirs['ClaimWiki'] = __DIR__.'/i18n';
+	$wgExtensionMessagesFiles['SpecialClaimWiki'] = __DIR__."/ClaimWiki.alias.php";
+	/* wfWarn(
+		'Deprecated PHP entry point used for AbuseFilter extension. ' .
+		'Please use wfLoadExtension instead, ' .
+		'see https://www.mediawiki.org/wiki/Extension_registration for more details.'
+	); */
+	return;
+} else {
+	die( 'This version of the AbuseFilter extension requires MediaWiki 1.25+' );
 }
-
-//Number of questions on the form.  This can be overrided and custom language strings added.
-$claimWikiNumberOfQuestions = 4;
-
-//Who should receive emails when a new claim is submitted?
-$claimWikiEmailTo = $wgEmergencyContact;
-
-//The tag line that will show up at the bottom of approval and denial emails.
-$claimWikiEmailSignature = 'The Wiki Team';
-
-//Number of wiki guardians that are approved before the side bar button disappears.
-$claimWikiGuardianTotal = 1;
-
-$wgGroupPermissions['user']['claim_wiki']			= true;
-$wgGroupPermissions['bureaucrat']['wiki_claims']	= true;
-
-$wgGroupPermissions['wiki_guardian'] = $wgGroupPermissions['sysop'];
-
-$wgMessagesDirs['ClaimWiki'] = __DIR__ . '/i18n';

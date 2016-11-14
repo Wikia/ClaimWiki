@@ -1,7 +1,10 @@
 {
 	"name": "Claim Wiki",
-	"version": "1.1",
-	"author": "Alexia E. Smith, Curse Inc&copy;",
+	"version": "2.0",
+	"author": [
+		"Alexia E. Smith",
+		"Curse Inc&copy;"
+	],
 	"descriptionmsg": "claimwiki_description",
 	"type": "specialpage",
 	"GroupPermissions": {
@@ -10,8 +13,7 @@
 		},
 		"bureaucrat": {
 			"wiki_claims": true
-		},
-		"wiki_guardian": null
+		}
 	},
 	"AvailableRights": [
 		"claim_wiki",
@@ -33,9 +35,9 @@
 		"ClaimWikiHooks": "ClaimWiki.hooks.php",
 		"SpecialClaimWiki": "specials/SpecialClaimWiki.php",
 		"SpecialWikiClaims": "specials/SpecialWikiClaims.php",
-		"wikiClaim": "classes/wikiClaim.php",
-		"claimLogPager": "classes/claimLog.php",
-		"claimLogEntry": "classes/claimLog.php",
+		"WikiClaim": "classes/WikiClaim.php",
+		"ClaimLogPager": "classes/ClaimLog.php",
+		"ClaimLogEntry": "classes/ClaimLog.php",
 		"TemplateClaimEmails": "templates/TemplateClaimEmails.php",
 		"TemplateClaimWiki": "templates/TemplateClaimWiki.php",
 		"TemplateWikiClaims": "templates/TemplateWikiClaims.php"
@@ -59,12 +61,20 @@
 		"localBasePath": "",
 		"remoteExtPath": "ClaimWiki"
 	},
+	"callback": "ClaimWikiHooks::onRegistration",
 	"Hooks": {
 		"BeforePageDisplay": "ClaimWikiHooks::onBeforePageDisplay",
 		"SkinBuildSidebar": "ClaimWikiHooks::onSkinBuildSidebar",
 		"LoadExtensionSchemaUpdates": "ClaimWikiHooks::onLoadExtensionSchemaUpdates",
 		"UserEffectiveGroups": "ClaimWikiHooks::onUserEffectiveGroups",
 		"UserRights": "ClaimWikiHooks::onUserRights"
+	},
+	"config": {
+		"ClaimWikiEnabled": true,
+		"ClaimWikiNumberOfQuestions": 4,
+		"ClaimWikiEmailTo": null,
+		"ClaimWikiEmailSignature": "The Wiki Team",
+		"ClaimWikiGuardianTotal": 1
 	},
 	"manifest_version": 1
 }

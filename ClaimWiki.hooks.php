@@ -14,6 +14,26 @@
 
 class ClaimWikiHooks {
 	/**
+	 * Handle special on extension registration bits.
+	 *
+	 * @access	public
+	 * @return	void
+	 */
+	static public function onRegistration() {
+		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled;
+
+		if (!isset($wgClaimWikiEnabled)) {
+			$wgClaimWikiEnabled = true;
+		}
+
+		$wgGroupPermissions['wiki_guardian'] = $wgGroupPermissions['sysop'];
+
+		if (!isset($wgClaimWikiEmailTo) || !is_bool($wgClaimWikiEnabled)) {
+			$wgClaimWikiEmailTo = $wgEmergencyContact;
+		}
+	}
+
+	/**
 	 * Add resource loader modules.
 	 *
 	 * @access	public
@@ -52,7 +72,7 @@ class ClaimWikiHooks {
 		$result = $DB->select(
 			'wiki_claims',
 			['COUNT(*) as total'],
-			'status = '.intval(wikiClaim::CLAIM_APPROVED).' AND end_timestamp = 0',
+			'status = '.intval(WikiClaim::CLAIM_APPROVED).' AND end_timestamp = 0',
 			__METHOD__
 		);
 
@@ -82,7 +102,7 @@ class ClaimWikiHooks {
 		}
 
 		if (in_array('wiki_guardian', $remove)) {
-			$claim = new wikiClaim($user);
+			$claim = new WikiClaim($user);
 			if ($claim) {
 				$claim->delete();
 			}

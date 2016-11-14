@@ -110,7 +110,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		);
 		while ($row = $result->fetchRow()) {
 			$user = User::newFromId($row['user_id']);
-			$row['claimObj'] = new wikiClaim($user);
+			$row['claimObj'] = new WikiClaim($user);
 			$claims[$row['claimObj']->getClaimId()] = $row;
 		}
 
@@ -203,7 +203,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$start = $this->wgRequest->getVal('start');
 		$itemsPerPage = 50;
 
-		$pager = new claimLogPager($this->getContext(), []);
+		$pager = new ClaimLogPager($this->getContext(), []);
 
 		$body = $pager->getBody();
 
@@ -386,7 +386,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 			return false;
 		}
 
-		$this->claim = new wikiClaim($user);
+		$this->claim = new WikiClaim($user);
 	}
 
 	/**
