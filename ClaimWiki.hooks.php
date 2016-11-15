@@ -20,7 +20,7 @@ class ClaimWikiHooks {
 	 * @return	void
 	 */
 	static public function onRegistration() {
-		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgwgClaimWikiEnabled;
+		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgwgClaimWikiEnabled, $wgEchoNotifications;
 
 		if (!isset($wgwgClaimWikiEnabled)) {
 			$wgwgClaimWikiEnabled = true;
@@ -31,6 +31,48 @@ class ClaimWikiHooks {
 		if (!isset($wgClaimWikiEmailTo) || !is_bool($wgwgClaimWikiEnabled)) {
 			$wgClaimWikiEmailTo = $wgEmergencyContact;
 		}
+	}
+
+	/**
+	 * Add this extensions Echo notifications.
+	 *
+	 * @access	public
+	 * @param	array	See $wgEchoNotifications in Extension:Echo.
+	 * @param	array	See $wgEchoNotificationCategories in Extension:Echo.
+	 * @param	array	See $wgEchoNotificationIcons in Extension:Echo.
+	 * @return	boolean	True
+	 */
+	static public function onBeforeCreateEchoEvent(&$wgEchoNotifications, &$wgEchoNotificationCategories, &$wgEchoNotificationIcons) {
+		global $wgDefaultUserOptions;
+
+		$wgDefaultUserOptions['echo-subscriptions-web-wiki-claims'] = true;
+		$wgDefaultUserOptions['echo-subscriptions-email-wiki-claims'] = true;
+
+		$wgEchoNotificationCategories['wiki-claims'] = [
+			'priority' => 1,
+			'no-dismiss' => ['web'],
+			'tooltip' => 'echo-pref-tooltip-wiki-claims',
+		];
+
+		$wgEchoNotifications['wiki-claim'] = [
+			EchoAttributeManager::ATTR_LOCATORS => [
+				['EchoUserLocator::locateFromEventExtra', ['user']],
+			],
+			'primary-link' => ['message' => 'wiki-claim-notification', 'destination' => 'wikiclaims'],
+			'category' => 'wiki-claims',
+			'group' => 'neutral',
+			'section' => 'alert',
+			'presentation-model' => 'EchoWikiClaimPresentationModel',
+			// Legacy formatting system
+			'formatter-class' => 'EchoWikiClaimFormatter',
+			'title-message' => 'notification-user-rights',
+			'title-params' => [ 'agent', 'user-rights-list' ],
+			'email-subject-message' => 'notification-user-rights-email-subject',
+			'email-subject-params' => [],
+			'email-body-batch-message' => 'notification-user-rights-email-batch-body',
+			'email-body-batch-params' => ['agent', 'user-rights-list'],
+			'icon' => 'user-rights',
+		];
 	}
 
 	/**

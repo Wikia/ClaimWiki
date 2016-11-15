@@ -136,7 +136,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 					} catch (RedisException $e) {
 						wfDebug(__METHOD__.": Caught RedisException - ".$e->getMessage());
 					}
-					$siteManager = false;
+					/*$siteManager = false;
 					if (is_array($siteManagers) && count($siteManagers)) {
 						$siteManager = current($siteManagers);
 						$user = User::newFromName($siteManager);
@@ -171,11 +171,23 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 							'text' => strip_tags($this->templateClaimEmails->claimWikiNotice($emailExtra)),
 							'html' => $this->templateClaimEmails->claimWikiNotice($emailExtra)
 						]
+					);*/
+
+					$return = EchoEvent::create(
+						[
+							'type' => 'wiki-claim',
+							'title' => Title::newFromText('Special:WikiClaims'),
+							'agent' => $this->getUser(),
+							'extra' => [
+								'notifyAgent' => true,
+								'claimId' => $this->claim->getId(),
+							]
+						]
 					);
 
-					if ($status->isOK()) {
+					/*if ($status->isOK()) {
 						return true;
-					}
+					}*/
 					return false;
 				} else {
 					return false;
