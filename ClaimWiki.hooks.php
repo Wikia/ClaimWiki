@@ -56,7 +56,7 @@ class ClaimWikiHooks {
 
 		$wgEchoNotifications['wiki-claim'] = [
 			EchoAttributeManager::ATTR_LOCATORS => [
-				['EchoUserLocator::locateFromEventExtra', ['user']],
+				['EchoUserLocator::locateFromEventExtra', ['managers']],
 			],
 			'primary-link' => ['message' => 'wiki-claim-notification', 'destination' => 'wikiclaims'],
 			'category' => 'wiki-claims',
@@ -65,14 +65,16 @@ class ClaimWikiHooks {
 			'presentation-model' => 'EchoWikiClaimPresentationModel',
 			// Legacy formatting system
 			'formatter-class' => 'EchoWikiClaimFormatter',
-			'title-message' => 'notification-user-rights',
-			'title-params' => [ 'agent', 'user-rights-list' ],
-			'email-subject-message' => 'notification-user-rights-email-subject',
-			'email-subject-params' => [],
-			'email-body-batch-message' => 'notification-user-rights-email-batch-body',
-			'email-body-batch-params' => ['agent', 'user-rights-list'],
-			'icon' => 'user-rights',
+			'title-message' => 'notification-header-wiki-claim',
+			'title-params' => ['agent'],
+			'email-subject-message' => 'notification-header-wiki-claim',
+			'email-subject-params' => ['agent', 'gender', 'site_name'],
+			'email-body-batch-message' => 'notification-email-body-wiki-claim',
+			'email-body-batch-params' => ['agent'],
+			'icon' => 'wiki-claim'
 		];
+
+		$wgEchoNotificationIcons['wiki-claim'] = ['path' => "ClaimWiki/images/notification.png"];
 	}
 
 	/**

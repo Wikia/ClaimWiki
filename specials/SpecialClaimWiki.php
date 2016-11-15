@@ -77,7 +77,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 			return;
 		}
 
-		$this->claim = WikiClaim::newFromUser($this->wgUser);
+		$this->claim = WikiClaim::newFromUser($this->getUser());
 
 		$this->claimForm();
 
@@ -104,6 +104,8 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	 * @return	array	Array of errors.
 	 */
 	private function claimSave() {
+		global $dsSiteKey;
+
 		if ($_GET['do'] == 'save') {
 			$questionKeys = $this->claim->getQuestionKeys();
 			foreach ($questionKeys as $key) {
@@ -136,7 +138,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 					} catch (RedisException $e) {
 						wfDebug(__METHOD__.": Caught RedisException - ".$e->getMessage());
 					}
-					/*$siteManager = false;
+					$siteManager = false;
 					if (is_array($siteManagers) && count($siteManagers)) {
 						$siteManager = current($siteManagers);
 						$user = User::newFromName($siteManager);
@@ -147,40 +149,18 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 						}
 					}
 
-					$wikiManagerEmail = $wikiManager->getEmail(); //This is done to prevent calling "GetEmail" hooks multiple times.
-					if (Sanitizer::validateEmail($wikiManagerEmail)) {
-						$emailTo[] = new MailAddress($wikiManagerEmail, $wikiManager->getName());
-					}
-					$emailSubject = wfMessage('claim_wiki_email_subject', $this->claim->getUser()->getName())->text();
-
-					$emailExtra = [
-						'environment'	=> (!empty($_SERVER['PHP_ENV']) ? $_SERVER['PHP_ENV'] : $_SERVER['SERVER_NAME']),
-						'user'			=> $this->wgUser,
-						'claim'			=> $this->claim,
-						'site_name'		=> $wgSitename
-					];
-
-					$from = new MailAddress($wgPasswordSender, $wgPasswordSenderName);
-
-					$email = new UserMailer();
-					$status = $email->send(
-						$emailTo,
-						$from,
-						$emailSubject,
-						[
-							'text' => strip_tags($this->templateClaimEmails->claimWikiNotice($emailExtra)),
-							'html' => $this->templateClaimEmails->claimWikiNotice($emailExtra)
-						]
-					);*/
-
 					$return = EchoEvent::create(
 						[
-							'type' => 'wiki-claim',
-							'title' => Title::newFromText('Special:WikiClaims'),
-							'agent' => $this->getUser(),
-							'extra' => [
-								'notifyAgent' => true,
-								'claimId' => $this->claim->getId(),
+							'type'	=> 'wiki-claim',
+							'title'	=> Title::newFromText('Special:WikiClaims'),
+							'agent'	=> $this->claim->getUser(),
+							'extra'	=> [
+								'notifyAgent'	=> true,
+								'claim_id'		=> $this->claim->getId(),
+								'managers'		=> [$this->getUser()->getId() => $this->getUser()->getId()],
+								'site_key'		=> $dsSiteKey,
+								'site_name'		=> $wgSitename,
+								'claim_url'		=> SpecialPage::getTitleFor('WikiClaims')->getFullURL(['do' => 'view', 'user_id' => $this->claim->getUser()->getId()])
 							]
 						]
 					);

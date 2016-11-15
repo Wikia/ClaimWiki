@@ -71,5 +71,6 @@
 	"no_log_entries_found": "No Wiki Claim log entries found.",
 	"echo-category-title-wiki-claims": "New wiki claims",
 	"echo-pref-tooltip-wiki-claims": "Notify me when a new wiki claim is submitted, approved, or denied on a wiki claim.",
-	"wiki-claim-notification": "View claim"
+	"wiki-claim-notification": "View claim",
+	"notification-header-wiki-claim": "$1 {{GENDER:$2|submitted}} a new wiki claim on <strong>$3</strong>."
 }

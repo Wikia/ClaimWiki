@@ -110,7 +110,7 @@ class WikiClaim {
 			return false;
 		}
 
-		$claim->user = $user;
+		$claim->setUser($user);
 
 		$claim->newFrom = 'user';
 
@@ -127,17 +127,17 @@ class WikiClaim {
 	 * @return	mixed	WikiClaim or false on error.
 	 */
 	static public function newFromRow($row) {
-		$wikiClaim = new self;
+		$claim = new self;
 
-		$wikiClaim->newFrom = 'row';
+		$claim->newFrom = 'row';
 
-		$wikiClaim->load($row);
+		$claim->load($row);
 
-		if (!$wikiClaim->getId()) {
+		if (!$claim->getId()) {
 			return false;
 		}
 
-		return $wikiClaim;
+		return $claim;
 	}
 
 	/**
@@ -257,6 +257,21 @@ class WikiClaim {
 	 */
 	public function getId() {
 		return $this->data['cid'];
+	}
+
+	/**
+	 * Set the User object.
+	 *
+	 * @access	public
+	 * @param	object	Mediawiki User Object
+	 * @throws	object	InvalidArgumentException
+	 */
+	public function setUser(User $user) {
+		if (!$user->getId()) {
+			throw new InvalidArgumentException(__METHOD__.': Invalid user given.');
+		}
+		$this->user = $user;
+		$this->data['user_id'] = $user->getId();
 	}
 
 	/**
@@ -548,6 +563,10 @@ class WikiClaim {
 	public function save() {
 		$db = wfGetDB(DB_MASTER);
 
+		if (!$this->data['user_id']) {
+			throw new MWException(__METHOD__.': Attempted to save a wiki claim without a valid user ID.');
+		}
+
 		//Do a transactional save.
 		$dbPending = $db->writesOrCallbacksPending();
 		if (!$dbPending) {
@@ -581,7 +600,7 @@ class WikiClaim {
 
 			return false;
 		} else {
-			if (!$this->data['cid']) {
+			if (!isset($this->data['cid']) || !$this->data['cid']) {
 				$this->data['cid'] = $db->insertId();
 			}
 			if (!$dbPending) {
