@@ -131,29 +131,55 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 				if ($success) {
 					global $wgClaimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName, $dsSiteKey;
 
-					$emailTo[] = new MailAddress($wgClaimWikiEmailTo);
-
 					try {
 						$siteManagers = @unserialize($this->redis->hGet('dynamicsettings:siteInfo:'.$dsSiteKey, 'wiki_managers'));
 					} catch (RedisException $e) {
 						wfDebug(__METHOD__.": Caught RedisException - ".$e->getMessage());
 					}
 					$siteManager = false;
+					$echoManagerIds = [];
 					if (is_array($siteManagers) && count($siteManagers)) {
-						$siteManager = current($siteManagers);
-						$user = User::newFromName($siteManager);
-						$user->load();
-						if ($user->getId()) {
-							$wikiManager = $user;
-							unset($user);
+						foreach ($siteManagers as $key => $siteManager) {
+							$user = User::newFromName($siteManager);
+							$user->load();
+							if ($user->getId()) {
+								$siteManagers[$key] = $user;
+								$echoManagerIds[] = $user->getId();
+							} else {
+								unset($siteManagers[$key]);
+							}
 						}
+						$wikiManager = current($siteManagers);
 					}
 
 
-					$wikiManagerEmail = $wikiManager->getEmail(); //This is done to prevent calling "GetEmail" hooks multiple times.
-					if (Sanitizer::validateEmail($wikiManagerEmail)) {
-						$emailTo[] = new MailAddress($wikiManagerEmail, $wikiManager->getName());
+					if (is_array($siteManagers) && count($siteManagers)) {
+						$wikiManager = current($siteManagers);
+
+						$wikiManagerEmail = $wikiManager->getEmail();
+						if (Sanitizer::validateEmail($wikiManagerEmail)) {
+							$emailTo[] = new MailAddress($wikiManagerEmail, $wikiManager->getName());
+						}
+
+						EchoEvent::create(
+							[
+								'type'	=> 'wiki-claim',
+								'title'	=> Title::newFromText('Special:WikiClaims'),
+								'agent'	=> $this->claim->getUser(),
+								'extra'	=> [
+									'notifyAgent'	=> true,
+									'claim_id'		=> $this->claim->getId(),
+									'managers'		=> $echoManagerIds,
+									'site_key'		=> $dsSiteKey,
+									'site_name'		=> $wgSitename,
+									'claim_url'		=> SpecialPage::getTitleFor('WikiClaims')->getFullURL(['do' => 'view', 'user_id' => $this->claim->getUser()->getId()])
+								]
+							]
+						);
 					}
+
+					$emailTo[] = new MailAddress($wgClaimWikiEmailTo);
+
 					$emailSubject = wfMessage('claim_wiki_email_subject', $this->claim->getUser()->getName())->text();
 
 					$emailExtra = [
@@ -173,23 +199,6 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 						[
 							'text' => strip_tags($this->templateClaimEmails->claimWikiNotice($emailExtra)),
 							'html' => $this->templateClaimEmails->claimWikiNotice($emailExtra)
-						]
-					);
-
-
-					EchoEvent::create(
-						[
-							'type'	=> 'wiki-claim',
-							'title'	=> Title::newFromText('Special:WikiClaims'),
-							'agent'	=> $this->claim->getUser(),
-							'extra'	=> [
-								'notifyAgent'	=> true,
-								'claim_id'		=> $this->claim->getId(),
-								'managers'		=> [$this->getUser()->getId() => $this->getUser()->getId()],
-								'site_key'		=> $dsSiteKey,
-								'site_name'		=> $wgSitename,
-								'claim_url'		=> SpecialPage::getTitleFor('WikiClaims')->getFullURL(['do' => 'view', 'user_id' => $this->claim->getUser()->getId()])
-							]
 						]
 					);
 
