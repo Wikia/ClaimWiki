@@ -149,7 +149,35 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 						}
 					}
 
-					$return = EchoEvent::create(
+
+					$wikiManagerEmail = $wikiManager->getEmail(); //This is done to prevent calling "GetEmail" hooks multiple times.
+					if (Sanitizer::validateEmail($wikiManagerEmail)) {
+						$emailTo[] = new MailAddress($wikiManagerEmail, $wikiManager->getName());
+					}
+					$emailSubject = wfMessage('claim_wiki_email_subject', $this->claim->getUser()->getName())->text();
+
+					$emailExtra = [
+						'environment'	=> (!empty($_SERVER['PHP_ENV']) ? $_SERVER['PHP_ENV'] : $_SERVER['SERVER_NAME']),
+						'user'			=> $this->wgUser,
+						'claim'			=> $this->claim,
+						'site_name'		=> $wgSitename
+					];
+
+					$from = new MailAddress($wgPasswordSender, $wgPasswordSenderName);
+
+					$email = new UserMailer();
+					$status = $email->send(
+						$emailTo,
+						$from,
+						$emailSubject,
+						[
+							'text' => strip_tags($this->templateClaimEmails->claimWikiNotice($emailExtra)),
+							'html' => $this->templateClaimEmails->claimWikiNotice($emailExtra)
+						]
+					);
+
+
+					EchoEvent::create(
 						[
 							'type'	=> 'wiki-claim',
 							'title'	=> Title::newFromText('Special:WikiClaims'),
@@ -165,9 +193,9 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 						]
 					);
 
-					/*if ($status->isOK()) {
+					if ($status->isOK()) {
 						return true;
-					}*/
+					}
 					return false;
 				} else {
 					return false;
