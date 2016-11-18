@@ -152,7 +152,6 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 						$wikiManager = current($siteManagers);
 					}
 
-
 					if (is_array($siteManagers) && count($siteManagers)) {
 						$wikiManager = current($siteManagers);
 
