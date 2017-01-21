@@ -40,6 +40,8 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	public function execute($subpage) {
 		global $wgSitename, $wgClaimWikiEnabled;
 
+		$this->checkPermissions();
+
 		$this->templateWikiClaims = new TemplateWikiClaims;
 		$this->templateClaimEmails = new TemplateClaimEmails;
 
