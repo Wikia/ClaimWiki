@@ -29,15 +29,15 @@ class ClaimLogPager extends ReverseChronologicalPager {
 	public function getQueryInfo() {
 		$query = [
 			'tables'		=> [
-				'l' => 'wiki_claims_log',
-				'c'	=> 'wiki_claims'
+				'wiki_claims_log',
+				'wiki_claims'
 			],
 			'fields'		=> [
-				'l.*', 'c.user_id'
+				'wiki_claims_log.*', 'wiki_claims.user_id'
 			],
 			'conds'			=> [],
 			'options'		=> [
-				'ORDER BY'	=> 'timestamp DESC'
+				'ORDER BY'	=> 'wiki_claims_log.timestamp DESC'
 			],
 			'join_conds'	=> [
 				'wiki_claims' => [
