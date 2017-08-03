@@ -11,8 +11,7 @@
  *
 **/
 
-class EchoWikiClaimFormatter extends EchoBasicFormatter {
-
+class EchoWikiClaimFormatter extends EchoModelFormatter {
 	/**
 	 * @param $event EchoEvent
 	 * @param $param string
@@ -38,14 +37,13 @@ class EchoWikiClaimFormatter extends EchoBasicFormatter {
 	 */
 	protected function getLinkParams( $event, $user, $destination ) {
 		$target = null;
-		$query = array();
+		$query = [];
 		// Set up link parameters based on the destination (or pass to parent)
 		switch ( $destination ) {
 			default:
 				return parent::getLinkParams( $event, $user, $destination );
 		}
 
-		return array( $target, $query );
+		return [$target, $query];
 	}
 }
-
