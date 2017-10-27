@@ -42,7 +42,8 @@
 		"EchoWikiClaimPresentationModel": "classes/EchoWikiClaimPresentationModel.php",
 		"TemplateClaimEmails": "templates/TemplateClaimEmails.php",
 		"TemplateClaimWiki": "templates/TemplateClaimWiki.php",
-		"TemplateWikiClaims": "templates/TemplateWikiClaims.php"
+		"TemplateWikiClaims": "templates/TemplateWikiClaims.php",
+		"WikiGuardianEmailJob": "classes/jobs/WikiGuardianEmail.php"
 	},
 	"ResourceModules": {
 		"ext.claimWiki": {
@@ -73,11 +74,30 @@
 		"UserRights": "ClaimWikiHooks::onUserRights"
 	},
 	"config": {
-		"ClaimWikiEnabled": true,
-		"ClaimWikiNumberOfQuestions": 4,
-		"ClaimWikiEmailTo": null,
-		"ClaimWikiEmailSignature": "The Wiki Team",
-		"ClaimWikiGuardianTotal": 1
+		"SyncServices": {
+			"value": [
+				"WikiGuardianEmailJob"
+			],
+			"path": false,
+			"descriptionmsg": "claimwiki-syncservices",
+			"public": false,
+			"merge_strategy": "array_merge"
+		},
+		"ClaimWikiEnabled": {
+			"value": true
+		},
+		"ClaimWikiNumberOfQuestions": {
+			"value": 4
+		},
+		"ClaimWikiEmailTo": {
+			"value": null
+		},
+		"ClaimWikiEmailSignature": {
+			"value": "The Wiki Team"
+		},
+		"ClaimWikiGuardianTotal": {
+			"value": 1
+		}
 	},
-	"manifest_version": 1
+	"manifest_version": 2
 }
