@@ -21,10 +21,8 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 	 * @return	integer	exit value for this thread
 	 */
 	public function execute($args = []) {
-		global $wgEmergencyContact, $wgSitename, $wgClaimWikiEmailTo, $wgClaimWikiEnabled;
-
+		global $wgEmergencyContact, $wgSitename, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $dsSiteKey;
 		$this->outputLine("Starting Wiki Guardian Email Job.\n");
-
 
 		if (!$wgClaimWikiEnabled) {
 			$this->outputLine("Claim Wiki not Enabled. Exiting.\n");
@@ -54,13 +52,22 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 			if (!$user->getId()) {
 				continue;
 			}
-			$claim = WikiClaim::newFromUser($user);
 
+			$claim = WikiClaim::newFromUser($user);
 			$redisEmailKey = wfWikiID().':guardianReminderEmail:timeSent:'.$user->getId();
 
-			$timestamp = wfTimestamp(TS_UNIX, $user->getDBTouched());
-			$oldTimestamp = time() - 5184000; //Thirty Days
-			$emailReminderExpired = time() - 1296000; //Fifteen Days
+			$cheevosUser = \Cheevos\Cheevos::getWikiPointLog([
+				'user_id' => $user->getId(),
+				'site_id' => ($dsSiteKey ? $dsSiteKey : null)
+			]);
+			if (isset($cheevosUser[0]) && $cheevosUser[0]->getUser_Id() == $user->getId()) {
+				$timestamp = $cheevosUser[0]->getTimestamp();
+				$oldTimestamp = time() - 5184000; //Thirty Days
+				$emailReminderExpired = time() - 1296000; //Fifteen Days
+			} else {
+				// cant get timestamp
+				continue;
+			}
 
 			try {
 				$emailSent = $this->redis->get($redisEmailKey);
