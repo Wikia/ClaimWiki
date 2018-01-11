@@ -121,7 +121,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 
 		$claims = WikiClaim::getClaims($start, $itemsPerPage, $sortKey, $sortDir);
 
-		$pagination = HydraCore::generatePaginationHtml(count($claims), $itemsPerPage, $start);
+		$pagination = HydraCore::generatePaginationHtml($this->getFullTitle(), count($claims), $itemsPerPage, $start);
 
 		$this->output->setPageTitle(wfMessage('wikiclaims'));
 		$this->content = $this->templateWikiClaims->wikiClaims($claims, $pagination, $sortKey, $sortDir);
