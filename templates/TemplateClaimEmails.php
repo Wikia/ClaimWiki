@@ -46,7 +46,7 @@ class TemplateClaimEmails {
 	 * @return	string	Built HTML
 	 */
 	public function claimStatusNotice($status, $emailExtra) {
-		global $defaultPortal, $wgEmergencyContact, $wgClaimWikiEmailSignature;
+		global $wgEmergencyContact, $wgClaimWikiEmailSignature;
 
 		$page = Title::newFromText('Project:Admin_noticeboard');
 
