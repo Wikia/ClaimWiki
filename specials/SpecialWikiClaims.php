@@ -27,7 +27,8 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	 * @return	void
 	 */
 	public function __construct() {
-		parent::__construct('WikiClaims', 'wiki_claims');
+		global $wgClaimWikiEnabled;
+		parent::__construct('WikiClaims', 'wiki_claims', $wgClaimWikiEnabled);
 	}
 
 	/**
