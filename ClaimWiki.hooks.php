@@ -20,15 +20,15 @@ class ClaimWikiHooks {
 	 * @return	void
 	 */
 	static public function onRegistration() {
-		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgwgClaimWikiEnabled, $wgEchoNotifications;
+		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $wgEchoNotifications, $wgEmergencyContact;
 
-		if (!isset($wgwgClaimWikiEnabled)) {
-			$wgwgClaimWikiEnabled = true;
+		if (!isset($wgClaimWikiEnabled)) {
+			$wgClaimWikiEnabled = true;
 		}
 
 		$wgGroupPermissions['wiki_guardian'] = $wgGroupPermissions['sysop'];
 
-		if (!isset($wgClaimWikiEmailTo) || !is_bool($wgwgClaimWikiEnabled)) {
+		if (!isset($wgClaimWikiEmailTo) || !is_bool($wgClaimWikiEnabled)) {
 			$wgClaimWikiEmailTo = $wgEmergencyContact;
 		}
 	}
@@ -141,7 +141,7 @@ class ClaimWikiHooks {
 	 * @return	boolean	True
 	 */
 	static public function onUserRights($user, array $add, array $remove) {
-		if (!$user instanceOf User || !$user->getId()) {
+		if (!$user instanceof User || !$user->getId()) {
 			return true;
 		}
 

@@ -101,6 +101,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	public function wikiClaims() {
 		$start = $this->wgRequest->getInt('st');
 		$itemsPerPage = 25;
+		$cookieExpire = time() + 900;
 
 		if ($this->wgRequest->getCookie('wikiClaimsSortKey') && !$this->wgRequest->getVal('sort')) {
 			$sort = $this->wgRequest->getCookie('wikiClaimsSortKey');
