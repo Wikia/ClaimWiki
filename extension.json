@@ -43,7 +43,7 @@
 		"TemplateClaimEmails": "templates/TemplateClaimEmails.php",
 		"TemplateClaimWiki": "templates/TemplateClaimWiki.php",
 		"TemplateWikiClaims": "templates/TemplateWikiClaims.php",
-		"WikiGuardianEmailJob": "classes/jobs/WikiGuardianEmail.php"
+		"WikiGuardianEmailJob": "classes/jobs/WikiGuardianEmailJob.php"
 	},
 	"ResourceModules": {
 		"ext.claimWiki": {

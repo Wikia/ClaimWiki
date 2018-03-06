@@ -33,7 +33,7 @@ class GuardianReminderEmail extends Maintenance {
 	 */
 	public function execute() {
 		$this->output('Queuing Wiki Guardian Email job');
-		\WikiGuardianEmailJob::queue();
+		WikiGuardianEmailJob::queue();
 	}
 }
 
