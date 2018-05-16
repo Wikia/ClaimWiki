@@ -54,8 +54,7 @@
 				"css/claimwiki.css"
 			],
 			"dependencies": [
-				"ext.hydraCore.pagination.styles",
-				"ext.hydraCore.button.styles"
+				"ext.hydraCore.pagination.styles"
 			],
 			"position": "top"
 		}

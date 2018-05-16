@@ -38,7 +38,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	 * @return	void	[Outputs to screen]
 	 */
 	public function execute($subpage) {
-		global $wgSitename, $wgClaimWikiEnabled, $wgClaimWikiGuardianTotal;
+		global $wgClaimWikiEnabled, $wgClaimWikiGuardianTotal;
 
 		$this->checkPermissions();
 
@@ -106,7 +106,9 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	private function claimSave() {
 		global $dsSiteKey;
 
-		if ($_GET['do'] == 'save') {
+		$errors = [];
+
+		if ($this->getRequest()->wasPosted() && $this->getRequest()->getVal('do') === 'save') {
 			$questionKeys = $this->claim->getQuestionKeys();
 			foreach ($questionKeys as $key) {
 				$this->claim->setAnswer($key, trim($this->wgRequest->getVal($key)));
@@ -122,10 +124,8 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 			}
 
 			$_errors = $this->claim->getErrors();
-			if (is_array($_errors)) {
-				$errors = array_merge($errors, $_errors);
-			}
-			if (!is_array($errors) && $this->claim->isAgreed()) {
+			$errors = array_merge($errors, $_errors);
+			if (!count($errors) && $this->claim->isAgreed()) {
 				$success = $this->claim->save();
 
 				if ($success) {

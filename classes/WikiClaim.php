@@ -60,7 +60,15 @@ class WikiClaim {
 	 *
 	 * @var		array
 	 */
-	private $data = [];
+	private $data = [
+		'cid'				=> 0,
+		'user_id'			=> 0,
+		'claim_timestamp'	=> 0,
+		'start_timestamp'	=> 0,
+		'end_timestamp'		=> 0,
+		'agreed'			=> 0,
+		'status'			=> 0
+	];
 
 	/**
 	 * Claim Question
@@ -250,6 +258,134 @@ class WikiClaim {
 	}
 
 	/**
+	 * Save data to the database.
+	 *
+	 * @access	public
+	 * @return	boolean	Successful Save.
+	 */
+	public function save() {
+		$db = wfGetDB(DB_MASTER);
+
+		if (!$this->data['user_id']) {
+			throw new MWException(__METHOD__.': Attempted to save a wiki claim without a valid user ID.');
+		}
+
+		//Do a transactional save.
+		$dbPending = $db->writesOrCallbacksPending();
+		if (!$dbPending) {
+			$db->begin();
+		}
+		if ($this->data['cid'] > 0) {
+			$_data = $this->data;
+			unset($_data['cid']);
+			//Do an update
+			$success = $db->update(
+				'wiki_claims',
+				$_data,
+				['cid' => $this->data['cid']],
+				__METHOD__
+			);
+			unset($_data);
+		} else {
+			//Do an insert
+			$success = $db->insert(
+				'wiki_claims',
+				$this->data,
+				__METHOD__
+			);
+		}
+
+		//Roll back if there was an error.
+		if (!$success) {
+			if (!$dbPending) {
+				$db->rollback();
+			}
+
+			return false;
+		} else {
+			if (!isset($this->data['cid']) || !$this->data['cid']) {
+				$this->data['cid'] = $db->insertId();
+			}
+			if (!$dbPending) {
+				$db->commit();
+			}
+			global $wgUser;
+			$logEntry = new ClaimLogEntry();
+			$logEntry->setClaim($this);
+			$logEntry->setActor($wgUser);
+			$logEntry->insert();
+		}
+
+		$db->delete(
+			'wiki_claims_answers',
+			['claim_id' => $this->data['cid']],
+			__METHOD__
+		);
+
+		foreach ($this->answers as $key => $answer) {
+			$answerData = [
+				'claim_id'		=> $this->data['cid'],
+				'question_key'	=> $key,
+				'answer'		=> $answer
+			];
+			$db->insert(
+				'wiki_claims_answers',
+				$answerData,
+				__METHOD__
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Deletes from the database and clears the object.
+	 *
+	 * @access	public
+	 * @return	boolean	Successful Deletion.
+	 */
+	public function delete() {
+		$db = wfGetDB(DB_MASTER);
+
+		//Do a transactional save.
+		$dbPending = $db->writesOrCallbacksPending();
+		if (!$dbPending) {
+			$db->begin();
+		}
+		if ($this->data['cid'] > 0) {
+			//Do an update
+			$success = $db->delete(
+				'wiki_claims',
+				['cid' => $this->data['cid']],
+				__METHOD__
+			);
+		}
+
+		//Roll back if there was an error.
+		if (!$success) {
+			if (!$dbPending) {
+				$db->rollback();
+			}
+			return false;
+		} else {
+			if (!$dbPending) {
+				$db->commit();
+			}
+		}
+
+		$db->delete(
+			'wiki_claims_answers',
+			['claim_id' => $this->data['cid']],
+			__METHOD__
+		);
+
+		$this->data = [];
+		$this->answers = [];
+
+		return true;
+	}
+
+	/**
 	 * Returns the claim identification number from the database.
 	 *
 	 * @access	public
@@ -295,7 +431,7 @@ class WikiClaim {
 		foreach ($keys as $key) {
 			$this->questions[$key] = [
 				'text'		=> wfMessage($key),
-				'answer'	=> $this->answers[$key]
+				'answer'	=> isset($this->answers[$key]) ? $this->answers[$key] : null
 			];
 		}
 		return $this->questions;
@@ -351,7 +487,7 @@ class WikiClaim {
 	 * @return	boolean	Agreed to the terms?
 	 */
 	public function isAgreed() {
-		return $this->data['agreed'];
+		return boolval($this->data['agreed']);
 	}
 
 	/**
@@ -541,144 +677,16 @@ class WikiClaim {
 	 * Figures out what answers are not answers and return a list of errors.
 	 *
 	 * @access	public
-	 * @return	mixed	Boolean false for no errors or an array of errors of $questionKey => $message.
+	 * @return	array	An array of errors of $questionKey => $message.  The array will be empty for no errors.
 	 */
 	public function getErrors() {
 		$keys = $this->getQuestionKeys();
-		$errors = false;
+		$errors = [];
 		foreach ($keys as $key) {
 			if (empty($this->answers[$key])) {
 				$errors[$key] = wfMessage($key.'_error');
 			}
 		}
 		return $errors;
-	}
-
-	/**
-	 * Save data to the database.
-	 *
-	 * @access	public
-	 * @return	boolean	Successful Save.
-	 */
-	public function save() {
-		$db = wfGetDB(DB_MASTER);
-
-		if (!$this->data['user_id']) {
-			throw new MWException(__METHOD__.': Attempted to save a wiki claim without a valid user ID.');
-		}
-
-		//Do a transactional save.
-		$dbPending = $db->writesOrCallbacksPending();
-		if (!$dbPending) {
-			$db->begin();
-		}
-		if ($this->data['cid'] > 0) {
-			$_data = $this->data;
-			unset($_data['cid']);
-			//Do an update
-			$success = $db->update(
-				'wiki_claims',
-				$_data,
-				['cid' => $this->data['cid']],
-				__METHOD__
-			);
-			unset($_data);
-		} else {
-			//Do an insert
-			$success = $db->insert(
-				'wiki_claims',
-				$this->data,
-				__METHOD__
-			);
-		}
-
-		//Roll back if there was an error.
-		if (!$success) {
-			if (!$dbPending) {
-				$db->rollback();
-			}
-
-			return false;
-		} else {
-			if (!isset($this->data['cid']) || !$this->data['cid']) {
-				$this->data['cid'] = $db->insertId();
-			}
-			if (!$dbPending) {
-				$db->commit();
-			}
-			global $wgUser;
-			$logEntry = new ClaimLogEntry();
-			$logEntry->setClaim($this);
-			$logEntry->setActor($wgUser);
-			$logEntry->insert();
-		}
-
-		$db->delete(
-			'wiki_claims_answers',
-			['claim_id' => $this->data['cid']],
-			__METHOD__
-		);
-
-		foreach ($this->answers as $key => $answer) {
-			$answerData = [
-				'claim_id'		=> $this->data['cid'],
-				'question_key'	=> $key,
-				'answer'		=> $answer
-			];
-			$db->insert(
-				'wiki_claims_answers',
-				$answerData,
-				__METHOD__
-			);
-		}
-
-		return true;
-	}
-
-	/**
-	 * Deletes from the database and clears the object.
-	 *
-	 * @access	public
-	 * @return	boolean	Successful Deletion.
-	 */
-	public function delete() {
-		$db = wfGetDB(DB_MASTER);
-
-		//Do a transactional save.
-		$dbPending = $db->writesOrCallbacksPending();
-		if (!$dbPending) {
-			$db->begin();
-		}
-		if ($this->data['cid'] > 0) {
-			//Do an update
-			$success = $db->delete(
-				'wiki_claims',
-				['cid' => $this->data['cid']],
-				__METHOD__
-			);
-		}
-
-		//Roll back if there was an error.
-		if (!$success) {
-			if (!$dbPending) {
-				$db->rollback();
-			}
-			return false;
-		} else {
-			if (!$dbPending) {
-				$db->commit();
-			}
-		}
-
-		$db->delete(
-			'wiki_claims_answers',
-			['claim_id' => $this->data['cid']],
-			__METHOD__
-		);
-
-		$this->data = [];
-		$this->answers = [];
-
-		return true;
 	}
 }

@@ -1,5 +1,6 @@
 .claimSidebar {
-	background-image: url('../images/claimwiki/claimwiki.png');
+	background-image: url('../images/claimwiki.svg');
+	background-size: 150px 40px;
 }
 
 .claimSidebar, .claimSidebar a, .claimSidebar a:hover {

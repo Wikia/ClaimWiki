@@ -14,13 +14,6 @@
 
 class TemplateClaimWiki {
 	/**
-	 * Output HTML
-	 *
-	 * @var		string
-	 */
-	private $HMTL;
-
-	/**
 	 * Claim Wiki Form
 	 *
 	 * @access	public
@@ -29,32 +22,35 @@ class TemplateClaimWiki {
 	 * @return	string	Built HTML
 	 */
 	public function claimForm($claim, $errors) {
-		global $wgRequest, $wgUser, $wgOutput, $wgSitename;
+		global $wgRequest, $wgSitename;
+
+		$html = '';
+
 		if ($wgRequest->getVal('success') == 'true' || ($claim->isAgreed() && $claim->getTimestamp('claim') > 0)) {
 			$mainPage		= new Title();
 			$mainPageURL	= $mainPage->getFullURL();
 			if ($claim->isDenied()) {
-				$HTML .= "<div class='errorbox'>".wfMessage('claim_denied')."</div><br style='clear: both;'/>
+				$html .= "<div class='errorbox'>".wfMessage('claim_denied')."</div><br style='clear: both;'/>
 				<a href='{$mainPageURL}'>".wfMessage('returnto', $wgSitename)->escaped()."</a>";
 			} else {
-				$HTML .= "<div class='successbox'>".wfMessage('claim_successful')."</div><br style='clear: both;'/>
+				$html .= "<div class='successbox'>".wfMessage('claim_successful')."</div><br style='clear: both;'/>
 				<a href='{$mainPageURL}'>".wfMessage('returnto', $wgSitename)->escaped()."</a>";
 			}
 		} else {
-			$HTML .= "<p>".$claim->getGuidelinesText()."</p>
+			$html .= "<p>".$claim->getGuidelinesText()."</p>
 			<form id='claim_wiki_form' method='post' action='?do=save'>
 				<fieldset>
 					<h3>User Name: <span class='plain'>".$claim->getUser()->getName()."</span></h3>
 					<h3>Email: <span class='plain'>".$claim->getUser()->getEmail()."</span></h3>";
 			$questions = $claim->getQuestions();
 			foreach ($questions as $key => $question) {
-				$HTML .= ($errors[$key] ? '<span class="error">'.$errors[$key].'</span>' : '')."
+				$html .= (isset($errors[$key]) ? '<span class="error">'.$errors[$key].'</span>' : '')."
 					<label for='{$key}' class='label_above'><h3>".$question['text']."</h3></label>
 					<textarea id='{$key}' name='{$key}' type='text'/>".htmlentities($question['answer'], ENT_QUOTES)."</textarea>
 				";
 			}
-			$HTML .= 
-					($errors['agreement'] ? '<br/><span class="error">'.$errors['agreement'].'</span>' : '')."
+			$html .=
+					(isset($errors['agreement']) ? '<br/><span class="error">'.$errors['agreement'].'</span>' : '')."
 					<p>".$claim->getAgreementText()."</p>
 					<label for='agreement'><input id='agreement' name='agreement' type='checkbox' value='agreed'".($claim->isAgreed() ? " checked='checked'" : null)."/> ".wfMessage('claim_agree')."</label>
 				</fieldset>
@@ -64,6 +60,6 @@ class TemplateClaimWiki {
 				</fieldset>
 			</form>";
 		}
-		return $HTML;
+		return $html;
 	}
 }
