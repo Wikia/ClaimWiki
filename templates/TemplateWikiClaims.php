@@ -25,8 +25,7 @@ class TemplateWikiClaims {
 	 */
 	public function wikiClaims($claims, $pagination, $sortKey, $sortDir) {
 		$wikiClaimsPage	= SpecialPage::getTitleFor('WikiClaims');
-		$wikiClaimsURL	= $wikiClaimsPage->getFullURL();
-		
+
 		$html = "
 	<div>{$pagination}</div>
 	<div class='buttons'>
