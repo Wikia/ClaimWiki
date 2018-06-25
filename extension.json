@@ -96,6 +96,9 @@
 		},
 		"ClaimWikiGuardianTotal": {
 			"value": 1
+		},
+		"ClaimWikiEditThreshold": {
+			"value": 5
 		}
 	},
 	"manifest_version": 2

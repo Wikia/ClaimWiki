@@ -38,7 +38,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	 * @return	void	[Outputs to screen]
 	 */
 	public function execute($subpage) {
-		global $wgClaimWikiEnabled, $wgClaimWikiGuardianTotal;
+		global $wgClaimWikiEnabled, $wgClaimWikiGuardianTotal, $wgClaimWikiEditThreshold;
 
 		$this->checkPermissions();
 
@@ -72,8 +72,8 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 			return;
 		}
 
-		if ($this->wgUser->getEditCount() < 1){
-			$this->output->showErrorPage('wiki_claim_error', 'wiki_claim_zero_contributions');
+		if ($this->wgUser->getEditCount() < $wgClaimWikiEditThreshold){
+			$this->output->showErrorPage('wiki_claim_error', 'wiki_claim_below_threshhold_contributions');
 			return;
 		}
 
