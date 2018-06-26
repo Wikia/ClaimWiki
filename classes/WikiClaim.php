@@ -99,9 +99,9 @@ class WikiClaim {
 	 * @return	void
 	 */
 	public function __construct() {
-		global $wgClaimWikiNumberOfQuestions;
+		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
 
-		$this->settings['number_of_questions'] = $wgClaimWikiNumberOfQuestions;
+		$this->settings['number_of_questions'] = $config->get('ClaimWikiNumberOfQuestions');
 	}
 
 	/**

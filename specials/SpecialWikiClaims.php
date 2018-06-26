@@ -39,7 +39,10 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	 * @return	void	[Outputs to screen]
 	 */
 	public function execute($subpage) {
-		global $wgSitename, $wgClaimWikiEnabled;
+		global $wgSitename;
+
+		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$wgClaimWikiEnabled = $config->get('ClaimWikiEnabled');
 
 		$this->checkPermissions();
 

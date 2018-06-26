@@ -38,7 +38,10 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	 * @return	void	[Outputs to screen]
 	 */
 	public function execute($subpage) {
-		global $wgClaimWikiEnabled, $wgClaimWikiGuardianTotal, $wgClaimWikiEditThreshold;
+		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$wgClaimWikiEnabled = $config->get('ClaimWikiEnabled');
+		$wgClaimWikiGuardianTotal = $config->get('ClaimWikiGuardianTotal');
+		$wgClaimWikiEditThreshold = $config->get('ClaimWikiEditThreshold');
 
 		$this->checkPermissions();
 

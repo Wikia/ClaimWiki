@@ -106,7 +106,9 @@ class ClaimWikiHooks {
 	* @return      boolean True - Must return true or the site will break.
 	*/
 	static public function onSkinBuildSidebar(Skin $skin, &$bar) {
-		global $wgClaimWikiEnabled, $wgClaimWikiGuardianTotal;
+		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$wgClaimWikiEnabled = $config->get('ClaimWikiEnabled');
+		$wgClaimWikiGuardianTotal = $config->get('ClaimWikiGuardianTotal');
 
 		if (!$wgClaimWikiEnabled) {
 			return true;
