@@ -99,6 +99,9 @@
 		},
 		"ClaimWikiEditThreshold": {
 			"value": 5
+		},
+		"ClaimWikiTeamEmail": {
+			"value": "wiki@curse.com"
 		}
 	},
 	"manifest_version": 2

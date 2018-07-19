@@ -352,7 +352,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	 * @return	void
 	 */
 	private function sendEmail($status) {
-		global $wgEmergencyContact;
+		global $wgEmergencyContact, $wgClaimWikiTeamEmail;
 
 		if ($_SERVER['PHP_ENV'] != 'development') {
 			$ownerEmail = $this->claim->getUser()->getEmail();
@@ -365,6 +365,11 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 			$adminEmail = $this->wgUser->getEmail();
 			if (Sanitizer::validateEmail($adminEmail)) {
 				$address[] = new MailAddress($adminEmail, $this->wgUser->getName());
+			}
+
+			//Email to wiki team
+			if ($wgClaimWikiTeamEmail) {
+				$address[] = new MailAddress($wgClaimWikiTeamEmail, 'Hydra Wiki Team');
 			}
 		} else {
 			$emailTo = 'Hydra Testers' . " <wikitest@curse.com>";
