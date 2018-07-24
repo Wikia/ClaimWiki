@@ -49,7 +49,8 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 		$this->templateClaimWiki = new TemplateClaimWiki;
 		$this->templateClaimEmails = new TemplateClaimEmails;
 
-		$this->output->addModules('ext.claimWiki');
+		$this->output->addModuleStyles(['ext.claimWiki.styles']);
+		$this->output->addModules(['ext.claimWiki.scripts']);
 
 		$this->setHeaders();
 
@@ -180,7 +181,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 						);
 					}
 
-					$emailTo[] = new MailAddress($wgClaimWikiEmailTo);
+					$emailTo[] = new MailAddress($wgClaimWikiEmailTo, wfMessage('claimwikiteamemail_sender')->escaped());
 
 					$emailSubject = wfMessage('claim_wiki_email_subject', $this->claim->getUser()->getName())->text();
 

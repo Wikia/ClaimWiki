@@ -46,15 +46,19 @@
 		"WikiGuardianEmailJob": "classes/jobs/WikiGuardianEmailJob.php"
 	},
 	"ResourceModules": {
-		"ext.claimWiki": {
-			"scripts": [
-				"js/listSorter.js"
-			],
+		"ext.claimWiki.styles": {
 			"styles": [
 				"css/claimwiki.css"
 			],
 			"dependencies": [
+				"ext.hydraCore.button.styles",
 				"ext.hydraCore.pagination.styles"
+			],
+			"position": "top"
+		},
+		"ext.claimWiki.scripts": {
+			"scripts": [
+				"js/listSorter.js"
 			],
 			"position": "top"
 		}
@@ -99,9 +103,6 @@
 		},
 		"ClaimWikiEditThreshold": {
 			"value": 5
-		},
-		"ClaimWikiTeamEmail": {
-			"value": "wiki@curse.com"
 		}
 	},
 	"manifest_version": 2

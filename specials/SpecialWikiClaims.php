@@ -49,7 +49,8 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->templateWikiClaims = new TemplateWikiClaims;
 		$this->templateClaimEmails = new TemplateClaimEmails;
 
-		$this->output->addModules(['ext.claimWiki']);
+		$this->output->addModuleStyles(['ext.claimWiki.styles']);
+		$this->output->addModules(['ext.claimWiki.scripts']);
 
 		$this->setHeaders();
 
@@ -352,7 +353,8 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	 * @return	void
 	 */
 	private function sendEmail($status) {
-		global $wgEmergencyContact, $wgClaimWikiTeamEmail;
+		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$wgClaimWikiEmailTo = $config->get('ClaimWikiEmailTo');
 
 		if ($_SERVER['PHP_ENV'] != 'development') {
 			$ownerEmail = $this->claim->getUser()->getEmail();
@@ -366,11 +368,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 			if (Sanitizer::validateEmail($adminEmail)) {
 				$address[] = new MailAddress($adminEmail, $this->wgUser->getName());
 			}
-
-			//Email to wiki team
-			if ($wgClaimWikiTeamEmail) {
-				$address[] = new MailAddress($wgClaimWikiTeamEmail, 'Hydra Wiki Team');
-			}
 		} else {
 			$emailTo = 'Hydra Testers' . " <wikitest@curse.com>";
 			$address[] = new MailAddress("wikitest@curse.com", 'Hydra Testers');
@@ -382,7 +379,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 			'claim'			=> $this->claim
 		];
 
-		$from = new MailAddress($wgEmergencyContact);
+		$from = new MailAddress($wgClaimWikiEmailTo, wfMessage('claimwikiteamemail_sender')->escaped());
 		$address[] = $from;
 
 		$email = new UserMailer();

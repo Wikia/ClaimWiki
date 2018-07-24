@@ -77,5 +77,6 @@
 	"echo-pref-tooltip-wiki-claims": "Notify me when a new wiki claim is submitted, approved, or denied on a wiki claim.",
 	"wiki-claim-notification": "View claim",
 	"notification-header-wiki-claim": "$1 {{GENDER:$2|submitted}} a new wiki claim on <strong>$3</strong>.",
-	"claimwiki-syncservices": "Jobs for CLaimWiki"
+	"claimwiki-syncservices": "Jobs for CLaimWiki",
+	"claimwikiteamemail_sender": "Hydra Wiki Team"
 }

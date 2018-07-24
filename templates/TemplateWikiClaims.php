@@ -28,20 +28,23 @@ class TemplateWikiClaims {
 
 		$html = "
 	<div>{$pagination}</div>
-	<div class='buttons'>
-		<div class='legend approved'>
-			<span class='swatch'></span> ".wfMessage('claim_legend_approved')->escaped()."
+	<div class='button_bar'>
+		<div class='button_break'></div>
+		<div class='buttons_right'>
+			<div class='legend approved'>
+				<span class='swatch'></span> ".wfMessage('claim_legend_approved')->escaped()."
+			</div>
+			<div class='legend denied'>
+				<span class='swatch'></span> ".wfMessage('claim_legend_denied')->escaped()."
+			</div>
+			<div class='legend pending'>
+				<span class='swatch'></span> ".wfMessage('claim_legend_pending')->escaped()."
+			</div>
+			<div class='legend inactive'>
+				<span class='swatch'></span> ".wfMessage('claim_legend_inactive')->escaped()."
+			</div>
+			<a href='".SpecialPage::getTitleFor('WikiClaims/log')->getFullURL()."' class='mw-ui-button'>".wfMessage('claim_log')->escaped()."</a>
 		</div>
-		<div class='legend denied'>
-			<span class='swatch'></span> ".wfMessage('claim_legend_denied')->escaped()."
-		</div>
-		<div class='legend pending'>
-			<span class='swatch'></span> ".wfMessage('claim_legend_pending')->escaped()."
-		</div>
-		<div class='legend inactive'>
-			<span class='swatch'></span> ".wfMessage('claim_legend_inactive')->escaped()."
-		</div>
-		<a href='".SpecialPage::getTitleFor('WikiClaims/log')->getFullURL()."' class='mw-ui-button'>".wfMessage('claim_log')->escaped()."</a>
 	</div>
 	<table id='claimlist'>
 		<thead>
