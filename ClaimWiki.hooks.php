@@ -92,7 +92,7 @@ class ClaimWikiHooks {
 			return true;
 		}
 
-		$output->addModules('ext.claimWiki');
+		$output->addModules('ext.claimWiki.styles');
 
 		return true;
 	}
