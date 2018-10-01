@@ -111,7 +111,7 @@ class WikiClaim {
 	 * @param	mixed	User or UserRightProxy
 	 * @return	mixed	WikiClaim or false on InvalidArgumentException.
 	 */
-	static public function newFromUser(User $user) {
+	public static function newFromUser(User $user) {
 		$claim = new self;
 
 		if (!$user->getId()) {
@@ -134,7 +134,7 @@ class WikiClaim {
 	 * @param	array	Database Row
 	 * @return	mixed	WikiClaim or false on error.
 	 */
-	static public function newFromRow($row) {
+	public static function newFromRow($row) {
 		$claim = new self;
 
 		$claim->newFrom = 'row';
@@ -158,7 +158,7 @@ class WikiClaim {
 	 * @param	string	[Optional] Sort direction.
 	 * @return	array	WikiClaim objects of [Claim ID => Object].
 	 */
-	static public function getClaims($start = 0, $maxClaims = 25, $sortKey = 'claim_timestamp', $sortDir = 'asc') {
+	public static function getClaims($start = 0, $maxClaims = 25, $sortKey = 'claim_timestamp', $sortDir = 'asc') {
 		$db = wfGetDB(DB_MASTER);
 
 		$sortKeys = ['claim_timestamp', 'start_timestamp', 'end_timestamp'];
