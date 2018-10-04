@@ -132,8 +132,6 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 			$_errors = $this->claim->getErrors();
 			$errors = array_merge($errors, $_errors);
 
-			$errors['test'] = "weeeee";
-			
 			if (!count($errors) && $this->claim->isAgreed()) {
 				die('No errors');
 				$success = $this->claim->save();
