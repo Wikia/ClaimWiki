@@ -113,7 +113,9 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 		$errors = [];
 
 		if ($this->getRequest()->wasPosted() && $this->getRequest()->getVal('do') === 'save') {
+
 			$questionKeys = $this->claim->getQuestionKeys();
+
 			foreach ($questionKeys as $key) {
 				$this->claim->setAnswer($key, trim($this->wgRequest->getVal($key)));
 			}
@@ -129,7 +131,11 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 
 			$_errors = $this->claim->getErrors();
 			$errors = array_merge($errors, $_errors);
+
+			$errors['test'] = "weeeee";
+			
 			if (!count($errors) && $this->claim->isAgreed()) {
+				die('No errors');
 				$success = $this->claim->save();
 
 				if ($success) {
