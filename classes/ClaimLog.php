@@ -55,7 +55,7 @@ class ClaimLogPager extends ReverseChronologicalPager {
 	 * @access	public
 	 * @return	string
 	 */
-	function getIndexField() {
+	public function getIndexField() {
 		return 'timestamp';
 	}
 
