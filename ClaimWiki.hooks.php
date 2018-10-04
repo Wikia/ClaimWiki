@@ -19,7 +19,7 @@ class ClaimWikiHooks {
 	 * @access	public
 	 * @return	void
 	 */
-	static public function onRegistration() {
+	public static function onRegistration() {
 		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $wgEchoNotifications, $wgEmergencyContact;
 
 		if (!isset($wgClaimWikiEnabled)) {
@@ -42,7 +42,7 @@ class ClaimWikiHooks {
 	 * @param	array	See $wgEchoNotificationIcons in Extension:Echo.
 	 * @return	boolean	True
 	 */
-	static public function onBeforeCreateEchoEvent(&$wgEchoNotifications, &$wgEchoNotificationCategories, &$wgEchoNotificationIcons) {
+	public static function onBeforeCreateEchoEvent(&$wgEchoNotifications, &$wgEchoNotificationCategories, &$wgEchoNotificationIcons) {
 		global $wgDefaultUserOptions;
 
 		$wgDefaultUserOptions['echo-subscriptions-web-wiki-claims'] = true;
@@ -85,7 +85,7 @@ class ClaimWikiHooks {
 	 * @param	object	Mediawiki Skin Object
 	 * @return	boolean True
 	 */
-	static public function onBeforePageDisplay(OutputPage &$output, Skin &$skin) {
+	public static function onBeforePageDisplay(OutputPage &$output, Skin &$skin) {
 		global $wgClaimWikiEnabled;
 
 		if (!$wgClaimWikiEnabled) {
@@ -98,14 +98,14 @@ class ClaimWikiHooks {
 	}
 
 	/**
-	* Claim Wiki Side Bar
-	*
-	* @access      public
-	* @param       object  Skin Object
-	* @param       array   Array of bar contents to modify.
-	* @return      boolean True - Must return true or the site will break.
-	*/
-	static public function onSkinBuildSidebar(Skin $skin, &$bar) {
+	 * Claim Wiki Side Bar
+	 *
+	 * @access	public
+	 * @param	object  Skin Object
+	 * @param	array	Array of bar contents to modify.
+	 * @return	bool	True - Must return true or the site will break.
+	 */
+	public static function onSkinBuildSidebar(Skin $skin, &$bar) {
 		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
 		$wgClaimWikiEnabled = $config->get('ClaimWikiEnabled');
 		$wgClaimWikiGuardianTotal = $config->get('ClaimWikiGuardianTotal');
@@ -142,7 +142,7 @@ class ClaimWikiHooks {
 	 * @param	object	User or UserRightsProxy object changed.
 	 * @return	boolean	True
 	 */
-	static public function onUserRights($user, array $add, array $remove) {
+	public static function onUserRights($user, array $add, array $remove) {
 		if (!$user instanceof User || !$user->getId()) {
 			return true;
 		}
@@ -164,7 +164,7 @@ class ClaimWikiHooks {
 	 * @param	array	"Actual" user groups that should reflect the rows in the database.
 	 * @return	void
 	 */
-	static public function onUserEffectiveGroups(&$user, &$aUserGroups) {
+	public static function onUserEffectiveGroups(&$user, &$aUserGroups) {
 		if (in_array('wiki_guardian', $aUserGroups)) {
 			$aUserGroups[] = 'sysop';
 		}
@@ -178,7 +178,7 @@ class ClaimWikiHooks {
 	 * @param	object	[Optional] DatabaseUpdater Object
 	 * @return	boolean	true
 	 */
-	static public function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
+	public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
 		$extDir = __DIR__;
 
 		//Tables
