@@ -57,7 +57,7 @@ class TemplateWikiClaims {
 					</tr>
 				</thead>
 				<tbody>";
-				if (is_countable($claims) && count($claims)) {
+				if (is_array($claims) && count($claims)) {
 					foreach ($claims as $claimId => $claim) {
 						$html .= "
 						<tr class='".($claim->isApproved() ? 'approved' : null).($claim->isDenied() ? 'denied' : null).($claim->isPending() ? 'pending' : null).($claim->isInactive() ? 'inactive' : null)."'>
