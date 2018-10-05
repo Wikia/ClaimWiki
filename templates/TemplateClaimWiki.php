@@ -25,7 +25,7 @@ class TemplateClaimWiki {
 		global $wgRequest, $wgSitename;
 
 		$html = '';
-		if (count($errors)) {
+		if (is_countable($errors) && count($errors)) {
 			$mainPage		= new Title();
 			$mainPageURL	= $mainPage->getFullURL();
 			foreach ($errors as $value) {
