@@ -18,7 +18,6 @@ class EchoWikiClaimPresentationModel extends EchoEventPresentationModel {
 
 	public function getHeaderMessage() {
 		$siteName = $this->event->getExtraParam('site_name');
-		
 		$msg = $this->getMessageWithAgent("notification-header-wiki-claim");
 		$msg->plaintextParams($this->event->getExtraParam('site_name'));
 		return $msg;
@@ -30,7 +29,7 @@ class EchoWikiClaimPresentationModel extends EchoEventPresentationModel {
 	}
 
 	private function getLocalizedGroupNames( $names ) {
-		return array_map( function( $name ) {
+		return array_map( function ( $name ) {
 			$msg = $this->msg( 'group-' . $name );
 			return $msg->isBlank() ? $name : $msg->text();
 		}, $names );
@@ -38,12 +37,12 @@ class EchoWikiClaimPresentationModel extends EchoEventPresentationModel {
 
 	public function getPrimaryLink() {
 		return [
-			'url' => $this->event->getExtraParam('claim_url'),
-			'label' => $this->msg('echo-learn-more')->text()
+			'url' => $this->event->getExtraParam( 'claim_url' ),
+			'label' => $this->msg( 'echo-learn-more' )->text()
 		];
 	}
 
 	public function getSecondaryLinks() {
-		return [$this->getAgentLink()];
+		return [ $this->getAgentLink() ];
 	}
 }

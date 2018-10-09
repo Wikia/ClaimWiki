@@ -82,9 +82,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 		}
 
 		$this->claim = WikiClaim::newFromUser($this->getUser());
-
 		$this->claimForm();
-
 		$this->output->addHTML($this->content);
 	}
 
@@ -96,7 +94,6 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	 */
 	public function claimForm() {
 		$errors = $this->claimSave();
-
 		$this->output->setPageTitle(wfMessage('claim_this_wiki'));
 		$this->content = $this->templateClaimWiki->claimForm($this->claim, $errors);
 	}
@@ -131,7 +128,6 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 			$errors = array_merge($errors, $_errors);
 			if (!count($errors) && $this->claim->isAgreed()) {
 				$success = $this->claim->save();
-
 				if ($success) {
 					global $wgClaimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName, $dsSiteKey;
 
