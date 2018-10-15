@@ -271,10 +271,7 @@ class WikiClaim {
 		}
 
 		//Do a transactional save.
-		$dbPending = $db->writesOrCallbacksPending();
-		if (!$dbPending) {
-			$db->begin();
-		}
+		$db->startAtomic(__METHOD__);
 		if ($this->data['cid'] > 0) {
 			$_data = $this->data;
 			unset($_data['cid']);
@@ -297,18 +294,16 @@ class WikiClaim {
 
 		//Roll back if there was an error.
 		if (!$success) {
-			if (!$dbPending) {
-				$db->rollback();
-			}
-
+			$db->cancelAtomic(__METHOD__);
+			$db->endAtomic(__METHOD__);
 			return false;
 		} else {
 			if (!isset($this->data['cid']) || !$this->data['cid']) {
 				$this->data['cid'] = $db->insertId();
 			}
-			if (!$dbPending) {
-				$db->commit();
-			}
+
+			$db->endAtomic(__METHOD__);
+
 			global $wgUser;
 			$logEntry = new ClaimLogEntry();
 			$logEntry->setClaim($this);
@@ -347,11 +342,11 @@ class WikiClaim {
 	public function delete() {
 		$db = wfGetDB(DB_MASTER);
 
+		$success = false;
+
 		//Do a transactional save.
-		$dbPending = $db->writesOrCallbacksPending();
-		if (!$dbPending) {
-			$db->begin();
-		}
+		$db->startAtomic(__METHOD__);
+
 		if ($this->data['cid'] > 0) {
 			//Do an update
 			$success = $db->delete(
@@ -363,26 +358,22 @@ class WikiClaim {
 
 		//Roll back if there was an error.
 		if (!$success) {
-			if (!$dbPending) {
-				$db->rollback();
-			}
-			return false;
+			$db->cancelAtomic(__METHOD__);
 		} else {
-			if (!$dbPending) {
-				$db->commit();
-			}
+			$success = true;
+
+			$db->delete(
+				'wiki_claims_answers',
+				['claim_id' => $this->data['cid']],
+				__METHOD__
+			);
+
+			$this->data = [];
+			$this->answers = [];
 		}
+		$db->endAtomic(__METHOD__);
 
-		$db->delete(
-			'wiki_claims_answers',
-			['claim_id' => $this->data['cid']],
-			__METHOD__
-		);
-
-		$this->data = [];
-		$this->answers = [];
-
-		return true;
+		return $success;
 	}
 
 	/**
