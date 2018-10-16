@@ -295,7 +295,6 @@ class WikiClaim {
 		//Roll back if there was an error.
 		if (!$success) {
 			$db->cancelAtomic(__METHOD__);
-			$db->endAtomic(__METHOD__);
 			return false;
 		} else {
 			if (!isset($this->data['cid']) || !$this->data['cid']) {
@@ -370,8 +369,8 @@ class WikiClaim {
 
 			$this->data = [];
 			$this->answers = [];
+			$db->endAtomic(__METHOD__);
 		}
-		$db->endAtomic(__METHOD__);
 
 		return $success;
 	}
