@@ -29,6 +29,7 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 			return;
 		}
 
+		//@TODO: Likely broken when forking.
 		$this->DB = wfGetDB(DB_MASTER);
 		$this->redis = RedisCache::getClient('cache');
 		$this->templateClaimEmails = new TemplateClaimEmails;
