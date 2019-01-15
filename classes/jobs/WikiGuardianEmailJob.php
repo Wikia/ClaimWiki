@@ -31,7 +31,7 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 
 		//@TODO: Likely broken when forking.
 		$this->DB = wfGetDB(DB_MASTER);
-		$this->redis = RedisCache::getClient('cache');
+		$redis = RedisCache::getClient('cache');
 		$this->templateClaimEmails = new TemplateClaimEmails;
 
 		$results = $this->DB->select(
@@ -71,7 +71,7 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 			}
 
 			try {
-				$emailSent = $this->redis->get($redisEmailKey);
+				$emailSent = $redis->get($redisEmailKey);
 			} catch (RedisException $e) {
 				wfDebug(__METHOD__.": Caught RedisException - ".$e->getMessage());
 			}
@@ -110,8 +110,8 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 				if ($status->isOK()) {
 					$this->outputLine("SUCCESS - Reminder email send to ".current($address).".\n");
 					try {
-						$this->redis->set($redisEmailKey, time());
-						$this->redis->expire($redisEmailKey, 1296000);
+						$redis->set($redisEmailKey, time());
+						$redis->expire($redisEmailKey, 1296000);
 					} catch (RedisException $e) {
 						$this->outputLine(__METHOD__.": Caught RedisException - ".$e->getMessage());
 					}
