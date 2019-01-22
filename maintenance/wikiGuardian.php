@@ -12,7 +12,7 @@
  *
 **/
 
-require_once(dirname(dirname(dirname(__DIR__)))."/maintenance/Maintenance.php");
+require_once(dirname(__DIR__, 3)."/maintenance/Maintenance.php");
 
 class GuardianReminderEmail extends Maintenance {
 	/**
