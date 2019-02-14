@@ -1,12 +1,22 @@
 {
 	"name": "Claim Wiki",
-	"version": "2.0",
+	"version": "2.0.0",
 	"author": [
 		"Alexia E. Smith",
-		"Curse Inc&copy;"
+		"Hydra Wiki Platform Team"
 	],
+	"license-name": "GPL-2.0-or-later",
 	"descriptionmsg": "claimwiki_description",
 	"type": "specialpage",
+	"requires": {
+		"MediaWiki": ">= 1.29.0",
+		"extensions": {
+			"DynamicSettings": ">= 3.0.0",
+			"Echo": "*",
+			"HydraCore": ">= 3.0.0",
+			"SyncService": ">= 2.0.0"
+		}
+	},
 	"GroupPermissions": {
 		"user": {
 			"claim_wiki": true

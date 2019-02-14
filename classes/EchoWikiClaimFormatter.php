@@ -7,7 +7,7 @@
  * @author		Alexia E. Smith
  * @license		GPLv2
  * @package		Claim Wiki
- * @link		http://www.curse.com/
+ * @link		https://gitlab.com/hydrawiki
  *
 **/
 
