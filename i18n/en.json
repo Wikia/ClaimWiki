@@ -78,5 +78,7 @@
 	"wiki-claim-notification": "View claim",
 	"notification-header-wiki-claim": "$1 {{GENDER:$2|submitted}} a new wiki claim on <strong>$3</strong>.",
 	"claimwiki-syncservices": "Jobs for ClaimWiki",
-	"claimwikiteamemail_sender": "Hydra Wiki Team"
+	"claimwikiteamemail_sender": "Hydra Wiki Team",
+	"right-wiki_claims": "Review and approve/unapprove wiki claims",
+	"right-claim_wiki": "May [[Special:ClaimWiki|claim the wiki]] to become a wiki guardian"
 }
