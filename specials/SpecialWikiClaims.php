@@ -146,7 +146,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		}
 
 		$this->output->setPageTitle(wfMessage('view_claim').' - '.$this->claim->getUser()->getName());
-		$this->output->addBacklinkSubtitle(Title::newFromText('WikiClaims', NS_SPECIAL));
+		$this->output->addBacklinkSubtitle($this->getPageTitle());
 		$this->content = $this->templateWikiClaims->viewClaim($this->claim);
 	}
 
