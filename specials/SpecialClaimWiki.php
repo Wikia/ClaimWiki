@@ -68,7 +68,10 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 		$result = $this->DB->select(
 			'wiki_claims',
 			['COUNT(*) as total'],
-			'status = ' . intval(WikiClaim::CLAIM_APPROVED) . ' AND end_timestamp = 0',
+			[
+				'status' => intval(WikiClaim::CLAIM_APPROVED),
+				'end_timestamp' => 0
+			],
 			__METHOD__
 		);
 		$total = $result->fetchRow();
