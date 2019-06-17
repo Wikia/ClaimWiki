@@ -4,20 +4,19 @@
  * Claim Wiki
  * Claim Wiki Hooks
  *
- * @author 		Alex Smith
- * @copyright	(c) 2013 Curse Inc.
- * @license		GNU General Public License v2.0 or later
- * @package		Claim Wiki
- * @link		https://gitlab.com/hydrawiki
- *
+ * @author    Alex Smith
+ * @copyright (c) 2013 Curse Inc.
+ * @license   GNU General Public License v2.0 or later
+ * @package   Claim Wiki
+ * @link      https://gitlab.com/hydrawiki
 **/
 
 class ClaimWikiHooks {
 	/**
 	 * Handle special on extension registration bits.
 	 *
-	 * @access	public
-	 * @return	void
+	 * @access public
+	 * @return void
 	 */
 	public static function onRegistration() {
 		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $wgEchoNotifications, $wgEmergencyContact;
@@ -36,11 +35,11 @@ class ClaimWikiHooks {
 	/**
 	 * Add this extensions Echo notifications.
 	 *
-	 * @access	public
-	 * @param	array	See $wgEchoNotifications in Extension:Echo.
-	 * @param	array	See $wgEchoNotificationCategories in Extension:Echo.
-	 * @param	array	See $wgEchoNotificationIcons in Extension:Echo.
-	 * @return	boolean	True
+	 * @access public
+	 * @param  array   See  $wgEchoNotifications          in Extension:Echo.
+	 * @param  array	See $wgEchoNotificationCategories in Extension:Echo.
+	 * @param  array   See  $wgEchoNotificationIcons      in Extension:Echo.
+	 * @return boolean	True
 	 */
 	public static function onBeforeCreateEchoEvent(&$wgEchoNotifications, &$wgEchoNotificationCategories, &$wgEchoNotificationIcons) {
 		global $wgDefaultUserOptions;
@@ -80,10 +79,10 @@ class ClaimWikiHooks {
 	/**
 	 * Add resource loader modules.
 	 *
-	 * @access	public
-	 * @param	object	Mediawiki Output Object
-	 * @param	object	Mediawiki Skin Object
-	 * @return	boolean True
+	 * @access public
+	 * @param  object	Mediawiki Output Object
+	 * @param  object	Mediawiki Skin Object
+	 * @return boolean True
 	 */
 	public static function onBeforePageDisplay(OutputPage &$output, Skin &$skin) {
 		global $wgClaimWikiEnabled;
@@ -100,10 +99,10 @@ class ClaimWikiHooks {
 	/**
 	 * Claim Wiki Side Bar
 	 *
-	 * @access	public
-	 * @param	object  Skin Object
-	 * @param	array	Array of bar contents to modify.
-	 * @return	bool	True - Must return true or the site will break.
+	 * @access public
+	 * @param  object  Skin Object
+	 * @param  array	Array of bar contents to modify.
+	 * @return bool	True - Must return true or the site will break.
 	 */
 	public static function onSkinBuildSidebar(Skin $skin, &$bar) {
 		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
@@ -118,7 +117,7 @@ class ClaimWikiHooks {
 		$result = $DB->select(
 			'wiki_claims',
 			['COUNT(*) as total'],
-			'status = '.intval(WikiClaim::CLAIM_APPROVED).' AND end_timestamp = 0',
+			'status = ' . intval(WikiClaim::CLAIM_APPROVED) . ' AND end_timestamp = 0',
 			__METHOD__
 		);
 
@@ -138,9 +137,9 @@ class ClaimWikiHooks {
 	/**
 	 * Detect changes to the user groups and update users in the wiki_guardian group as needed.
 	 *
-	 * @access	public
-	 * @param	object	User or UserRightsProxy object changed.
-	 * @return	boolean	True
+	 * @access public
+	 * @param  object	User or UserRightsProxy object changed.
+	 * @return boolean	True
 	 */
 	public static function onUserRights($user, array $add, array $remove) {
 		if (!$user instanceof User || !$user->getId()) {
@@ -159,10 +158,10 @@ class ClaimWikiHooks {
 	/**
 	 * Add sysop to effective groups when the user has wiki_guardian.
 	 *
-	 * @access	public
-	 * @param	object	User
-	 * @param	array	"Actual" user groups that should reflect the rows in the database.
-	 * @return	void
+	 * @access public
+	 * @param  object	User
+	 * @param  array	"Actual" user groups that should reflect the rows in the database.
+	 * @return void
 	 */
 	public static function onUserEffectiveGroups(&$user, &$aUserGroups) {
 		if (in_array('wiki_guardian', $aUserGroups)) {
@@ -174,15 +173,15 @@ class ClaimWikiHooks {
 	/**
 	 * Setups and Modifies Database Information
 	 *
-	 * @access	public
-	 * @param	object	[Optional] DatabaseUpdater Object
-	 * @return	boolean	true
+	 * @access public
+	 * @param  object	[Optional] DatabaseUpdater Object
+	 * @return boolean	true
 	 */
 	public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
 		$extDir = __DIR__;
 
-		//Tables
-		//2015-01-08
+		// Tables
+		// 2015-01-08
 		$updater->addExtensionUpdate(['addTable', 'wiki_claims', "{$extDir}/install/sql/claimwiki_table_wiki_claims.sql", true]);
 		$updater->addExtensionUpdate(['addTable', 'wiki_claims_answers', "{$extDir}/install/sql/claimwiki_table_wiki_claims_answers.sql", true]);
 		$updater->addExtensionUpdate(['addTable', 'wiki_claims_log', "{$extDir}/install/sql/claimwiki_table_wiki_claims_log.sql", true]);

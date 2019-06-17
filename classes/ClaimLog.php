@@ -4,27 +4,26 @@
  * Claim Wiki
  * Claim Log Class
  *
- * @author		Alex Smith
- * @copyright	(c) 2015 Curse Inc.
- * @license		GNU General Public License v2.0 or later
- * @package		Claim Wiki
- * @link		https://gitlab.com/hydrawiki
- *
+ * @author    Alex Smith
+ * @copyright (c) 2015 Curse Inc.
+ * @license   GNU General Public License v2.0 or later
+ * @package   Claim Wiki
+ * @link      https://gitlab.com/hydrawiki
 **/
 
 class ClaimLogPager extends ReverseChronologicalPager {
 	/**
 	 * Log Entries
 	 *
-	 * @var		array
+	 * @var array
 	 */
 	private $entries = [];
 
 	/**
 	 * Return query arguments.
 	 *
-	 * @access	public
-	 * @return	array
+	 * @access public
+	 * @return array
 	 */
 	public function getQueryInfo() {
 		$query = [
@@ -52,8 +51,8 @@ class ClaimLogPager extends ReverseChronologicalPager {
 	/**
 	 * Return index(sort) field
 	 *
-	 * @access	public
-	 * @return	string
+	 * @access public
+	 * @return string
 	 */
 	public function getIndexField() {
 		return 'timestamp';
@@ -62,8 +61,8 @@ class ClaimLogPager extends ReverseChronologicalPager {
 	/**
 	 * Return a formatted database row.
 	 *
-	 * @access	public
-	 * @return	html
+	 * @access public
+	 * @return html
 	 */
 	public function formatRow($row) {
 		$user = User::newFromId($row->user_id);
@@ -81,9 +80,9 @@ class ClaimLogPager extends ReverseChronologicalPager {
 			[],
 			wfMessage(
 				"claim_log_row",
-				"<a href='{$wikiClaimsURL}?do=view&amp;user_id=".$claim->getUser()->getId()."'>#".$row->claim_id."</a>",
-				Linker::userLink($claim->getUser()->getId(),$claim->getUser()->getName()),
-				wfMessage('status_'.$row->status)->escaped(),
+				"<a href='{$wikiClaimsURL}?do=view&amp;user_id=" . $claim->getUser()->getId() . "'>#" . $row->claim_id . "</a>",
+				Linker::userLink($claim->getUser()->getId(), $claim->getUser()->getName()),
+				wfMessage('status_' . $row->status)->escaped(),
 				Linker::userLink($actor->getId(), $actor->getName()),
 				Linker::userToolLinks($actor->getId(), $actor->getName()),
 				$timestamp->getHumanTimestamp()
@@ -96,7 +95,7 @@ class ClaimLogEntry {
 	/**
 	 * Constructor
 	 *
-	 * @access	public
+	 * @access public
 	 */
 	public function __construct() {
 		$this->DB = wfGetDB(DB_MASTER);
@@ -105,9 +104,9 @@ class ClaimLogEntry {
 	/**
 	 * Set the wikiClaim object.
 	 *
-	 * @access		public
-	 * @param		wikiClaim $claim
-	 * @internal	param wikiClaim $object
+	 * @access   public
+	 * @param    wikiClaim $claim
+	 * @internal param wikiClaim $object
 	 */
 	public function setClaim(WikiClaim $claim) {
 		$this->claim = $claim;
@@ -116,9 +115,9 @@ class ClaimLogEntry {
 	/**
 	 * Set the User object.
 	 *
-	 * @access		public
-	 * @param		User $user
-	 * @internal	param wikiClaim $object
+	 * @access   public
+	 * @param    User $user
+	 * @internal param wikiClaim $object
 	 */
 	public function setActor(User $user) {
 		$this->actor = $user;
@@ -127,8 +126,8 @@ class ClaimLogEntry {
 	/**
 	 * Function Documentation
 	 *
-	 * @access	public
-	 * @return	bool
+	 * @access public
+	 * @return bool
 	 */
 	public function insert() {
 		$success = $this->DB->insert(

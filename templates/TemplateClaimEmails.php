@@ -4,46 +4,45 @@
  * Claim Wiki
  * Claim Wiki Emails Template
  *
- * @author		Alex Smith
- * @copyright	(c) 2013 Curse Inc.
- * @license		GNU General Public License v2.0 or later
- * @package		Claim Wiki
- * @link		https://gitlab.com/hydrawiki
- *
+ * @author    Alex Smith
+ * @copyright (c) 2013 Curse Inc.
+ * @license   GNU General Public License v2.0 or later
+ * @package   Claim Wiki
+ * @link      https://gitlab.com/hydrawiki
 **/
 
 class TemplateClaimEmails {
 	/**
 	 * Output HTML
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	private $HMTL;
 
 	/**
 	 * Claim Wiki Notice
 	 *
-	 * @access	public
-	 * @param	array	Extra information for email body template.
-	 * @return	string	Built HTML
+	 * @access public
+	 * @param  array	Extra information for email body template.
+	 * @return string	Built HTML
 	 */
 	public function claimWikiNotice($emailExtra = []) {
 		$page = Title::newFromText('Special:WikiClaims');
 
 		$HTML = '';
-		$HTML .= "~*~*~*~*~*~*~*~ ".strtoupper($emailExtra['environment'])." ~*~*~*~*~*~*~*~<br/><br/>"
-				.$emailExtra['user']->getName()." submitted a claim to administrate {$emailExtra['site_name']} at ".date('c', $emailExtra['claim']->getTimestamp('claim')).".<br/>
-				Please visit <a href='".$page->getFullURL()."'>the wiki claims page</a> to approve or deny this claim.";
+		$HTML .= "~*~*~*~*~*~*~*~ " . strtoupper($emailExtra['environment']) . " ~*~*~*~*~*~*~*~<br/><br/>"
+				. $emailExtra['user']->getName() . " submitted a claim to administrate {$emailExtra['site_name']} at " . date('c', $emailExtra['claim']->getTimestamp('claim')) . ".<br/>
+				Please visit <a href='" . $page->getFullURL() . "'>the wiki claims page</a> to approve or deny this claim.";
 		return $HTML;
 	}
 
 	/**
 	 * Claim Wiki Status
 	 *
-	 * @access	public
-	 * @param	string	Status email type to send.
-	 * @param	array	Extra information for email body template.
-	 * @return	string	Built HTML
+	 * @access public
+	 * @param  string	Status email type to send.
+	 * @param  array	Extra information for email body template.
+	 * @return string	Built HTML
 	 */
 	public function claimStatusNotice($status, $emailExtra) {
 		global $wgEmergencyContact, $wgClaimWikiEmailSignature;
@@ -56,7 +55,7 @@ class TemplateClaimEmails {
 		if ($status == "pending") {
 			$HTML .= "Dear {$userName},<br/><br/>
 					Thank you very much for your recent application to become the Wiki Guardian for this project. We very much appreciate your enthusiasm for the project, but feel that at this moment in time there is either not enough activity to warrant having an administrator for now, or that we would really like to see more of a contribution history from you before accepting your request. The admin tools that are granted by this position are generally used very infrequently and do not confer any type of status or rank on the wiki, merely the ability to perform certain custodial tasks and we generally like to choose individuals who have demonstrated a continued interest in contributing to the project at all levels.<br/><br/>
-					For now, we have kept your application on file and would ask that you contact a Curse staff member on their userpage or e-mail ".$wgEmergencyContact." after continuing to contribute to this project in the meantime. If you have need of an administrator in the meantime, please post on the <a href='".$page->getFullURL()."'>Admin Noticeboard</a> and we will be happy to assist!<br/><br />
+					For now, we have kept your application on file and would ask that you contact a Curse staff member on their userpage or e-mail " . $wgEmergencyContact . " after continuing to contribute to this project in the meantime. If you have need of an administrator in the meantime, please post on the <a href='" . $page->getFullURL() . "'>Admin Noticeboard</a> and we will be happy to assist!<br/><br />
 					Thanks,<br/>
 					--{$wgClaimWikiEmailSignature}";
 		} elseif ($status == "approved") {
@@ -86,14 +85,14 @@ class TemplateClaimEmails {
 	/**
 	 * Wiki Guardian Inactive
 	 *
-	 * @access	public
-	 * @param	object	The wikiClaim object.
-	 * @param	string	Wiki Name
-	 * @return	string	Built HTML
+	 * @access public
+	 * @param  object	The wikiClaim object.
+	 * @param  string	Wiki Name
+	 * @return string	Built HTML
 	 */
 	public function wikiGuardianInactive($userName, $wikiName) {
 		$HTML = "Dear {$userName},<br/><br/>
-				Your status as Wiki Guardian on ".$wikiName." will be removed soon, as we’ve noticed your inactivity. Please visit the wiki and resume contributing to retain your status. If it has already been removed, contact a wiki administrator if you wish to restore your status.";
+				Your status as Wiki Guardian on " . $wikiName . " will be removed soon, as we’ve noticed your inactivity. Please visit the wiki and resume contributing to retain your status. If it has already been removed, contact a wiki administrator if you wish to restore your status.";
 		return $HTML;
 	}
 }

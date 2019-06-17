@@ -4,27 +4,26 @@
  * Claim Wiki
  * Claim Wiki Special Page
  *
- * @author		Alex Smith
- * @copyright	(c) 2013 Curse Inc.
- * @license		GNU General Public License v2.0 or later
- * @package		Claim Wiki
- * @link		https://gitlab.com/hydrawiki
- *
+ * @author    Alex Smith
+ * @copyright (c) 2013 Curse Inc.
+ * @license   GNU General Public License v2.0 or later
+ * @package   Claim Wiki
+ * @link      https://gitlab.com/hydrawiki
 **/
 
 class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Output HTML
 	 *
-	 * @var		string
+	 * @var string
 	 */
 	private $content;
 
 	/**
 	 * Main Constructor
 	 *
-	 * @access	public
-	 * @return	void
+	 * @access public
+	 * @return void
 	 */
 	public function __construct() {
 		parent::__construct('ClaimWiki', 'claim_wiki', false);
@@ -33,9 +32,9 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Main Executor
 	 *
-	 * @access	public
-	 * @param	string	Sub page passed in the URL.
-	 * @return	void	[Outputs to screen]
+	 * @access public
+	 * @param  string	Sub page passed in the URL.
+	 * @return void	[Outputs to screen]
 	 */
 	public function execute($subpage) {
 		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
@@ -67,7 +66,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 		$result = $this->DB->select(
 			'wiki_claims',
 			['COUNT(*) as total'],
-			'status = '.intval(WikiClaim::CLAIM_APPROVED).' AND end_timestamp = 0',
+			'status = ' . intval(WikiClaim::CLAIM_APPROVED) . ' AND end_timestamp = 0',
 			__METHOD__
 		);
 		$total = $result->fetchRow();
@@ -76,7 +75,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 			return;
 		}
 
-		if ($this->wgUser->getEditCount() < $wgClaimWikiEditThreshold){
+		if ($this->wgUser->getEditCount() < $wgClaimWikiEditThreshold) {
 			$this->output->showErrorPage('wiki_claim_error', 'wiki_claim_below_threshhold_contributions');
 			return;
 		}
@@ -89,8 +88,8 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Claim Wiki Form
 	 *
-	 * @access	public
-	 * @return	void	[Outputs to screen]
+	 * @access public
+	 * @return void	[Outputs to screen]
 	 */
 	public function claimForm() {
 		$errors = $this->claimSave();
@@ -101,8 +100,8 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Saves submitted Claim Wiki Forms.
 	 *
-	 * @access	private
-	 * @return	array	Array of errors.
+	 * @access private
+	 * @return array	Array of errors.
 	 */
 	private function claimSave() {
 		global $dsSiteKey;
@@ -115,7 +114,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 				$this->claim->setAnswer($key, trim($this->wgRequest->getVal($key)));
 			}
 
-			//Reset the claim timestamp if resubmitted.
+			// Reset the claim timestamp if resubmitted.
 			$this->claim->setTimestamp(time(), 'claim');
 
 			if ($this->wgRequest->getVal('agreement') == 'agreed') {
@@ -132,9 +131,9 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 					global $wgClaimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName, $dsSiteKey;
 
 					try {
-						$siteManagers = @unserialize($this->redis->hGet('dynamicsettings:siteInfo:'.$dsSiteKey, 'wiki_managers'));
+						$siteManagers = @unserialize($this->redis->hGet('dynamicsettings:siteInfo:' . $dsSiteKey, 'wiki_managers'));
 					} catch (RedisException $e) {
-						wfDebug(__METHOD__.": Caught RedisException - ".$e->getMessage());
+						wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
 					}
 					$siteManager = false;
 					$echoManagerIds = [];
@@ -210,7 +209,7 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 				}
 
 				$page = Title::newFromText('Special:ClaimWiki');
-				$this->output->redirect($page->getFullURL()."?success=true");
+				$this->output->redirect($page->getFullURL() . "?success=true");
 				return;
 			}
 		}
@@ -220,8 +219,8 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Return the group name for this special page.
 	 *
-	 * @access	protected
-	 * @return	string
+	 * @access protected
+	 * @return string
 	 */
 	protected function getGroupName() {
 		return 'claimwiki';

@@ -4,61 +4,60 @@
  * Claim Wiki
  * Wiki Claim Class
  *
- * @author		Alex Smith
- * @copyright	(c) 2013 Curse Inc.
- * @license		GNU General Public License v2.0 or later
- * @package		Claim Wiki
- * @link		https://gitlab.com/hydrawiki
- *
+ * @author    Alex Smith
+ * @copyright (c) 2013 Curse Inc.
+ * @license   GNU General Public License v2.0 or later
+ * @package   Claim Wiki
+ * @link      https://gitlab.com/hydrawiki
 **/
 
 class WikiClaim {
 	/**
 	 * New Claim
 	 *
-	 * @var		constant
+	 * @var constant
 	 */
 	const CLAIM_NEW = 0;
 
 	/**
 	 * Pending Claim
 	 *
-	 * @var		constant
+	 * @var constant
 	 */
 	const CLAIM_PENDING = 1;
 
 	/**
 	 * Approved Claim
 	 *
-	 * @var		constant
+	 * @var constant
 	 */
 	const CLAIM_APPROVED = 2;
 
 	/**
 	 * Denied Claim
 	 *
-	 * @var		constant
+	 * @var constant
 	 */
 	const CLAIM_DENIED = 3;
 
 	/**
 	 * Inactive Claim
 	 *
-	 * @var		constant
+	 * @var constant
 	 */
 	const CLAIM_INACTIVE = 4;
 
 	/**
 	 * Object Loaded?
 	 *
-	 * @var		boolean
+	 * @var boolean
 	 */
 	private $isLoaded = false;
 
 	/**
 	 * Claim Data
 	 *
-	 * @var		array
+	 * @var array
 	 */
 	private $data = [
 		'cid'				=> 0,
@@ -73,30 +72,30 @@ class WikiClaim {
 	/**
 	 * Claim Question
 	 *
-	 * @var		array
+	 * @var array
 	 */
 	private $questions = [];
 
 	/**
 	 * Claim Answers
 	 *
-	 * @var		array
+	 * @var array
 	 */
 	private $answers = [];
 
 	/**
 	 * Mediawiki User object for this claim.
 	 *
-	 * @var		object
+	 * @var object
 	 */
 	private $user = false;
 
 	/**
 	 * Constructor
 	 *
-	 * @access	public
-	 * @param	mixed	User or UserRightProxy
-	 * @return	void
+	 * @access public
+	 * @param  mixed	User or UserRightProxy
+	 * @return void
 	 */
 	public function __construct() {
 		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
@@ -107,9 +106,9 @@ class WikiClaim {
 	/**
 	 * Create a new object from an User object.
 	 *
-	 * @access	public
-	 * @param	mixed	User or UserRightProxy
-	 * @return	mixed	WikiClaim or false on InvalidArgumentException.
+	 * @access public
+	 * @param  mixed	User or UserRightProxy
+	 * @return mixed	WikiClaim or false on InvalidArgumentException.
 	 */
 	public static function newFromUser(User $user) {
 		$claim = new self;
@@ -130,9 +129,9 @@ class WikiClaim {
 	/**
 	 * Load a new object from a database row.
 	 *
-	 * @access	public
-	 * @param	array	Database Row
-	 * @return	mixed	WikiClaim or false on error.
+	 * @access public
+	 * @param  array	Database Row
+	 * @return mixed	WikiClaim or false on error.
 	 */
 	public static function newFromRow($row) {
 		$claim = new self;
@@ -151,12 +150,12 @@ class WikiClaim {
 	/**
 	 * Get all wiki claims.
 	 *
-	 * @access	public
-	 * @param	integer	[Optional] Database start position.
-	 * @param	integer	[Optional] Maximum claims to retrieve.
-	 * @param	string	[Optional] Database field to sort by.
-	 * @param	string	[Optional] Sort direction.
-	 * @return	array	WikiClaim objects of [Claim ID => Object].
+	 * @access public
+	 * @param  integer	[Optional] Database start position.
+	 * @param  integer	[Optional] Maximum claims to retrieve.
+	 * @param  string	[Optional] Database field to sort by.
+	 * @param  string	[Optional] Sort direction.
+	 * @return array	WikiClaim objects of [Claim ID => Object].
 	 */
 	public static function getClaims($start = 0, $maxClaims = 25, $sortKey = 'claim_timestamp', $sortDir = 'asc') {
 		$db = wfGetDB(DB_MASTER);
@@ -176,7 +175,7 @@ class WikiClaim {
 			[],
 			__METHOD__,
 			[
-				'ORDER BY' => 'wiki_claims.'.$sortKey.' '.($sortDir == 'desc' ? 'DESC' : 'ASC'),
+				'ORDER BY' => 'wiki_claims.' . $sortKey . ' ' . ($sortDir == 'desc' ? 'DESC' : 'ASC'),
 				'OFFSET'	=> $start,
 				'LIMIT'		=> $maxClaims
 			]
@@ -184,7 +183,7 @@ class WikiClaim {
 
 		$claims = [];
 		while ($row = $result->fetchRow()) {
-			$claim = WikiClaim::newFromRow($row);
+			$claim = self::newFromRow($row);
 			if ($claim !== false) {
 				$claims[$claim->getId()] = $claim;
 			}
@@ -196,9 +195,9 @@ class WikiClaim {
 	/**
 	 * Load the object.
 	 *
-	 * @access	private
-	 * @param	array	Raw database row.
-	 * @return	boolean	Success
+	 * @access private
+	 * @param  array	Raw database row.
+	 * @return boolean	Success
 	 */
 	private function load($row = null) {
 		$db = wfGetDB(DB_MASTER);
@@ -228,13 +227,13 @@ class WikiClaim {
 			}
 
 			if ($row['cid'] > 0 && $row['user_id'] > 0) {
-				//Load existing data.
+				// Load existing data.
 				$this->data = $row;
 				$this->data['status'] = intval($this->data['status']);
 
 				$this->user = User::newFromId($row['user_id']);
 
-				//Load existing answers.
+				// Load existing answers.
 				$result = $db->select(
 					'wiki_claims_answers',
 					['*'],
@@ -260,22 +259,22 @@ class WikiClaim {
 	/**
 	 * Save data to the database.
 	 *
-	 * @access	public
-	 * @return	boolean	Successful Save.
+	 * @access public
+	 * @return boolean	Successful Save.
 	 */
 	public function save() {
 		$db = wfGetDB(DB_MASTER);
 
 		if (!$this->data['user_id']) {
-			throw new MWException(__METHOD__.': Attempted to save a wiki claim without a valid user ID.');
+			throw new MWException(__METHOD__ . ': Attempted to save a wiki claim without a valid user ID.');
 		}
 
-		//Do a transactional save.
+		// Do a transactional save.
 		$db->startAtomic(__METHOD__);
 		if ($this->data['cid'] > 0) {
 			$_data = $this->data;
 			unset($_data['cid']);
-			//Do an update
+			// Do an update
 			$success = $db->update(
 				'wiki_claims',
 				$_data,
@@ -284,7 +283,7 @@ class WikiClaim {
 			);
 			unset($_data);
 		} else {
-			//Do an insert
+			// Do an insert
 			$success = $db->insert(
 				'wiki_claims',
 				$this->data,
@@ -292,7 +291,7 @@ class WikiClaim {
 			);
 		}
 
-		//Roll back if there was an error.
+		// Roll back if there was an error.
 		if (!$success) {
 			$db->cancelAtomic(__METHOD__);
 			return false;
@@ -335,19 +334,19 @@ class WikiClaim {
 	/**
 	 * Deletes from the database and clears the object.
 	 *
-	 * @access	public
-	 * @return	boolean	Successful Deletion.
+	 * @access public
+	 * @return boolean	Successful Deletion.
 	 */
 	public function delete() {
 		$db = wfGetDB(DB_MASTER);
 
 		$success = false;
 
-		//Do a transactional save.
+		// Do a transactional save.
 		$db->startAtomic(__METHOD__);
 
 		if ($this->data['cid'] > 0) {
-			//Do an update
+			// Do an update
 			$success = $db->delete(
 				'wiki_claims',
 				['cid' => $this->data['cid']],
@@ -355,7 +354,7 @@ class WikiClaim {
 			);
 		}
 
-		//Roll back if there was an error.
+		// Roll back if there was an error.
 		if (!$success) {
 			$db->cancelAtomic(__METHOD__);
 		} else {
@@ -378,8 +377,8 @@ class WikiClaim {
 	/**
 	 * Returns the claim identification number from the database.
 	 *
-	 * @access	public
-	 * @return	string	Claim ID
+	 * @access public
+	 * @return string	Claim ID
 	 */
 	public function getId() {
 		return $this->data['cid'];
@@ -388,13 +387,13 @@ class WikiClaim {
 	/**
 	 * Set the User object.
 	 *
-	 * @access	public
-	 * @param	object	Mediawiki User Object
-	 * @throws	object	InvalidArgumentException
+	 * @access public
+	 * @param  object	Mediawiki User Object
+	 * @throws object	InvalidArgumentException
 	 */
 	public function setUser(User $user) {
 		if (!$user->getId()) {
-			throw new InvalidArgumentException(__METHOD__.': Invalid user given.');
+			throw new InvalidArgumentException(__METHOD__ . ': Invalid user given.');
 		}
 		$this->user = $user;
 		$this->data['user_id'] = $user->getId();
@@ -403,8 +402,8 @@ class WikiClaim {
 	/**
 	 * Returns the User object.
 	 *
-	 * @access	public
-	 * @return	object	Mediawiki User Object
+	 * @access public
+	 * @return object	Mediawiki User Object
 	 */
 	public function getUser() {
 		return $this->user;
@@ -413,8 +412,8 @@ class WikiClaim {
 	/**
 	 * Returns the loaded questions with filled in information.
 	 *
-	 * @access	public
-	 * @return	array	Multidimensional array of questions with question text and possible previously entered answer.
+	 * @access public
+	 * @return array	Multidimensional array of questions with question text and possible previously entered answer.
 	 */
 	public function getQuestions() {
 		$keys = $this->getQuestionKeys();
@@ -430,12 +429,12 @@ class WikiClaim {
 	/**
 	 * Returns the question keys.
 	 *
-	 * @access	public
-	 * @return	array	Question Keys
+	 * @access public
+	 * @return array	Question Keys
 	 */
 	public function getQuestionKeys() {
-		for ($i=0; $i < $this->settings['number_of_questions']; $i++) {
-			$keys[] = 'wiki_claim_question_'.$i;
+		for ($i = 0; $i < $this->settings['number_of_questions']; $i++) {
+			$keys[] = 'wiki_claim_question_' . $i;
 		}
 		return $keys;
 	}
@@ -443,8 +442,8 @@ class WikiClaim {
 	/**
 	 * Returns the agreement text for the wiki claim terms.
 	 *
-	 * @access	public
-	 * @return	string	Terms and Agreement Text.
+	 * @access public
+	 * @return string	Terms and Agreement Text.
 	 */
 	public function getAgreementText() {
 		return wfMessage('wiki_claim_agreement')->plain();
@@ -453,8 +452,8 @@ class WikiClaim {
 	/**
 	 * Returns the guidelines text for the wiki claim terms.
 	 *
-	 * @access	public
-	 * @return	string	Guidlines Text.
+	 * @access public
+	 * @return string	Guidlines Text.
 	 */
 	public function getGuidelinesText() {
 		return wfMessage('wiki_claim_more_info')->parseAsBlock();
@@ -463,8 +462,8 @@ class WikiClaim {
 	/**
 	 * Return the status code for this claim.
 	 *
-	 * @access	public
-	 * @return	integer	Status Code
+	 * @access public
+	 * @return integer	Status Code
 	 */
 	public function getStatus() {
 		return intval($this->data['status']);
@@ -473,8 +472,8 @@ class WikiClaim {
 	/**
 	 * Are the terms accepted by this user?
 	 *
-	 * @access	public
-	 * @return	boolean	Agreed to the terms?
+	 * @access public
+	 * @return boolean	Agreed to the terms?
 	 */
 	public function isAgreed() {
 		return boolval($this->data['agreed']);
@@ -483,9 +482,9 @@ class WikiClaim {
 	/**
 	 * Set that the wiki claim terms have been agreed to.
 	 *
-	 * @access	public
-	 * @param	boolean	[Optional] Agreed to the terms or not.  Defaults to true.
-	 * @return	void
+	 * @access public
+	 * @param  boolean	[Optional] Agreed to the terms or not.  Defaults to true.
+	 * @return void
 	 */
 	public function setAgreed($agreed = true) {
 		$this->data['agreed'] = ($agreed ? 1 : 0);
@@ -494,8 +493,8 @@ class WikiClaim {
 	/**
 	 * Set the new status on this claim.
 	 *
-	 * @access	public
-	 * @return	void
+	 * @access public
+	 * @return void
 	 */
 	public function setNew() {
 		$this->data['status'] = self::CLAIM_NEW;
@@ -504,8 +503,8 @@ class WikiClaim {
 	/**
 	 * Is this claim new?
 	 *
-	 * @access	public
-	 * @return	boolean
+	 * @access public
+	 * @return boolean
 	 */
 	public function isNew() {
 		return $this->data['status'] === self::CLAIM_NEW;
@@ -514,8 +513,8 @@ class WikiClaim {
 	/**
 	 * Set the pending status on this claim.
 	 *
-	 * @access	public
-	 * @return	void
+	 * @access public
+	 * @return void
 	 */
 	public function setPending() {
 		$this->data['status'] = self::CLAIM_PENDING;
@@ -524,8 +523,8 @@ class WikiClaim {
 	/**
 	 * Is this claim pending?
 	 *
-	 * @access	public
-	 * @return	boolean
+	 * @access public
+	 * @return boolean
 	 */
 	public function isPending() {
 		return $this->data['status'] === self::CLAIM_PENDING;
@@ -534,8 +533,8 @@ class WikiClaim {
 	/**
 	 * Set the approved status on this claim.
 	 *
-	 * @access	public
-	 * @return	void
+	 * @access public
+	 * @return void
 	 */
 	public function setApproved() {
 		$this->data['status'] = self::CLAIM_APPROVED;
@@ -544,8 +543,8 @@ class WikiClaim {
 	/**
 	 * Is this claim approved?
 	 *
-	 * @access	public
-	 * @return	boolean
+	 * @access public
+	 * @return boolean
 	 */
 	public function isApproved() {
 		return $this->data['status'] === self::CLAIM_APPROVED;
@@ -554,8 +553,8 @@ class WikiClaim {
 	/**
 	 * Set the denied status on this claim.
 	 *
-	 * @access	public
-	 * @return	void
+	 * @access public
+	 * @return void
 	 */
 	public function setDenied() {
 		$this->data['status'] = self::CLAIM_DENIED;
@@ -564,8 +563,8 @@ class WikiClaim {
 	/**
 	 * Is this claim denied?
 	 *
-	 * @access	public
-	 * @return	boolean
+	 * @access public
+	 * @return boolean
 	 */
 	public function isDenied() {
 		return $this->data['status'] === self::CLAIM_DENIED;
@@ -574,8 +573,8 @@ class WikiClaim {
 	/**
 	 * Set the inactive status on this claim.
 	 *
-	 * @access	public
-	 * @return	void
+	 * @access public
+	 * @return void
 	 */
 	public function setInactive() {
 		$this->data['status'] = self::CLAIM_INACTIVE;
@@ -584,8 +583,8 @@ class WikiClaim {
 	/**
 	 * Is this claim inactive?
 	 *
-	 * @access	public
-	 * @return	boolean
+	 * @access public
+	 * @return boolean
 	 */
 	public function isInactive() {
 		return $this->data['status'] === self::CLAIM_INACTIVE;
@@ -594,10 +593,10 @@ class WikiClaim {
 	/**
 	 * Sets an answer for the provided question key.
 	 *
-	 * @access	public
-	 * @param	string	Question Key
-	 * @param	mixed	Question Answer
-	 * @return	void
+	 * @access public
+	 * @param  string	Question Key
+	 * @param  mixed	Question Answer
+	 * @return void
 	 */
 	public function setAnswer($key, $answer) {
 		if (is_bool($answer)) {
@@ -610,9 +609,9 @@ class WikiClaim {
 	/**
 	 * Returns the answer array.
 	 *
-	 * @access	public
-	 * @param	string	Question Key
-	 * @return	array	Array of $questionKey => $answer;
+	 * @access public
+	 * @param  string	Question Key
+	 * @return array	Array of $questionKey => $answer;
 	 */
 	public function getAnswers() {
 		return $this->answers;
@@ -621,10 +620,10 @@ class WikiClaim {
 	/**
 	 * Set a timestamp for this claim.
 	 *
-	 * @access	public
-	 * @param	integer	Epoch based timestamp.
-	 * @param	string	[Optional] Which timestamp to set.  Valid values: claim, start, and end.
-	 * @return	void
+	 * @access public
+	 * @param  integer	Epoch based timestamp.
+	 * @param  string	[Optional] Which timestamp to set.  Valid values: claim, start, and end.
+	 * @return void
 	 */
 	public function setTimestamp($timestamp, $type = 'claim') {
 		switch ($type) {
@@ -644,9 +643,9 @@ class WikiClaim {
 	/**
 	 * Return a timestamp for this claim.
 	 *
-	 * @access	public
-	 * @param	string	[Optional] Which timestamp to get.  Valid values: claim, start, and end.
-	 * @return	integer	Epoch based timestamp
+	 * @access public
+	 * @param  string	[Optional] Which timestamp to get.  Valid values: claim, start, and end.
+	 * @return integer	Epoch based timestamp
 	 */
 	public function getTimestamp($type = 'claim') {
 		switch ($type) {
@@ -666,15 +665,15 @@ class WikiClaim {
 	/**
 	 * Figures out what answers are not answers and return a list of errors.
 	 *
-	 * @access	public
-	 * @return	array	An array of errors of $questionKey => $message.  The array will be empty for no errors.
+	 * @access public
+	 * @return array	An array of errors of $questionKey => $message.  The array will be empty for no errors.
 	 */
 	public function getErrors() {
 		$keys = $this->getQuestionKeys();
 		$errors = [];
 		foreach ($keys as $key) {
 			if (empty($this->answers[$key])) {
-				$errors[$key] = wfMessage($key.'_error');
+				$errors[$key] = wfMessage($key . '_error');
 			}
 		}
 		return $errors;

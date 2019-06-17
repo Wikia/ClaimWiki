@@ -10,23 +10,25 @@
  *
  * This shim maintains compatibility back to MediaWiki 1.17.
  */
+
 $messages = [];
-if ( !function_exists( 'wfJsonI18nShim288bc36249eb353c' ) ) {
-	function wfJsonI18nShim288bc36249eb353c( $cache, $code, &$cachedData ) {
-		$codeSequence = array_merge( [ $code ], $cachedData['fallbackSequence'] );
-		foreach ( $codeSequence as $csCode ) {
-			$fileName = dirname( __FILE__ ) . "/./i18n/$csCode.json";
-			if ( is_readable( $fileName ) ) {
-				$data = FormatJson::decode( file_get_contents( $fileName ), true );
-				foreach ( array_keys( $data ) as $key ) {
-					if ( $key === '' || $key[0] === '@' ) {
-						unset( $data[$key] );
+if (!function_exists('wfJsonI18nShim288bc36249eb353c')) {
+
+	function wfJsonI18nShim288bc36249eb353c($cache, $code, &$cachedData) {
+		$codeSequence = array_merge([$code], $cachedData['fallbackSequence']);
+		foreach ($codeSequence as $csCode) {
+			$fileName = __DIR__ . "/./i18n/$csCode.json";
+			if (is_readable($fileName)) {
+				$data = FormatJson::decode(file_get_contents($fileName), true);
+				foreach (array_keys($data) as $key) {
+					if ($key === '' || $key[0] === '@') {
+						unset($data[$key]);
 					}
 				}
-				$cachedData['messages'] = array_merge( $data, $cachedData['messages'] );
+				$cachedData['messages'] = array_merge($data, $cachedData['messages']);
 			}
 
-			$cachedData['deps'][] = new FileDependency( $fileName );
+			$cachedData['deps'][] = new FileDependency($fileName);
 		}
 		return true;
 	}
