@@ -11,6 +11,8 @@
  * @link      https://gitlab.com/hydrawiki
 **/
 
+use Reverb\Notification\NotificationBroadcast;
+
 class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Output HTML
@@ -174,6 +176,27 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 								]
 							]
 						);
+						$broadcast = NotificationBroadcast::newMulti(
+							'-wiki-claim',
+							$this->claim->getUser(),
+							$toLocalUser,
+							[
+								'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL(['do' => 'view', 'user_id' => $this->claim->getUser()->getId()])
+								'message' => [
+									[
+										'user_note',
+										''
+									],
+									[
+										1,
+										$fromUser->getName()
+									]
+								]
+							]
+						);
+						if ($broadcast) {
+							$broadcast->transmit();
+						}
 					}
 
 					$emailTo[] = new MailAddress($wgClaimWikiEmailTo, wfMessage('claimwikiteamemail_sender')->escaped());
