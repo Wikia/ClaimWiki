@@ -19,7 +19,7 @@ class ClaimWikiHooks {
 	 * @return void
 	 */
 	public static function onRegistration() {
-		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $wgEchoNotifications, $wgEmergencyContact;
+		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $wgEmergencyContact;
 
 		if (!isset($wgClaimWikiEnabled)) {
 			$wgClaimWikiEnabled = true;
@@ -30,50 +30,6 @@ class ClaimWikiHooks {
 		if (!isset($wgClaimWikiEmailTo) || !is_bool($wgClaimWikiEnabled)) {
 			$wgClaimWikiEmailTo = $wgEmergencyContact;
 		}
-	}
-
-	/**
-	 * Add this extensions Echo notifications.
-	 *
-	 * @access public
-	 * @param  array   See  $wgEchoNotifications          in Extension:Echo.
-	 * @param  array	See $wgEchoNotificationCategories in Extension:Echo.
-	 * @param  array   See  $wgEchoNotificationIcons      in Extension:Echo.
-	 * @return boolean	True
-	 */
-	public static function onBeforeCreateEchoEvent(&$wgEchoNotifications, &$wgEchoNotificationCategories, &$wgEchoNotificationIcons) {
-		global $wgDefaultUserOptions;
-
-		$wgDefaultUserOptions['echo-subscriptions-web-wiki-claims'] = true;
-		$wgDefaultUserOptions['echo-subscriptions-email-wiki-claims'] = true;
-
-		$wgEchoNotificationCategories['wiki-claims'] = [
-			'priority' => 1,
-			'no-dismiss' => ['web'],
-			'tooltip' => 'echo-pref-tooltip-wiki-claims',
-		];
-
-		$wgEchoNotifications['wiki-claim'] = [
-			EchoAttributeManager::ATTR_LOCATORS => [
-				['EchoUserLocator::locateFromEventExtra', ['managers']],
-			],
-			'primary-link' => ['message' => 'wiki-claim-notification', 'destination' => 'wikiclaims'],
-			'category' => 'wiki-claims',
-			'group' => 'neutral',
-			'section' => 'alert',
-			'presentation-model' => 'EchoWikiClaimPresentationModel',
-			// Legacy formatting system
-			'formatter-class' => 'EchoWikiClaimFormatter',
-			'title-message' => 'notification-header-wiki-claim',
-			'title-params' => ['agent'],
-			'email-subject-message' => 'notification-header-wiki-claim',
-			'email-subject-params' => ['agent', 'gender', 'site_name'],
-			'email-body-batch-message' => 'notification-email-body-wiki-claim',
-			'email-body-batch-params' => ['agent'],
-			'icon' => 'wiki-claim'
-		];
-
-		$wgEchoNotificationIcons['wiki-claim'] = ['path' => "ClaimWiki/images/notification.png"];
 	}
 
 	/**
@@ -117,7 +73,10 @@ class ClaimWikiHooks {
 		$result = $DB->select(
 			'wiki_claims',
 			['COUNT(*) as total'],
-			'status = ' . intval(WikiClaim::CLAIM_APPROVED) . ' AND end_timestamp = 0',
+			[
+				'status' => intval(WikiClaim::CLAIM_APPROVED),
+				'end_timestamp' => 0
+			],
 			__METHOD__
 		);
 

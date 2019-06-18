@@ -11,6 +11,8 @@
  * @link      https://gitlab.com/hydrawiki
 **/
 
+use Reverb\Notification\NotificationBroadcast;
+
 class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Output HTML
@@ -66,7 +68,10 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 		$result = $this->DB->select(
 			'wiki_claims',
 			['COUNT(*) as total'],
-			'status = ' . intval(WikiClaim::CLAIM_APPROVED) . ' AND end_timestamp = 0',
+			[
+				'status' => intval(WikiClaim::CLAIM_APPROVED),
+				'end_timestamp' => 0
+			],
 			__METHOD__
 		);
 		$total = $result->fetchRow();
@@ -136,14 +141,12 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 						wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
 					}
 					$siteManager = false;
-					$echoManagerIds = [];
 					if (is_array($siteManagers) && count($siteManagers)) {
 						foreach ($siteManagers as $key => $siteManager) {
 							$user = User::newFromName($siteManager);
 							$user->load();
 							if ($user->getId()) {
 								$siteManagers[$key] = $user;
-								$echoManagerIds[] = $user->getId();
 							} else {
 								unset($siteManagers[$key]);
 							}
@@ -159,21 +162,32 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 							$emailTo[] = new MailAddress($wikiManagerEmail, $wikiManager->getName());
 						}
 
-						EchoEvent::create(
+						$mainConfig = MediaWikiServices::getInstance()->getMainConfig();
+						$broadcast = NotificationBroadcast::newMulti(
+							'-wiki-claim',
+							$this->claim->getUser(),
+							$siteManagers,
 							[
-								'type'	=> 'wiki-claim',
-								'title'	=> Title::newFromText('Special:WikiClaims'),
-								'agent'	=> $this->claim->getUser(),
-								'extra'	=> [
-									'notifyAgent'	=> true,
-									'claim_id'		=> $this->claim->getId(),
-									'managers'		=> $echoManagerIds,
-									'site_key'		=> $dsSiteKey,
-									'site_name'		=> $wgSitename,
-									'claim_url'		=> SpecialPage::getTitleFor('WikiClaims')->getFullURL(['do' => 'view', 'user_id' => $this->claim->getUser()->getId()])
+								'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL(['do' => 'view', 'user_id' => $this->claim->getUser()->getId()])
+								'message' => [
+									[
+										'user_note',
+										''
+									],
+									[
+										1,
+										$fromUser->getName()
+									],
+									[
+										2,
+										$mainConfig->get('Sitename');
+									]
 								]
 							]
 						);
+						if ($broadcast) {
+							$broadcast->transmit();
+						}
 					}
 
 					$emailTo[] = new MailAddress($wgClaimWikiEmailTo, wfMessage('claimwikiteamemail_sender')->escaped());
