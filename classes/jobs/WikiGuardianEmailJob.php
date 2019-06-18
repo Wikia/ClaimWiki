@@ -4,21 +4,20 @@
  * ClaimWiki
  * WikiGuardianEmail Job Class
  *
- * @author		Cameron Chunn
- * @copyright	(c) 2017 Curse Inc.
- * @license		GNU General Public License v2.0 or later
- * @package		ClaimWiki
- * @link		https://gitlab.com/hydrawiki
- *
+ * @author    Cameron Chunn
+ * @copyright (c) 2017 Curse Inc.
+ * @license   GNU General Public License v2.0 or later
+ * @package   ClaimWiki
+ * @link      https://gitlab.com/hydrawiki
 **/
 
 class WikiGuardianEmailJob extends \SyncService\Job {
 	/**
 	 * Handles ivoking emails for inactive wiki guardians.
 	 *
-	 * @access	public
-	 * @param	array
-	 * @return	integer	exit value for this thread
+	 * @access public
+	 * @param  array
+	 * @return integer	exit value for this thread
 	 */
 	public function execute($args = []) {
 		global $wgEmergencyContact, $wgSitename, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $dsSiteKey;
@@ -29,7 +28,7 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 			return;
 		}
 
-		//@TODO: Likely broken when forking.
+		// @TODO: Likely broken when forking.
 		$this->DB = wfGetDB(DB_MASTER);
 		$redis = RedisCache::getClient('cache');
 		$this->templateClaimEmails = new TemplateClaimEmails;
@@ -55,7 +54,7 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 			}
 
 			$claim = WikiClaim::newFromUser($user);
-			$redisEmailKey = wfWikiID().':guardianReminderEmail:timeSent:'.$user->getId();
+			$redisEmailKey = wfWikiID() . ':guardianReminderEmail:timeSent:' . $user->getId();
 
 			$cheevosUser = \Cheevos\Cheevos::getWikiPointLog([
 				'user_id' => $user->getId(),
@@ -63,8 +62,8 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 			]);
 			if (isset($cheevosUser[0]) && $cheevosUser[0]->getUser_Id() == $user->getId()) {
 				$timestamp = $cheevosUser[0]->getTimestamp();
-				$oldTimestamp = time() - 5184000; //Thirty Days
-				$emailReminderExpired = time() - 1296000; //Fifteen Days
+				$oldTimestamp = time() - 5184000; // Thirty Days
+				$emailReminderExpired = time() - 1296000; // Fifteen Days
 			} else {
 				// cant get timestamp
 				continue;
@@ -73,15 +72,15 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 			try {
 				$emailSent = $redis->get($redisEmailKey);
 			} catch (RedisException $e) {
-				wfDebug(__METHOD__.": Caught RedisException - ".$e->getMessage());
+				wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
 			}
 			if ($emailSent > 0 && $emailSent > $emailReminderExpired) {
-				$this->outputLine("SKIP - Reminder email already send to ".$user->getName()." and resend is on cool down.\n");
+				$this->outputLine("SKIP - Reminder email already send to " . $user->getName() . " and resend is on cool down.\n");
 				continue;
 			}
 
 			if ($timestamp <= $oldTimestamp) {
-				//Send a reminder email.
+				// Send a reminder email.
 				if ($_SERVER['PHP_ENV'] != 'development') {
 					$ownerEmail = $claim->getUser()->getEmail();
 					if (Sanitizer::validateEmail($ownerEmail)) {
@@ -108,15 +107,15 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 				);
 
 				if ($status->isOK()) {
-					$this->outputLine("SUCCESS - Reminder email send to ".current($address).".\n");
+					$this->outputLine("SUCCESS - Reminder email send to " . current($address) . ".\n");
 					try {
 						$redis->set($redisEmailKey, time());
 						$redis->expire($redisEmailKey, 1296000);
 					} catch (RedisException $e) {
-						$this->outputLine(__METHOD__.": Caught RedisException - ".$e->getMessage());
+						$this->outputLine(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
 					}
 				} else {
-					$this->outputLine("ERROR - Failed to send a reminder email to ".current($address).".\n");
+					$this->outputLine("ERROR - Failed to send a reminder email to " . current($address) . ".\n");
 				}
 			}
 		}
@@ -127,10 +126,10 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 	/**
 	 * Return cron schedule if applicable.
 	 *
-	 * @access	public
-	 * @return	mixed	False for no schedule or an array of schedule information.
+	 * @access public
+	 * @return mixed	False for no schedule or an array of schedule information.
 	 */
-	static public function getSchedule() {
+	public static function getSchedule() {
 		return [
 			[
 				'minutes' => '0',

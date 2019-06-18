@@ -4,11 +4,10 @@
  * Claim Wiki
  * EchoWikiClaimPresentationModel Class
  *
- * @author		Alexia E. Smith
- * @license		GPLv2
- * @package		Claim Wiki
- * @link		https://gitlab.com/hydrawiki
- *
+ * @author  Alexia E. Smith
+ * @license GPLv2
+ * @package Claim Wiki
+ * @link    https://gitlab.com/hydrawiki
 **/
 
 class EchoWikiClaimPresentationModel extends EchoEventPresentationModel {
@@ -24,25 +23,25 @@ class EchoWikiClaimPresentationModel extends EchoEventPresentationModel {
 	}
 
 	public function getBodyMessage() {
-		$reason = $this->event->getExtraParam( 'reason' );
-		return $reason ? $this->msg( 'notification-body-user-rights' )->params( $reason ) : false;
+		$reason = $this->event->getExtraParam('reason');
+		return $reason ? $this->msg('notification-body-user-rights')->params($reason) : false;
 	}
 
-	private function getLocalizedGroupNames( $names ) {
-		return array_map( function ( $name ) {
-			$msg = $this->msg( 'group-' . $name );
+	private function getLocalizedGroupNames($names) {
+		return array_map(function ($name) {
+			$msg = $this->msg('group-' . $name);
 			return $msg->isBlank() ? $name : $msg->text();
-		}, $names );
+		}, $names);
 	}
 
 	public function getPrimaryLink() {
 		return [
-			'url' => $this->event->getExtraParam( 'claim_url' ),
-			'label' => $this->msg( 'echo-learn-more' )->text()
+			'url' => $this->event->getExtraParam('claim_url'),
+			'label' => $this->msg('echo-learn-more')->text()
 		];
 	}
 
 	public function getSecondaryLinks() {
-		return [ $this->getAgentLink() ];
+		return [$this->getAgentLink()];
 	}
 }

@@ -1,0 +1,19 @@
+{
+	"name": "hydrawiki/claimwiki",
+	"version": "2.0.1",
+	"type": "mediawiki-extension",
+	"description": "Used for claiming a wiki as a winged guardian to help nurture it into a beautiful flower.",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=7.0.0"
+	},
+	"require-dev": {
+		"hydrawiki/hydrawiki-codesniffer": ">=1.0.0"
+	},
+	"scripts": {
+		"test": [
+			"phpcs -p -s"
+		],
+		"fix": "phpcbf"
+	}
+}
