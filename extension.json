@@ -12,8 +12,8 @@
 		"MediaWiki": ">= 1.29.0",
 		"extensions": {
 			"DynamicSettings": ">= 3.0.0",
-			"Echo": "*",
 			"HydraCore": ">= 3.0.0",
+			"Reverb": "*",
 			"SyncService": ">= 2.0.0"
 		}
 	},
@@ -48,8 +48,6 @@
 		"WikiClaim": "classes/WikiClaim.php",
 		"ClaimLogPager": "classes/ClaimLog.php",
 		"ClaimLogEntry": "classes/ClaimLog.php",
-		"EchoWikiClaimFormatter": "classes/EchoWikiClaimFormatter.php",
-		"EchoWikiClaimPresentationModel": "classes/EchoWikiClaimPresentationModel.php",
 		"TemplateClaimEmails": "templates/TemplateClaimEmails.php",
 		"TemplateClaimWiki": "templates/TemplateClaimWiki.php",
 		"TemplateWikiClaims": "templates/TemplateWikiClaims.php",
@@ -79,7 +77,6 @@
 	},
 	"callback": "ClaimWikiHooks::onRegistration",
 	"Hooks": {
-		"BeforeCreateEchoEvent": "ClaimWikiHooks::onBeforeCreateEchoEvent",
 		"BeforePageDisplay": "ClaimWikiHooks::onBeforePageDisplay",
 		"SkinBuildSidebar": "ClaimWikiHooks::onSkinBuildSidebar",
 		"LoadExtensionSchemaUpdates": "ClaimWikiHooks::onLoadExtensionSchemaUpdates",
