@@ -141,14 +141,12 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 						wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
 					}
 					$siteManager = false;
-					$echoManagerIds = [];
 					if (is_array($siteManagers) && count($siteManagers)) {
 						foreach ($siteManagers as $key => $siteManager) {
 							$user = User::newFromName($siteManager);
 							$user->load();
 							if ($user->getId()) {
 								$siteManagers[$key] = $user;
-								$echoManagerIds[] = $user->getId();
 							} else {
 								unset($siteManagers[$key]);
 							}
@@ -164,25 +162,11 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 							$emailTo[] = new MailAddress($wikiManagerEmail, $wikiManager->getName());
 						}
 
-						EchoEvent::create(
-							[
-								'type'	=> 'wiki-claim',
-								'title'	=> Title::newFromText('Special:WikiClaims'),
-								'agent'	=> $this->claim->getUser(),
-								'extra'	=> [
-									'notifyAgent'	=> true,
-									'claim_id'		=> $this->claim->getId(),
-									'managers'		=> $echoManagerIds,
-									'site_key'		=> $dsSiteKey,
-									'site_name'		=> $wgSitename,
-									'claim_url'		=> SpecialPage::getTitleFor('WikiClaims')->getFullURL(['do' => 'view', 'user_id' => $this->claim->getUser()->getId()])
-								]
-							]
-						);
+						$mainConfig = MediaWikiServices::getInstance()->getMainConfig();
 						$broadcast = NotificationBroadcast::newMulti(
 							'-wiki-claim',
 							$this->claim->getUser(),
-							$toLocalUser,
+							$siteManagers,
 							[
 								'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL(['do' => 'view', 'user_id' => $this->claim->getUser()->getId()])
 								'message' => [
@@ -193,6 +177,10 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 									[
 										1,
 										$fromUser->getName()
+									],
+									[
+										2,
+										$mainConfig->get('Sitename');
 									]
 								]
 							]
