@@ -125,8 +125,9 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->wgRequest->response()->setcookie('wikiClaimsSortDir', $sortDir, $cookieExpire);
 
 		$claims = WikiClaim::getClaims($start, $itemsPerPage, $sortKey, $sortDir);
+		$claimsCount = WikiClaim::getClaimsCount();
 
-		$pagination = HydraCore::generatePaginationHtml($this->getFullTitle(), count($claims), $itemsPerPage, $start);
+		$pagination = HydraCore::generatePaginationHtml($this->getFullTitle(), $claimsCount, $itemsPerPage, $start);
 
 		$this->output->setPageTitle(wfMessage('wikiclaims'));
 		$this->content = $this->templateWikiClaims->wikiClaims($claims, $pagination, $sortKey, $sortDir);

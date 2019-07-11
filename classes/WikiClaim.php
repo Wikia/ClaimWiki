@@ -148,6 +148,26 @@ class WikiClaim {
 	}
 
 	/**
+	 * Get count of wiki claims.
+	 *
+	 * @access public
+	 * @return integer	Count of WikiClaim objects
+	 */
+	public static function getClaimsCount() {
+		$db = wfGetDB(DB_MASTER);
+
+		$result = $db->selectField(
+			'wiki_claims',
+			'COUNT(*)',
+			[
+			],
+			__METHOD__
+		);
+
+		return (int)$result;
+	}
+
+	/**
 	 * Get all wiki claims.
 	 *
 	 * @access public
