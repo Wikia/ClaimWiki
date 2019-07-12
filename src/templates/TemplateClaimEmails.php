@@ -4,26 +4,23 @@
  * Claim Wiki
  * Claim Wiki Emails Template
  *
+ * @package   ClaimWiki
  * @author    Alex Smith
  * @copyright (c) 2013 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   Claim Wiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
 **/
 
-class TemplateClaimEmails {
-	/**
-	 * Output HTML
-	 *
-	 * @var string
-	 */
-	private $HMTL;
+namespace ClaimWiki\Templates;
 
+use Title;
+
+class TemplateClaimEmails {
 	/**
 	 * Claim Wiki Notice
 	 *
-	 * @access public
-	 * @param  array	Extra information for email body template.
+	 * @param array $emailExtra Extra information for email body template.
+	 *
 	 * @return string	Built HTML
 	 */
 	public function claimWikiNotice($emailExtra = []) {
@@ -39,10 +36,10 @@ class TemplateClaimEmails {
 	/**
 	 * Claim Wiki Status
 	 *
-	 * @access public
-	 * @param  string	Status email type to send.
-	 * @param  array	Extra information for email body template.
-	 * @return string	Built HTML
+	 * @param string $status     Status email type to send.
+	 * @param array  $emailExtra Extra information for email body template.
+	 *
+	 * @return string Built HTML
 	 */
 	public function claimStatusNotice($status, $emailExtra) {
 		global $wgEmergencyContact, $wgClaimWikiEmailSignature;
@@ -85,9 +82,9 @@ class TemplateClaimEmails {
 	/**
 	 * Wiki Guardian Inactive
 	 *
-	 * @access public
-	 * @param  object	The wikiClaim object.
-	 * @param  string	Wiki Name
+	 * @param object $userName The wikiClaim object.
+	 * @param string $wikiName Wiki Name
+	 *
 	 * @return string	Built HTML
 	 */
 	public function wikiGuardianInactive($userName, $wikiName) {

@@ -1,7 +1,11 @@
 <?xml version="1.0"?>
-<ruleset name="MediaWiki">
+<ruleset name="HydraWiki">
     <rule ref="./vendor/hydrawiki/hydrawiki-codesniffer/HydraWiki" />
     <file>.</file>
     <arg name="encoding" value="utf8"/>
     <arg name="extensions" value="php"/>
+    <rule ref="Generic.Files.LineLength.TooLong">
+        <!-- Templates have stupic long lines that can't be fixed without moving it all to language files... -->
+        <exclude-pattern>/src/templates/*\.php</exclude-pattern>
+    </rule>
 </ruleset>

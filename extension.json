@@ -30,8 +30,8 @@
 		"wiki_claims"
 	],
 	"SpecialPages": {
-		"ClaimWiki": "SpecialClaimWiki",
-		"WikiClaims": "SpecialWikiClaims"
+		"ClaimWiki": "ClaimWiki\\Specials\\SpecialClaimWiki",
+		"WikiClaims": "ClaimWiki\\Specials\\SpecialWikiClaims"
 	},
 	"MessagesDirs": {
 		"ClaimWiki": [
@@ -41,17 +41,18 @@
 	"ExtensionMessagesFiles": {
 		"SpecialClaimWiki": "ClaimWiki.alias.php"
 	},
-	"AutoloadClasses": {
-		"ClaimWikiHooks": "ClaimWiki.hooks.php",
-		"SpecialClaimWiki": "specials/SpecialClaimWiki.php",
-		"SpecialWikiClaims": "specials/SpecialWikiClaims.php",
-		"WikiClaim": "classes/WikiClaim.php",
-		"ClaimLogPager": "classes/ClaimLog.php",
-		"ClaimLogEntry": "classes/ClaimLog.php",
-		"TemplateClaimEmails": "templates/TemplateClaimEmails.php",
-		"TemplateClaimWiki": "templates/TemplateClaimWiki.php",
-		"TemplateWikiClaims": "templates/TemplateWikiClaims.php",
-		"WikiGuardianEmailJob": "classes/jobs/WikiGuardianEmailJob.php"
+	"AutoloadNamespaces": {
+		"ClaimWiki\\": "src/",
+		"ClaimWiki\\Jobs\\": "src/jobs",
+		"ClaimWiki\\Specials\\": "src/specials",
+		"ClaimWiki\\Templates\\": "src/templates"
+	},
+	"Hooks": {
+		"BeforePageDisplay": "ClaimWiki\\Hooks::onBeforePageDisplay",
+		"SkinBuildSidebar": "ClaimWiki\\Hooks::onSkinBuildSidebar",
+		"LoadExtensionSchemaUpdates": "ClaimWiki\\Hooks::onLoadExtensionSchemaUpdates",
+		"UserEffectiveGroups": "ClaimWiki\\Hooks::onUserEffectiveGroups",
+		"UserRights": "ClaimWiki\\Hooks::onUserRights"
 	},
 	"ResourceModules": {
 		"ext.claimWiki.styles": {
@@ -75,18 +76,11 @@
 		"localBasePath": "",
 		"remoteExtPath": "ClaimWiki"
 	},
-	"callback": "ClaimWikiHooks::onRegistration",
-	"Hooks": {
-		"BeforePageDisplay": "ClaimWikiHooks::onBeforePageDisplay",
-		"SkinBuildSidebar": "ClaimWikiHooks::onSkinBuildSidebar",
-		"LoadExtensionSchemaUpdates": "ClaimWikiHooks::onLoadExtensionSchemaUpdates",
-		"UserEffectiveGroups": "ClaimWikiHooks::onUserEffectiveGroups",
-		"UserRights": "ClaimWikiHooks::onUserRights"
-	},
+	"callback": "ClaimWiki\\Hooks::onRegistration",
 	"config": {
 		"SyncServices": {
 			"value": [
-				"WikiGuardianEmailJob"
+				"ClaimWiki\\Jobs\\WikiGuardianEmailJob"
 			],
 			"path": false,
 			"descriptionmsg": "claimwiki-syncservices",

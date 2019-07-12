@@ -4,23 +4,35 @@
  * ClaimWiki
  * WikiGuardianEmail Job Class
  *
+ * @package   ClaimWiki
  * @author    Cameron Chunn
  * @copyright (c) 2017 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   ClaimWiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
 **/
 
-class WikiGuardianEmailJob extends \SyncService\Job {
+namespace ClaimWiki\Jobs;
+
+use Cheevos\Cheevos;
+use ClaimWiki\Templates\TemplateClaimEmails;
+use ClaimWiki\WikiClaim;
+use MailAddress;
+use RedisCache;
+use Sanitizer;
+use SyncService\Job;
+use User;
+use UserMailer;
+
+class WikiGuardianEmailJob extends Job {
 	/**
-	 * Handles ivoking emails for inactive wiki guardians.
+	 * Handles invoking emails for inactive wiki guardians.
 	 *
-	 * @access public
-	 * @param  array
+	 * @param array $args
+	 *
 	 * @return integer	exit value for this thread
 	 */
 	public function execute($args = []) {
-		global $wgEmergencyContact, $wgSitename, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $dsSiteKey;
+		global $wgEmergencyContact, $wgSitename, $wgClaimWikiEnabled, $dsSiteKey;
 		$this->outputLine("Starting Wiki Guardian Email Job.\n");
 
 		if (!$wgClaimWikiEnabled) {
@@ -28,7 +40,6 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 			return;
 		}
 
-		// @TODO: Likely broken when forking.
 		$this->DB = wfGetDB(DB_MASTER);
 		$redis = RedisCache::getClient('cache');
 		$this->templateClaimEmails = new TemplateClaimEmails;
@@ -56,14 +67,16 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 			$claim = WikiClaim::newFromUser($user);
 			$redisEmailKey = wfWikiID() . ':guardianReminderEmail:timeSent:' . $user->getId();
 
-			$cheevosUser = \Cheevos\Cheevos::getWikiPointLog([
+			$cheevosUser = Cheevos::getWikiPointLog([
 				'user_id' => $user->getId(),
 				'site_id' => ($dsSiteKey ? $dsSiteKey : null)
 			]);
 			if (isset($cheevosUser[0]) && $cheevosUser[0]->getUser_Id() == $user->getId()) {
 				$timestamp = $cheevosUser[0]->getTimestamp();
-				$oldTimestamp = time() - 5184000; // Thirty Days
-				$emailReminderExpired = time() - 1296000; // Fifteen Days
+				 // Thirty Days
+				$oldTimestamp = time() - 5184000;
+				 // Fifteen Days
+				$emailReminderExpired = time() - 1296000;
 			} else {
 				// cant get timestamp
 				continue;
@@ -75,7 +88,9 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 				wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
 			}
 			if ($emailSent > 0 && $emailSent > $emailReminderExpired) {
-				$this->outputLine("SKIP - Reminder email already send to " . $user->getName() . " and resend is on cool down.\n");
+				$this->outputLine(
+					"SKIP - Reminder email already send to " . $user->getName() . " and resend is on cool down.\n"
+				);
 				continue;
 			}
 
@@ -101,7 +116,9 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 					$from,
 					$emailSubject,
 					[
-						'text' => strip_tags($this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename)),
+						'text' => strip_tags(
+							$this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename)
+						),
 						'html' => $this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename)
 					]
 				);
@@ -126,8 +143,7 @@ class WikiGuardianEmailJob extends \SyncService\Job {
 	/**
 	 * Return cron schedule if applicable.
 	 *
-	 * @access public
-	 * @return mixed	False for no schedule or an array of schedule information.
+	 * @return mixed False for no schedule or an array of schedule information.
 	 */
 	public static function getSchedule() {
 		return [

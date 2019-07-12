@@ -10,6 +10,21 @@
 	"require-dev": {
 		"hydrawiki/hydrawiki-codesniffer": ">=1.0.0"
 	},
+	"autoload": {
+        "psr-4": {
+            "ClaimWiki\\": "classes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
 	"scripts": {
 		"test": [
 			"phpcs -p -s"

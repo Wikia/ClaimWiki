@@ -4,16 +4,30 @@
  * Claim Wiki
  * Claim Wiki Special Page
  *
+ * @package   ClaimWiki
  * @author    Alex Smith
  * @copyright (c) 2013 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   Claim Wiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
 **/
 
-use Reverb\Notification\NotificationBroadcast;
+namespace ClaimWiki\Specials;
 
-class SpecialClaimWiki extends HydraCore\SpecialPage {
+use ClaimWiki\Templates\TemplateClaimEmails;
+use ClaimWiki\Templates\TemplateClaimWiki;
+use ClaimWiki\WikiClaim;
+use ConfigFactory;
+use HydraCore\SpecialPage;
+use MailAddress;
+use MediaWiki\MediaWikiServices;
+use RedisCache;
+use Reverb\Notification\NotificationBroadcast;
+use Sanitizer;
+use Title;
+use User;
+use UserMailer;
+
+class SpecialClaimWiki extends SpecialPage {
 	/**
 	 * Output HTML
 	 *
@@ -34,12 +48,12 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Main Executor
 	 *
-	 * @access public
-	 * @param  string	Sub page passed in the URL.
-	 * @return void	[Outputs to screen]
+	 * @param string $subpage Sub page passed in the URL.
+	 *
+	 * @return void [Outputs to screen]
 	 */
 	public function execute($subpage) {
-		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$config = ConfigFactory::getDefaultInstance()->makeConfig('main');
 		$wgClaimWikiEnabled = $config->get('ClaimWikiEnabled');
 		$wgClaimWikiGuardianTotal = $config->get('ClaimWikiGuardianTotal');
 		$wgClaimWikiEditThreshold = $config->get('ClaimWikiEditThreshold');
@@ -93,7 +107,6 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Claim Wiki Form
 	 *
-	 * @access public
 	 * @return void	[Outputs to screen]
 	 */
 	public function claimForm() {
@@ -105,7 +118,6 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Saves submitted Claim Wiki Forms.
 	 *
-	 * @access private
 	 * @return array	Array of errors.
 	 */
 	private function claimSave() {
@@ -136,7 +148,9 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 					global $wgClaimWikiEmailTo, $wgSitename, $wgPasswordSender, $wgPasswordSenderName, $dsSiteKey;
 
 					try {
-						$siteManagers = @unserialize($this->redis->hGet('dynamicsettings:siteInfo:' . $dsSiteKey, 'wiki_managers'));
+						$siteManagers = unserialize(
+							$this->redis->hGet('dynamicsettings:siteInfo:' . $dsSiteKey, 'wiki_managers')
+						);
 					} catch (RedisException $e) {
 						wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
 					}
@@ -168,7 +182,9 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 							$this->claim->getUser(),
 							$siteManagers,
 							[
-								'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL(['do' => 'view', 'user_id' => $this->claim->getUser()->getId()])
+								'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL([
+									'do' => 'view', 'user_id' => $this->claim->getUser()->getId()
+								]),
 								'message' => [
 									[
 										'user_note',
@@ -176,11 +192,11 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 									],
 									[
 										1,
-										$fromUser->getName()
+										$this->claim->getUser()->getName()
 									],
 									[
 										2,
-										$mainConfig->get('Sitename');
+										$mainConfig->get('Sitename')
 									]
 								]
 							]
@@ -190,15 +206,18 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 						}
 					}
 
-					$emailTo[] = new MailAddress($wgClaimWikiEmailTo, wfMessage('claimwikiteamemail_sender')->escaped());
+					$emailTo[] = new MailAddress(
+						$wgClaimWikiEmailTo,
+						wfMessage('claimwikiteamemail_sender')->escaped()
+					);
 
 					$emailSubject = wfMessage('claim_wiki_email_subject', $this->claim->getUser()->getName())->text();
 
 					$emailExtra = [
-						'environment'	=> (!empty($_SERVER['PHP_ENV']) ? $_SERVER['PHP_ENV'] : $_SERVER['SERVER_NAME']),
-						'user'			=> $this->wgUser,
-						'claim'			=> $this->claim,
-						'site_name'		=> $wgSitename
+						'environment' => (!empty($_SERVER['PHP_ENV']) ? $_SERVER['PHP_ENV'] : $_SERVER['SERVER_NAME']),
+						'user'        => $this->wgUser,
+						'claim'       => $this->claim,
+						'site_name'   => $wgSitename
 					];
 
 					$from = new MailAddress($wgPasswordSender, $wgPasswordSenderName);
@@ -233,7 +252,6 @@ class SpecialClaimWiki extends HydraCore\SpecialPage {
 	/**
 	 * Return the group name for this special page.
 	 *
-	 * @access protected
 	 * @return string
 	 */
 	protected function getGroupName() {

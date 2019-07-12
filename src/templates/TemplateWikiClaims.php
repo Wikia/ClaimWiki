@@ -4,22 +4,27 @@
  * Claim Wiki
  * Wiki Claims Skin
  *
+ * @package   ClaimWiki
  * @author    Alex Smith
  * @copyright (c) 2013 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   Claim Wiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
 **/
+
+namespace ClaimWiki\Templates;
+
+use SpecialPage;
+use Title;
 
 class TemplateWikiClaims {
 	/**
 	 * Wiki Claims
 	 *
-	 * @access public
-	 * @param  array	Array of Claim Information
-	 * @param  array	Pagination
-	 * @param  string	Data sorting key
-	 * @param  string	Data sorting direction
+	 * @param array  $claims     Array of Claim Information
+	 * @param array  $pagination Pagination
+	 * @param string $sortKey    Data sorting key
+	 * @param string $sortDir    Data sorting direction
+	 *
 	 * @return string	Built HTML
 	 */
 	public function wikiClaims($claims, $pagination, $sortKey, $sortDir) {
@@ -97,9 +102,9 @@ class TemplateWikiClaims {
 	/**
 	 * Claim View
 	 *
-	 * @access public
-	 * @param  array	Array of Claim Information
-	 * @return string	Built HTML
+	 * @param array $claim Array of Claim Information
+	 *
+	 * @return string Built HTML
 	 */
 	public function viewClaim($claim) {
 		$wikiContributionsPage	= Title::newFromText('Special:Contributions');

@@ -4,21 +4,25 @@
  * Claim Wiki
  * Claim Wiki Skin
  *
+ * @package   ClaimWiki
  * @author    Alex Smith
  * @copyright (c) 2013 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   Claim Wiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
 **/
+
+namespace ClaimWiki\Templates;
+
+use Title;
 
 class TemplateClaimWiki {
 	/**
 	 * Claim Wiki Form
 	 *
-	 * @access public
-	 * @param  array	Array of claim information
-	 * @param  array	Form Errors
-	 * @return string	Built HTML
+	 * @param array $claim  Array of claim information
+	 * @param array $errors Form Errors
+	 *
+	 * @return string Built HTML
 	 */
 	public function claimForm($claim, $errors) {
 		global $wgRequest, $wgSitename;

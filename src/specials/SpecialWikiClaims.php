@@ -4,14 +4,30 @@
  * Claim Wiki
  * Wiki Claims Special Page
  *
+ * @package   ClaimWiki
  * @author    Alex Smith
  * @copyright (c) 2013 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   Claim Wiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
 **/
 
-class SpecialWikiClaims extends HydraCore\SpecialPage {
+namespace ClaimWiki\Specials;
+
+use ClaimWiki\ClaimLogPager;
+use ClaimWiki\Templates\TemplateClaimEmails;
+use ClaimWiki\Templates\TemplateWikiClaims;
+use ClaimWiki\WikiClaim;
+use ConfigFactory;
+use Html;
+use HydraCore;
+use HydraCore\SpecialPage;
+use MailAddress;
+use Sanitizer;
+use Title;
+use User;
+use UserMailer;
+
+class SpecialWikiClaims extends SpecialPage {
 	/**
 	 * Output HTML
 	 *
@@ -33,14 +49,12 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Main Executor
 	 *
-	 * @access public
-	 * @param  string	Sub page passed in the URL.
+	 * @param string $subpage Sub page passed in the URL.
+	 *
 	 * @return void	[Outputs to screen]
 	 */
 	public function execute($subpage) {
-		global $wgSitename;
-
-		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$config = ConfigFactory::getDefaultInstance()->makeConfig('main');
 		$wgClaimWikiEnabled = $config->get('ClaimWikiEnabled');
 
 		$this->checkPermissions();
@@ -99,7 +113,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Wiki Claims List
 	 *
-	 * @access public
 	 * @return void	[Outputs to screen]
 	 */
 	public function wikiClaims() {
@@ -116,16 +129,19 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->wgRequest->response()->setcookie('wikiClaimsSortKey', $sortKey, $cookieExpire);
 
 		$sortDir = $this->wgRequest->getVal('sort_dir');
-		if (($this->wgRequest->getCookie('wikiClaimsSortDir') == 'desc' && !$sortDir) || strtolower($sortDir) == 'desc') {
+
+		$claims = WikiClaim::getClaims($start, $itemsPerPage, $sortKey, $sortDir);
+		$claimsCount = WikiClaim::getClaimsCount();
+
+		if (($this->wgRequest->getCookie('wikiClaimsSortDir') == 'desc' && !$sortDir)
+			|| strtolower($sortDir) == 'desc'
+		) {
 			$claims = array_reverse($claims);
 			$sortDir = 'desc';
 		} else {
 			$sortDir = 'asc';
 		}
 		$this->wgRequest->response()->setcookie('wikiClaimsSortDir', $sortDir, $cookieExpire);
-
-		$claims = WikiClaim::getClaims($start, $itemsPerPage, $sortKey, $sortDir);
-		$claimsCount = WikiClaim::getClaimsCount();
 
 		$pagination = HydraCore::generatePaginationHtml($this->getFullTitle(), $claimsCount, $itemsPerPage, $start);
 
@@ -136,7 +152,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Wiki Claim View
 	 *
-	 * @access public
 	 * @return void	[Outputs to screen]
 	 */
 	public function viewClaim() {
@@ -153,7 +168,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Show Claim Log
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function showLog() {
@@ -167,7 +181,9 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->content .= "<div id='contentSub'><span>" . wfMessage('back_to_wiki_claims')->parse() . "</span></div>";
 
 		if ($body) {
-			$this->content .= $pager->getNavigationBar() . Html::rawElement('ul', [], $body) . $pager->getNavigationBar();
+			$this->content .= $pager->getNavigationBar()
+				. Html::rawElement('ul', [], $body)
+				. $pager->getNavigationBar();
 		} else {
 			$this->content .= wfMessage('no_log_entries_found')->escaped();
 		}
@@ -178,7 +194,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Approve Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function approveClaim() {
@@ -202,7 +217,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Resume Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function resumeClaim() {
@@ -225,7 +239,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Deny Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function denyClaim() {
@@ -247,7 +260,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Pending Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function pendingClaim() {
@@ -269,7 +281,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * End Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function endClaim() {
@@ -290,7 +301,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Inactive Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function inactiveClaim() {
@@ -313,7 +323,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Delete Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function deleteClaim() {
@@ -332,7 +341,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Load Claim
 	 *
-	 * @access private
 	 * @return object	Loaded wikiClaim object.
 	 */
 	private function loadClaim() {
@@ -349,12 +357,12 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Send a claim status email.
 	 *
-	 * @access private
-	 * @param  boolean	Approved/Denied
+	 * @param boolean $status Approved/Denied
+	 *
 	 * @return void
 	 */
 	private function sendEmail($status) {
-		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$config = ConfigFactory::getDefaultInstance()->makeConfig('main');
 		$wgClaimWikiEmailTo = $config->get('ClaimWikiEmailTo');
 
 		if ($_SERVER['PHP_ENV'] != 'development') {
@@ -370,9 +378,11 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 				$address[] = new MailAddress($adminEmail, $this->wgUser->getName());
 			}
 		} else {
-			$emailTo = 'Hydra Testers' . " <wikitest@curse.com>";
 			$address[] = new MailAddress("wikitest@curse.com", 'Hydra Testers');
-			$emailSubject = wfMessage('claim_status_email_subject_dev', wfMessage('subject_' . $status)->text())->text();
+			$emailSubject = wfMessage(
+				'claim_status_email_subject_dev',
+				wfMessage('subject_' . $status)->text()
+			)->text();
 		}
 
 		$emailExtra = [
@@ -403,7 +413,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Return the group name for this special page.
 	 *
-	 * @access protected
 	 * @return string
 	 */
 	protected function getGroupName() {

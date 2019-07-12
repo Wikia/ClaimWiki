@@ -2,27 +2,28 @@
 /**
  * Curse Inc.
  * Claim Wiki
- * Claim Log Class
+ * Claim Wiki Log Pager
  *
+ * @package   ClaimWiki
  * @author    Alex Smith
  * @copyright (c) 2015 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   Claim Wiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
-**/
+ **/
+
+namespace ClaimWiki;
+
+use Html;
+use Linker;
+use MWTimestamp;
+use ReverseChronologicalPager;
+use Title;
+use User;
 
 class ClaimLogPager extends ReverseChronologicalPager {
 	/**
-	 * Log Entries
-	 *
-	 * @var array
-	 */
-	private $entries = [];
-
-	/**
 	 * Return query arguments.
 	 *
-	 * @access public
 	 * @return array
 	 */
 	public function getQueryInfo() {
@@ -51,7 +52,6 @@ class ClaimLogPager extends ReverseChronologicalPager {
 	/**
 	 * Return index(sort) field
 	 *
-	 * @access public
 	 * @return string
 	 */
 	public function getIndexField() {
@@ -61,8 +61,9 @@ class ClaimLogPager extends ReverseChronologicalPager {
 	/**
 	 * Return a formatted database row.
 	 *
-	 * @access public
-	 * @return html
+	 * @param mixed $row
+	 *
+	 * @return string
 	 */
 	public function formatRow($row) {
 		$user = User::newFromId($row->user_id);
@@ -80,7 +81,8 @@ class ClaimLogPager extends ReverseChronologicalPager {
 			[],
 			wfMessage(
 				"claim_log_row",
-				"<a href='{$wikiClaimsURL}?do=view&amp;user_id=" . $claim->getUser()->getId() . "'>#" . $row->claim_id . "</a>",
+				"<a href='{$wikiClaimsURL}?do=view&amp;user_id="
+				. $claim->getUser()->getId() . "'>#" . $row->claim_id . "</a>",
 				Linker::userLink($claim->getUser()->getId(), $claim->getUser()->getName()),
 				wfMessage('status_' . $row->status)->escaped(),
 				Linker::userLink($actor->getId(), $actor->getName()),
@@ -88,59 +90,5 @@ class ClaimLogPager extends ReverseChronologicalPager {
 				$timestamp->getHumanTimestamp()
 			)->text()
 		);
-	}
-}
-
-class ClaimLogEntry {
-	/**
-	 * Constructor
-	 *
-	 * @access public
-	 */
-	public function __construct() {
-		$this->DB = wfGetDB(DB_MASTER);
-	}
-
-	/**
-	 * Set the wikiClaim object.
-	 *
-	 * @access   public
-	 * @param    wikiClaim $claim
-	 * @internal param wikiClaim $object
-	 */
-	public function setClaim(WikiClaim $claim) {
-		$this->claim = $claim;
-	}
-
-	/**
-	 * Set the User object.
-	 *
-	 * @access   public
-	 * @param    User $user
-	 * @internal param wikiClaim $object
-	 */
-	public function setActor(User $user) {
-		$this->actor = $user;
-	}
-
-	/**
-	 * Function Documentation
-	 *
-	 * @access public
-	 * @return bool
-	 */
-	public function insert() {
-		$success = $this->DB->insert(
-			'wiki_claims_log',
-			[
-				'claim_id'	=> $this->claim->getId(),
-				'actor_id'	=> $this->actor->getId(),
-				'status'	=> $this->claim->getStatus(),
-				'timestamp'	=> time()
-			],
-			__METHOD__
-		);
-
-		return $success;
 	}
 }
