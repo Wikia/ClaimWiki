@@ -23,6 +23,13 @@ class WikiClaim {
 	 *
 	 * @var constant
 	 */
+	const CLAIM_CREATED = -1;
+
+	/**
+	 * New Claim
+	 *
+	 * @var constant
+	 */
 	const CLAIM_NEW = 0;
 
 	/**
@@ -72,7 +79,7 @@ class WikiClaim {
 		'start_timestamp'	=> 0,
 		'end_timestamp'		=> 0,
 		'agreed'			=> 0,
-		'status'			=> 0
+		'status'			=> -1
 	];
 
 	/**
@@ -349,7 +356,6 @@ class WikiClaim {
 				__METHOD__
 			);
 		}
-
 		return true;
 	}
 
@@ -663,6 +669,15 @@ class WikiClaim {
 	}
 
 	/**
+	 * Get the formatted Date of a claim
+	 *
+	 * @return string
+	 */
+	public function getClaimDate() {
+		return date('c', $this->getTimestamp('claim'));
+	}
+
+	/**
 	 * Figures out what answers are not answers and return a list of errors.
 	 *
 	 * @return array	An array of errors of $questionKey => $message.  The array will be empty for no errors.
@@ -672,7 +687,7 @@ class WikiClaim {
 		$errors = [];
 		foreach ($keys as $key) {
 			if (empty($this->answers[$key])) {
-				$errors[$key] = wfMessage($key . '_error');
+				$errors[$key] = wfMessage($key . '_error')->escaped();
 			}
 		}
 		return $errors;

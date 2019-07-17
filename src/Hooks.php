@@ -15,6 +15,8 @@ namespace ClaimWiki;
 
 use ConfigFactory;
 use DatabaseUpdater;
+use SpecialPage;
+use MediaWiki\MediaWikiServices;
 use OutputPage;
 use Skin;
 use Title;
@@ -168,5 +170,18 @@ class Hooks {
 		]);
 
 		return true;
+	}
+
+	/**
+	 * Setup Twig Templates
+	 *
+	 * @param SpecialPage $special
+	 * @param string      $subPage
+	 *
+	 * @return void
+	 */
+	public static function onSpecialPageBeforeExecute(SpecialPage $special, $subPage) {
+		$twig = MediaWikiServices::getInstance()->getService('TwiggyService');
+		$twig->setTemplateLocation('ClaimWiki', __DIR__ . '/../resources/templates');
 	}
 }

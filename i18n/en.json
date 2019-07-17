@@ -23,7 +23,8 @@
 	"claim_agree": "I agree to the terms stated above.",
 	"claim_agree_error": "You must agree to the terms to submit a wiki claim.",
 	"fill_out_field": "This field must be filled out.",
-	"claim_successful": "Your claim to this wiki has been sent to a global administrator.  You will be notified by email if your claim to administrate this wiki is approved or denied.  You should receive a response within 24 hours.",
+	"claim_created": "Your claim to this wiki has been sent to a global administrator. You will be notified by email when your request is being reviewed.",
+	"claim_pending": "Your claim to this wiki is in review by a global administrator. You will be notified by email if your claim to administrate this wiki is approved or denied.  You should receive a response within 24 hours.",
 	"claim_wiki_email_subject": "A claim has been made on {{SITENAME}} by $1.",
 	"claim_status_email_subject": "Your claim on {{SITENAME}} has been marked as $1.",
 	"claim_status_email_subject_dev": "~~ DEVELOPMENT ~~ Your claim on {{SITENAME}} has been marked as $1.",
@@ -73,13 +74,14 @@
 	"claim_log_row": "$6 - Claim $1 by $2 was changed to $3 - $4 $5",
 	"back_to_wiki_claims": "Back to [[Special:WikiClaims]]",
 	"no_log_entries_found": "No Wiki Claim log entries found.",
-	"echo-category-title-wiki-claims": "New wiki claims",
-	"echo-pref-tooltip-wiki-claims": "Notify me when a new wiki claim is submitted, approved, or denied on a wiki claim.",
+	"reverb-pref-title-user-moderation-wiki-claim": "Wiki Claims",
+	"reverb-pref-tooltip-user-moderation-wiki-claim": "Notify me when a new wiki claim is submitted, approved, or denied on a wiki claim.",
 	"wiki-claim-notification": "View claim",
 	"short-header-user-moderation-wiki-claim": "$1 {{GENDER:$1|submitted}} a new wiki claim on <strong>$2</strong>.",
 	"long-header-user-moderation-wiki-claim": "$1 {{GENDER:$1|submitted}} a new wiki claim on <strong>$2</strong>.",
 	"claimwiki-syncservices": "Jobs for ClaimWiki",
 	"claimwikiteamemail_sender": "Hydra Wiki Team",
 	"right-wiki_claims": "Review and approve/unapprove wiki claims",
-	"right-claim_wiki": "May [[Special:ClaimWiki|claim the wiki]] to become a wiki guardian"
+	"right-claim_wiki": "May [[Special:ClaimWiki|claim the wiki]] to become a wiki guardian",
+	"claim-email-created": "$1 submitted a claim to administrate $2 at $3<br/>Please visit [$4|the wiki claims page] to approve or deny this claim."
 }

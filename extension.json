@@ -14,7 +14,8 @@
 			"DynamicSettings": ">= 3.0.0",
 			"HydraCore": ">= 3.0.0",
 			"Reverb": "*",
-			"SyncService": ">= 2.0.0"
+			"SyncService": ">= 2.0.0",
+			"Twiggy": ">= 0.0.1"
 		}
 	},
 	"GroupPermissions": {
@@ -52,7 +53,8 @@
 		"SkinBuildSidebar": "ClaimWiki\\Hooks::onSkinBuildSidebar",
 		"LoadExtensionSchemaUpdates": "ClaimWiki\\Hooks::onLoadExtensionSchemaUpdates",
 		"UserEffectiveGroups": "ClaimWiki\\Hooks::onUserEffectiveGroups",
-		"UserRights": "ClaimWiki\\Hooks::onUserRights"
+		"UserRights": "ClaimWiki\\Hooks::onUserRights",
+		"SpecialPageBeforeExecute": "ClaimWiki\\Hooks::onSpecialPageBeforeExecute"
 	},
 	"ResourceModules": {
 		"ext.claimWiki.styles": {
@@ -104,6 +106,15 @@
 		},
 		"ClaimWikiEditThreshold": {
 			"value": 5
+		},
+		"ReverbNotifications": {
+			"value": {
+				"user-moderation-wiki-claim": {
+					"importance": 1,
+					"requires": ["hydra_admin", "sysop"]
+				}
+			},
+			"merge_strategy": "array_plus_2d"
 		}
 	},
 	"manifest_version": 2

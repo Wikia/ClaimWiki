@@ -1,0 +1,3 @@
+~*~*~*~*~*~*~*~ {{ strtoupper(emailExtra['environment']) }} ~*~*~*~*~*~*~*~
+<br/><br/>
+{{ wfMessage('claim-email-created', 'parse', emailExtra['user'].getName(), emailExtra['site_name'], emailExtra['claim'].getClaimDate(), page.getFullURL())|raw }}
