@@ -15,10 +15,11 @@ namespace ClaimWiki;
 
 use ConfigFactory;
 use DatabaseUpdater;
-use SpecialPage;
+use User;
 use MediaWiki\MediaWikiServices;
 use OutputPage;
 use Skin;
+use SpecialPage;
 use Title;
 
 class Hooks {
@@ -106,20 +107,20 @@ class Hooks {
 	/**
 	 * Detect changes to the user groups and update users in the wiki_guardian group as needed.
 	 *
-	 * @param object $user   User or UserRightsProxy object changed.
+	 * @param object $user    User or UserRightsProxy object changed.
 	 * @param array  $add
 	 * @param array  $remove
+	 * @param array  ...$args all additional arguments
 	 *
 	 * @return boolean	True
 	 */
-	public static function onUserRights($user, array $add, array $remove) {
+	public static function onUserGroupsChanged($user, array $add, array $remove, ...$args) {
 		if (!$user instanceof User || !$user->getId()) {
 			return true;
 		}
-
 		if (in_array('wiki_guardian', $remove)) {
 			$claim = WikiClaim::newFromUser($user);
-			if ($claim !== false) {
+			if ($claim !== false && $claim->isLoaded()) {
 				$claim->delete();
 			}
 		}

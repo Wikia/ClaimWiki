@@ -12,7 +12,7 @@
 		{% endfor %}
 		<p>{{ claim.getAgreementText()|raw }}</p>
 		<label for='agreement'>
-			<input id='agreement' name='agreement' type='checkbox' value='agreed' {% if claim.isAgreed() %} checked='checked' {% endif %}/>{{ wfMessage('claim_agree', 'plain') }}
+			<input id='agreement' name='agreement' type='checkbox' value='agreed' {% if claim.isAgreed() %} checked='checked' {% endif %}/>{{ wfMessage('claim_agree') }}
 		</label>
 		{% if errors['agreement'] is defined %}
 		<br><span class="error">{{ errors['agreement'] }}</span>
@@ -20,6 +20,6 @@
 	</fieldset>
 	<fieldset class='submit'>
 		<input id='user_id' name='user_id' type='hidden' value='{{ claim.getUser().getId() }}'/>
-		<input id='wiki_submit' name='wiki_submit' type='submit' value='{{ wfMessage('send_claim', 'plain') }}'/>
+		<input id='wiki_submit' name='wiki_submit' type='submit' value='{{ wfMessage('send_claim') }}'/>
 	</fieldset>
 </form>

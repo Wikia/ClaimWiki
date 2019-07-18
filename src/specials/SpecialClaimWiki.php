@@ -19,21 +19,11 @@ use GlobalVarConfig;
 use HydraCore\SpecialPage;
 use MailAddress;
 use MediaWiki\MediaWikiServices;
-use RedisCache;
-use Reverb\Notification\NotificationBroadcast;
 use Title;
 use Twiggy\TwiggyService;
-use User;
 use UserMailer;
 
 class SpecialClaimWiki extends SpecialPage {
-	/**
-	 * Output HTML
-	 *
-	 * @var string
-	 */
-	private $content;
-
 	/**
 	 * Template Engine
 	 *
@@ -69,7 +59,6 @@ class SpecialClaimWiki extends SpecialPage {
 		$this->checkPermissions();
 
 		$this->config = ConfigFactory::getDefaultInstance()->makeConfig('main');
-		$this->redis = RedisCache::getClient('cache');
 		$this->twiggy = MediaWikiServices::getInstance()->getService('TwiggyService');
 
 		$this->output->addModuleStyles(['ext.claimWiki.styles']);
@@ -122,8 +111,7 @@ class SpecialClaimWiki extends SpecialPage {
 
 		// Show form
 		$template = $this->twiggy->load('@ClaimWiki/claim_form.twig');
-		$this->content = $template->render(['claim' => $this->claim, 'errors' => $errors]);
-		return $this->output->addHTML($this->content);
+		return $this->output->addHTML($template->render(['claim' => $this->claim, 'errors' => $errors]));
 	}
 
 	/**
@@ -136,61 +124,8 @@ class SpecialClaimWiki extends SpecialPage {
 		$success = $this->claim->save();
 
 		if ($success) {
-			$this->sendClaimCreatedNotification();
+			$this->claim->sendNotification('created', $this->getUser());
 			$this->sendClaimCreatedEmail();
-		}
-	}
-
-	/**
-	 * Send Reverb Notification
-	 *
-	 * @return void
-	 */
-	private function sendClaimCreatedNotification() {
-		global $dsSiteKey;
-		try {
-			$siteManagers = unserialize(
-				$this->redis->hGet('dynamicsettings:siteInfo:' . $dsSiteKey, 'wiki_managers')
-			);
-		} catch (RedisException $e) {
-			wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
-		}
-
-		$siteManagers = array_reduce($siteManagers, function ($carry, $manager) {
-			$user = User::newFromName($manager);
-			$user->load();
-			if ($user->getId()) {
-				$carry[] = $user;
-			}
-			return $carry;
-		});
-
-		$broadcast = NotificationBroadcast::newMulti(
-			'user-moderation-wiki-claim',
-			$this->claim->getUser(),
-			$siteManagers,
-			[
-				'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL([
-					'do' => 'view', 'user_id' => $this->claim->getUser()->getId()
-				]),
-				'message' => [
-					[
-						'user_note',
-						''
-					],
-					[
-						1,
-						$this->claim->getUser()->getName()
-					],
-					[
-						2,
-						$this->config->get('Sitename')
-					]
-				]
-			]
-		);
-		if ($broadcast) {
-			$broadcast->transmit();
 		}
 	}
 

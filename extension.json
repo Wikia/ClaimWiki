@@ -53,7 +53,7 @@
 		"SkinBuildSidebar": "ClaimWiki\\Hooks::onSkinBuildSidebar",
 		"LoadExtensionSchemaUpdates": "ClaimWiki\\Hooks::onLoadExtensionSchemaUpdates",
 		"UserEffectiveGroups": "ClaimWiki\\Hooks::onUserEffectiveGroups",
-		"UserRights": "ClaimWiki\\Hooks::onUserRights",
+		"UserGroupsChanged": "ClaimWiki\\Hooks::onUserGroupsChanged",
 		"SpecialPageBeforeExecute": "ClaimWiki\\Hooks::onSpecialPageBeforeExecute"
 	},
 	"ResourceModules": {
@@ -107,12 +107,89 @@
 		"ClaimWikiEditThreshold": {
 			"value": 5
 		},
+		"TwiggyAllowedPHPFunctions": {
+			"value": [
+				"strtoupper",
+				"strtolower",
+				"ucwords"
+			],
+			"merge_strategy": "array_merge"
+		},
 		"ReverbNotifications": {
 			"value": {
 				"user-moderation-wiki-claim": {
 					"importance": 1,
-					"requires": ["hydra_admin", "sysop"]
+					"requires": ["hydra_admin", "wiki_manager"],
+					"defaults": {"email": true, "web": true}
+				},
+				"user-moderation-wiki-claim-created": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-pending": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-denied": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-approved": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-inactive": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-resumed": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-deleted": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-account-wiki-claim": {
+					"importance": 9,
+					"defaults": {"email": true, "web": true}
+				},
+				"user-account-wiki-claim-created": {
+					"important": 9,
+					"use-preference": "user-account-wiki-claim"
+				},
+				"user-account-wiki-claim-pending": {
+					"important": 9,
+					"use-preference": "user-account-wiki-claim"
+				},
+				"user-account-wiki-claim-denied": {
+					"important": 9,
+					"use-preference": "user-account-wiki-claim"
+				},
+				"user-account-wiki-claim-approved": {
+					"important": 9,
+					"use-preference": "user-account-wiki-claim"
+				},
+				"user-account-wiki-claim-inactive": {
+					"important": 9,
+					"use-preference": "user-moderation-wiki-claim"
+				},
+				"user-account-wiki-claim-resumed": {
+					"important": 9,
+					"use-preference": "user-moderation-wiki-claim"
+				},
+				"user-account-wiki-claim-deleted": {
+					"important": 9,
+					"use-preference": "user-account-wiki-claim"
 				}
+
 			},
 			"merge_strategy": "array_plus_2d"
 		}

@@ -95,9 +95,6 @@ class SpecialWikiClaims extends SpecialPage {
 				case 'delete':
 					$this->deleteClaim();
 					break;
-				case 'end':
-					$this->endClaim();
-					break;
 				case 'inactive':
 					$this->inactiveClaim();
 					break;
@@ -171,9 +168,6 @@ class SpecialWikiClaims extends SpecialPage {
 	 * @return void
 	 */
 	public function showLog() {
-		$start = $this->wgRequest->getVal('start');
-		$itemsPerPage = 50;
-
 		$pager = new ClaimLogPager($this->getContext(), []);
 
 		$body = $pager->getBody();
@@ -208,7 +202,7 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->addGroup('wiki_guardian');
 
-		$this->sendEmail('approved');
+		$this->claim->sendNotification('approved', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -230,7 +224,7 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->addGroup('wiki_guardian');
 
-		$this->sendEmail('resumed');
+		$this->claim->sendNotification('resumed', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -251,7 +245,7 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
-		$this->sendEmail('denied');
+		$this->claim->sendNotification('denied', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -272,27 +266,7 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
-		$this->sendEmail('pending');
-
-		$page = Title::newFromText('Special:WikiClaims');
-		$this->output->redirect($page->getFullURL());
-	}
-
-	/**
-	 * End Claim
-	 *
-	 * @return void
-	 */
-	public function endClaim() {
-		$this->loadClaim();
-		if (!$this->claim) {
-			return;
-		}
-
-		$this->claim->setNew();
-		$this->claim->setTimestamp(time(), 'end');
-		$this->claim->save();
-		$this->claim->getUser()->removeGroup('wiki_guardian');
+		$this->claim->sendNotification('pending', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -314,7 +288,7 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
-		$this->sendEmail('inactive');
+		$this->claim->sendNotification('inactive', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -333,6 +307,7 @@ class SpecialWikiClaims extends SpecialPage {
 
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 		$this->claim->delete();
+		$this->claim->sendNotification('deleted', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());

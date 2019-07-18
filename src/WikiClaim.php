@@ -13,8 +13,13 @@
 namespace ClaimWiki;
 
 use ConfigFactory;
+use GlobalVarConfig;
+use HydraCore\SpecialPage;
 use InvalidArgumentException;
 use MWException;
+use RedisCache;
+use RedisException;
+use Reverb\Notification\NotificationBroadcast;
 use User;
 
 class WikiClaim {
@@ -104,14 +109,21 @@ class WikiClaim {
 	private $user = false;
 
 	/**
+	 * Main Configuration
+	 *
+	 * @var GlobalVarConfig
+	 */
+	private $config;
+
+	/**
 	 * Constructor
 	 *
 	 * @return void
 	 */
 	public function __construct() {
-		$config = ConfigFactory::getDefaultInstance()->makeConfig('main');
-
-		$this->settings['number_of_questions'] = $config->get('ClaimWikiNumberOfQuestions');
+		$this->config = ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$this->redis = RedisCache::getClient('cache');
+		$this->settings['number_of_questions'] = $this->config->get('ClaimWikiNumberOfQuestions');
 	}
 
 	/**
@@ -231,7 +243,6 @@ class WikiClaim {
 	 */
 	private function load($row = null) {
 		$db = wfGetDB(DB_MASTER);
-
 		if (!$this->isLoaded) {
 			if ($this->newFrom != 'row') {
 				switch ($this->newFrom) {
@@ -255,7 +266,6 @@ class WikiClaim {
 				);
 				$row = $result->fetchRow();
 			}
-
 			if ($row['cid'] > 0 && $row['user_id'] > 0) {
 				// Load existing data.
 				$this->data = $row;
@@ -367,11 +377,14 @@ class WikiClaim {
 	public function delete() {
 		$db = wfGetDB(DB_MASTER);
 
+		if (!$this->isLoaded) {
+			return true;
+		}
+
 		$success = false;
 
 		// Do a transactional save.
 		$db->startAtomic(__METHOD__);
-
 		if ($this->data['cid'] > 0) {
 			// Do an update
 			$success = $db->delete(
@@ -602,6 +615,15 @@ class WikiClaim {
 	}
 
 	/**
+	 * Determine if the claim is loaded from DB
+	 *
+	 * @return boolean
+	 */
+	public function isLoaded() {
+		return $this->isLoaded;
+	}
+
+	/**
 	 * Sets an answer for the provided question key.
 	 *
 	 * @param string $key    Question Key
@@ -691,5 +713,88 @@ class WikiClaim {
 			}
 		}
 		return $errors;
+	}
+
+	/**
+	 * Send Reverb Notification
+	 *
+	 * @param string $status
+	 * @param User   $performer
+	 *
+	 * @return void
+	 */
+	public function sendNotification($status, $performer) {
+		global $dsSiteKey;
+		try {
+			$siteManagers = unserialize(
+				$this->redis->hGet('dynamicsettings:siteInfo:' . $dsSiteKey, 'wiki_managers')
+			);
+		} catch (RedisException $e) {
+			wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
+		}
+
+		$siteManagers = array_reduce($siteManagers, function ($carry, $manager) {
+			$user = User::newFromName($manager);
+			$user->load();
+			if ($user->getId()) {
+				$carry[] = $user;
+			}
+			return $carry;
+		});
+
+		$broadcast = NotificationBroadcast::newMulti(
+			'user-moderation-wiki-claim-' . $status,
+			$this->getUser(),
+			$siteManagers,
+			[
+				'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL([
+					'do' => 'view', 'user_id' => $this->getUser()->getId()
+				]),
+				'message' => [
+					[
+						'user_note',
+						''
+					],
+					[
+						1,
+						$this->getUser()->getName()
+					],
+					[
+						2,
+						$this->config->get('Sitename')
+					]
+				]
+			]
+		);
+		if ($broadcast) {
+			$broadcast->transmit();
+		}
+
+		// no message is sent to the user for created
+		if ($status == 'created') {
+			return;
+		}
+
+		$broadcast = NotificationBroadcast::newSingle(
+			'user-account-wiki-claim-' . $status,
+			$performer,
+			$this->getUser(),
+			[
+				'url' => SpecialPage::getTitleFor('ClaimWiki')->getFullURL(),
+				'message' => [
+					[
+						'user_note',
+						''
+					],
+					[
+						1,
+						$this->getUser()->getName()
+					]
+				]
+			]
+		);
+		if ($broadcast) {
+			$broadcast->transmit();
+		}
 	}
 }
