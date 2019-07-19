@@ -14,18 +14,15 @@
 namespace ClaimWiki\Specials;
 
 use ClaimWiki\ClaimLogPager;
-use ClaimWiki\Templates\TemplateClaimEmails;
-use ClaimWiki\Templates\TemplateWikiClaims;
 use ClaimWiki\WikiClaim;
 use ConfigFactory;
 use Html;
 use HydraCore;
 use HydraCore\SpecialPage;
-use MailAddress;
-use Sanitizer;
+use MediaWiki\MediaWikiServices;
 use Title;
+use Twiggy\TwiggyService;
 use User;
-use UserMailer;
 
 class SpecialWikiClaims extends SpecialPage {
 	/**
@@ -34,6 +31,13 @@ class SpecialWikiClaims extends SpecialPage {
 	 * @var string
 	 */
 	private $content;
+
+	/**
+	 * Template Engine
+	 *
+	 * @var TwiggyService
+	 */
+	private $twiggy;
 
 	/**
 	 * Main Constructor
@@ -59,8 +63,7 @@ class SpecialWikiClaims extends SpecialPage {
 
 		$this->checkPermissions();
 
-		$this->templateWikiClaims = new TemplateWikiClaims;
-		$this->templateClaimEmails = new TemplateClaimEmails;
+		$this->twiggy = MediaWikiServices::getInstance()->getService('TwiggyService');
 
 		$this->output->addModuleStyles(['ext.claimWiki.styles']);
 		$this->output->addModules(['ext.claimWiki.scripts']);
@@ -142,8 +145,16 @@ class SpecialWikiClaims extends SpecialPage {
 
 		$pagination = HydraCore::generatePaginationHtml($this->getFullTitle(), $claimsCount, $itemsPerPage, $start);
 
+		$template = $this->twiggy->load('@ClaimWiki/claim_list.twig');
 		$this->output->setPageTitle(wfMessage('wikiclaims'));
-		$this->content = $this->templateWikiClaims->wikiClaims($claims, $pagination, $sortKey, $sortDir);
+		$this->content = $template->render([
+			'claims' => $claims,
+			'pagination' => $pagination,
+			'sortKey' => $sortKey,
+			'sortDir' => $sortDir,
+			'wikiClaimsPage' => SpecialPage::getTitleFor('WikiClaims'),
+			'logUrl' => SpecialPage::getTitleFor('WikiClaims/log')->getFullURL()
+		]);
 	}
 
 	/**
@@ -159,7 +170,11 @@ class SpecialWikiClaims extends SpecialPage {
 
 		$this->output->setPageTitle(wfMessage('view_claim') . ' - ' . $this->claim->getUser()->getName());
 		$this->output->addBacklinkSubtitle($this->getPageTitle());
-		$this->content = $this->templateWikiClaims->viewClaim($this->claim);
+		$template = $this->twiggy->load('@ClaimWiki/claim_view.twig');
+		$this->content = $template->render([
+			'claim' => $this->claim,
+			'wikiContributionsURL' => Title::newFromText('Special:Contributions')->getFullURL()
+		]);
 	}
 
 	/**
@@ -327,62 +342,6 @@ class SpecialWikiClaims extends SpecialPage {
 		}
 
 		$this->claim = WikiClaim::newFromUser($user);
-	}
-
-	/**
-	 * Send a claim status email.
-	 *
-	 * @param boolean $status Approved/Denied
-	 *
-	 * @return void
-	 */
-	private function sendEmail($status) {
-		$config = ConfigFactory::getDefaultInstance()->makeConfig('main');
-		$wgClaimWikiEmailTo = $config->get('ClaimWikiEmailTo');
-
-		if ($_SERVER['PHP_ENV'] != 'development') {
-			$ownerEmail = $this->claim->getUser()->getEmail();
-			if (Sanitizer::validateEmail($ownerEmail)) {
-				$address[] = new MailAddress($ownerEmail, $this->claim->getUser()->getName());
-			}
-			$emailSubject = wfMessage('claim_status_email_subject', wfMessage('subject_' . $status)->text())->text();
-
-			// Copy the approver/denier on the email.
-			$adminEmail = $this->wgUser->getEmail();
-			if (Sanitizer::validateEmail($adminEmail)) {
-				$address[] = new MailAddress($adminEmail, $this->wgUser->getName());
-			}
-		} else {
-			$address[] = new MailAddress("wikitest@curse.com", 'Hydra Testers');
-			$emailSubject = wfMessage(
-				'claim_status_email_subject_dev',
-				wfMessage('subject_' . $status)->text()
-			)->text();
-		}
-
-		$emailExtra = [
-			'user'			=> $this->wgUser,
-			'claim'			=> $this->claim
-		];
-
-		$from = new MailAddress($wgClaimWikiEmailTo, wfMessage('claimwikiteamemail_sender')->escaped());
-		$address[] = $from;
-
-		$email = new UserMailer();
-		$status = $email->send(
-			$address,
-			$from,
-			$emailSubject,
-			[
-				'text' => strip_tags($this->templateClaimEmails->claimStatusNotice($status, $emailExtra)),
-				'html' => $this->templateClaimEmails->claimStatusNotice($status, $emailExtra)
-			]
-		);
-
-		if ($status->isOK()) {
-			return true;
-		}
-		return false;
 	}
 
 	/**

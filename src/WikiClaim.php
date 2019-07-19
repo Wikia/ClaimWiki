@@ -20,6 +20,7 @@ use MWException;
 use RedisCache;
 use RedisException;
 use Reverb\Notification\NotificationBroadcast;
+use Title;
 use User;
 
 class WikiClaim {
@@ -624,6 +625,26 @@ class WikiClaim {
 	}
 
 	/**
+	 * Return the language key for the current status
+	 *
+	 * @return string
+	 */
+	public function getStatusKey() {
+		switch ($this->data['status']) {
+			case self::CLAIM_PENDING:
+				return 'claim_legend_pending';
+			case self::CLAIM_APPROVED:
+				return 'claim_legend_approved';
+			case self::CLAIM_DENIED:
+				return 'claim_legend_denied';
+			case self::CLAIM_INACTIVE:
+				return 'claim_legend_inactive';
+			default:
+				return 'claim_legend_created';
+		}
+	}
+
+	/**
 	 * Sets an answer for the provided question key.
 	 *
 	 * @param string $key    Question Key
@@ -724,7 +745,10 @@ class WikiClaim {
 	 * @return void
 	 */
 	public function sendNotification($status, $performer) {
-		global $dsSiteKey;
+		global $dsSiteKey, $wgEmergencyContact;
+
+		$noticeboard = Title::newFromText('Project:Admin_noticeboard');
+
 		try {
 			$siteManagers = unserialize(
 				$this->redis->hGet('dynamicsettings:siteInfo:' . $dsSiteKey, 'wiki_managers')
@@ -784,12 +808,21 @@ class WikiClaim {
 				'message' => [
 					[
 						'user_note',
-						''
+						wfMessage('claim-email-user-account-' . $status, [$wgEmergencyContact, $noticeboard])->parse()
 					],
 					[
 						1,
 						$this->getUser()->getName()
+					],
+					[
+						2,
+						$this->config->get('Sitename')
+					],
+					[
+						3,
+						$performer->getName()
 					]
+
 				]
 			]
 		);
