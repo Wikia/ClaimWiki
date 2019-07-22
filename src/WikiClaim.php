@@ -745,7 +745,7 @@ class WikiClaim {
 	 * @return void
 	 */
 	public function sendNotification($status, $performer) {
-		global $dsSiteKey, $wgEmergencyContact;
+		global $dsSiteKey, $wgEmergencyContact, $wgClaimWikiEmailSignature;
 
 		$noticeboard = Title::newFromText('Project:Admin_noticeboard');
 
@@ -786,6 +786,10 @@ class WikiClaim {
 					[
 						2,
 						$this->config->get('Sitename')
+					],
+					[
+						3,
+						$performer->getName()
 					]
 				]
 			]
@@ -799,6 +803,7 @@ class WikiClaim {
 			return;
 		}
 
+		$userNote = wfMessageFallback("claim-email-user-account-{$status}-note", "claim-email-empty-note");
 		$broadcast = NotificationBroadcast::newSingle(
 			'user-account-wiki-claim-' . $status,
 			$performer,
@@ -808,7 +813,13 @@ class WikiClaim {
 				'message' => [
 					[
 						'user_note',
-						wfMessage('claim-email-user-account-' . $status, [$wgEmergencyContact, $noticeboard])->parse()
+						$userNote->params([
+							$this->getUser(),
+							$performer,
+							$wgClaimWikiEmailSignature,
+							$wgEmergencyContact,
+							$noticeboard
+						])->parse()
 					],
 					[
 						1,

@@ -14,9 +14,9 @@
 namespace ClaimWiki\Jobs;
 
 use Cheevos\Cheevos;
-use ClaimWiki\Templates\TemplateClaimEmails;
 use ClaimWiki\WikiClaim;
 use MailAddress;
+use MediaWiki\MediaWikiServices;
 use RedisCache;
 use Sanitizer;
 use SyncService\Job;
@@ -42,7 +42,7 @@ class WikiGuardianEmailJob extends Job {
 
 		$this->DB = wfGetDB(DB_MASTER);
 		$redis = RedisCache::getClient('cache');
-		$this->templateClaimEmails = new TemplateClaimEmails;
+		$this->twiggy = MediaWikiServices::getInstance()->getService('TwiggyService');
 
 		$results = $this->DB->select(
 			['wiki_claims'],
@@ -110,6 +110,7 @@ class WikiGuardianEmailJob extends Job {
 				$from = new MailAddress($wgEmergencyContact);
 				$address[] = $from;
 
+				$template = $this->twiggy->load('@ClaimWiki/claim_email_inactive.twig');
 				$email = new UserMailer();
 				$status = $email->send(
 					$address,
@@ -117,9 +118,9 @@ class WikiGuardianEmailJob extends Job {
 					$emailSubject,
 					[
 						'text' => strip_tags(
-							$this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename)
+							$template->render(['username' => $user->getName(), 'sitename' => $wgSitename])
 						),
-						'html' => $this->templateClaimEmails->wikiGuardianInactive($user->getName(), $wgSitename)
+						'html' => $template->render(['username' => $user->getName(), 'sitename' => $wgSitename])
 					]
 				);
 
