@@ -121,7 +121,8 @@ class Hooks {
 		if (in_array('wiki_guardian', $remove)) {
 			$claim = WikiClaim::newFromUser($user);
 			if ($claim !== false && $claim->isLoaded()) {
-				$claim->delete();
+				$claim->setDeleted();
+				$claim->save();
 			}
 		}
 		return true;

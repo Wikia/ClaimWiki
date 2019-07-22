@@ -163,7 +163,7 @@ class SpecialWikiClaims extends SpecialPage {
 	 * @return void	[Outputs to screen]
 	 */
 	public function viewClaim() {
-		$this->loadClaim();
+		$this->loadClaim(true);
 		if (!$this->claim) {
 			return;
 		}
@@ -320,8 +320,11 @@ class SpecialWikiClaims extends SpecialPage {
 			return;
 		}
 
+		$this->claim->setDeleted();
+		$this->claim->setTimestamp(time(), 'end');
+		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
-		$this->claim->delete();
+
 		$this->claim->sendNotification('deleted', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
@@ -331,9 +334,11 @@ class SpecialWikiClaims extends SpecialPage {
 	/**
 	 * Load Claim
 	 *
+	 * @param boolean $allowDeleted
+	 *
 	 * @return object	Loaded wikiClaim object.
 	 */
-	private function loadClaim() {
+	private function loadClaim($allowDeleted = false) {
 		$userId = $this->wgRequest->getInt('user_id');
 		$user = User::newFromId($userId);
 		if (!$user->getId()) {
@@ -341,7 +346,7 @@ class SpecialWikiClaims extends SpecialPage {
 			return false;
 		}
 
-		$this->claim = WikiClaim::newFromUser($user);
+		$this->claim = WikiClaim::newFromUser($user, $allowDeleted);
 	}
 
 	/**

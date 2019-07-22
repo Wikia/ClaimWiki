@@ -67,6 +67,13 @@ class WikiClaim {
 	const CLAIM_INACTIVE = 4;
 
 	/**
+	 * Deleted Claim
+	 *
+	 * @var constant
+	 */
+	const CLAIM_DELETED = 5;
+
+	/**
 	 * Object Loaded?
 	 *
 	 * @var boolean
@@ -130,11 +137,12 @@ class WikiClaim {
 	/**
 	 * Create a new object from an User object.
 	 *
-	 * @param mixed $user User or UserRightProxy
+	 * @param mixed   $user         User or UserRightProxy
+	 * @param boolean $allowDeleted
 	 *
 	 * @return mixed WikiClaim or false on InvalidArgumentException.
 	 */
-	public static function newFromUser(User $user) {
+	public static function newFromUser(User $user, $allowDeleted = false) {
 		$claim = new self;
 
 		if (!$user->getId()) {
@@ -145,7 +153,7 @@ class WikiClaim {
 
 		$claim->newFrom = 'user';
 
-		$claim->load();
+		$claim->load(null, $allowDeleted);
 
 		return $claim;
 	}
@@ -153,16 +161,17 @@ class WikiClaim {
 	/**
 	 * Load a new object from a database row.
 	 *
-	 * @param array $row Database Row
+	 * @param array   $row          Database Row
+	 * @param boolean $allowDeleted
 	 *
 	 * @return mixed WikiClaim or false on error.
 	 */
-	public static function newFromRow($row) {
+	public static function newFromRow($row, $allowDeleted = false) {
 		$claim = new self;
 
 		$claim->newFrom = 'row';
 
-		$claim->load($row);
+		$claim->load($row, $allowDeleted);
 
 		if (!$claim->getId()) {
 			return false;
@@ -182,8 +191,7 @@ class WikiClaim {
 		$result = $db->selectField(
 			'wiki_claims',
 			'COUNT(*)',
-			[
-			],
+			['status != 5'],
 			__METHOD__
 		);
 
@@ -215,7 +223,7 @@ class WikiClaim {
 			[
 				'wiki_claims.*'
 			],
-			[],
+			['status != 5'],
 			__METHOD__,
 			[
 				'ORDER BY' => 'wiki_claims.' . $sortKey . ' ' . ($sortDir == 'desc' ? 'DESC' : 'ASC'),
@@ -238,11 +246,12 @@ class WikiClaim {
 	/**
 	 * Load the object.
 	 *
-	 * @param array $row Raw database row.
+	 * @param array   $row          Raw database row.
+	 * @param boolean $allowDeleted
 	 *
 	 * @return boolean	Success
 	 */
-	private function load($row = null) {
+	private function load($row = null, $allowDeleted = false) {
 		$db = wfGetDB(DB_MASTER);
 		if (!$this->isLoaded) {
 			if ($this->newFrom != 'row') {
@@ -257,6 +266,11 @@ class WikiClaim {
 							'user_id' => $this->getUser()->getId()
 						];
 						break;
+				}
+
+				// Allow deleted claims to be loaded.
+				if (!$allowDeleted) {
+					$where[] = 'status != 5';
 				}
 
 				$result = $db->select(
@@ -409,8 +423,8 @@ class WikiClaim {
 
 			$this->data = [];
 			$this->answers = [];
-			$db->endAtomic(__METHOD__);
 		}
+		$db->endAtomic(__METHOD__);
 
 		return $success;
 	}
@@ -616,6 +630,24 @@ class WikiClaim {
 	}
 
 	/**
+	 * Set the deleted status on this claim.
+	 *
+	 * @return void
+	 */
+	public function setDeleted() {
+		$this->data['status'] = self::CLAIM_DELETED;
+	}
+
+	/**
+	 * Is this claim deleted?
+	 *
+	 * @return boolean
+	 */
+	public function isDeleted() {
+		return $this->data['status'] === self::CLAIM_DELETED;
+	}
+
+	/**
 	 * Determine if the claim is loaded from DB
 	 *
 	 * @return boolean
@@ -745,31 +777,17 @@ class WikiClaim {
 	 * @return void
 	 */
 	public function sendNotification($status, $performer) {
-		global $dsSiteKey, $wgEmergencyContact, $wgClaimWikiEmailSignature;
-
+		$wgEmergencyContact = $this->config->get('EmergencyContact');
+		$wgClaimWikiEmailSignature = $this->config->get('ClaimWikiEmailSignature');
 		$noticeboard = Title::newFromText('Project:Admin_noticeboard');
 
-		try {
-			$siteManagers = unserialize(
-				$this->redis->hGet('dynamicsettings:siteInfo:' . $dsSiteKey, 'wiki_managers')
-			);
-		} catch (RedisException $e) {
-			wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
-		}
-
-		$siteManagers = array_reduce($siteManagers, function ($carry, $manager) {
-			$user = User::newFromName($manager);
-			$user->load();
-			if ($user->getId()) {
-				$carry[] = $user;
-			}
-			return $carry;
-		});
+		// handle the Wiki Manager notification
+		$wikiManagers = $this->getWikiManagers();
 
 		$broadcast = NotificationBroadcast::newMulti(
 			'user-moderation-wiki-claim-' . $status,
 			$this->getUser(),
-			$siteManagers,
+			$wikiManagers,
 			[
 				'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL([
 					'do' => 'view', 'user_id' => $this->getUser()->getId()
@@ -803,6 +821,7 @@ class WikiClaim {
 			return;
 		}
 
+		// handle user notification
 		$userNote = wfMessageFallback("claim-email-user-account-{$status}-note", "claim-email-empty-note");
 		$broadcast = NotificationBroadcast::newSingle(
 			'user-account-wiki-claim-' . $status,
@@ -840,5 +859,30 @@ class WikiClaim {
 		if ($broadcast) {
 			$broadcast->transmit();
 		}
+	}
+
+	/**
+	 * Get the list of user in Wiki Managers
+	 *
+	 * @return array
+	 */
+	private function getWikiManagers() {
+		global $dsSiteKey;
+		try {
+			$wikiManagers = unserialize(
+				$this->redis->hGet('dynamicsettings:siteInfo:' . $dsSiteKey, 'wiki_managers')
+			);
+		} catch (RedisException $e) {
+			wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
+		}
+
+		return array_reduce($wikiManagers, function ($carry, $manager) {
+			$user = User::newFromName($manager);
+			$user->load();
+			if ($user->getId()) {
+				$carry[] = $user;
+			}
+			return $carry;
+		});
 	}
 }
