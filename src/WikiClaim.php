@@ -181,6 +181,30 @@ class WikiClaim {
 	}
 
 	/**
+	 * Load a new object from a claim id.
+	 *
+	 * @param array   $cid
+	 * @param boolean $allowDeleted
+	 *
+	 * @return mixed WikiClaim or false on error.
+	 */
+	public static function newFromID($cid, $allowDeleted = false) {
+		$claim = new self;
+
+		$claim->newFrom = 'id';
+
+		$claim->setId($cid);
+
+		$claim->load(null, $allowDeleted);
+
+		if (!$claim->isLoaded()) {
+			return false;
+		}
+
+		return $claim;
+	}
+
+	/**
 	 * Get count of wiki claims.
 	 *
 	 * @return integer	Count of WikiClaim objects
@@ -277,7 +301,10 @@ class WikiClaim {
 					['wiki_claims'],
 					['wiki_claims.*'],
 					$where,
-					__METHOD__
+					__METHOD__,
+					[
+						'ORDER BY' => 'wiki_claims.claim_timestamp DESC'
+					]
 				);
 				$row = $result->fetchRow();
 			}
@@ -385,57 +412,23 @@ class WikiClaim {
 	}
 
 	/**
-	 * Deletes from the database and clears the object.
-	 *
-	 * @return boolean	Successful Deletion.
-	 */
-	public function delete() {
-		$db = wfGetDB(DB_MASTER);
-
-		if (!$this->isLoaded) {
-			return true;
-		}
-
-		$success = false;
-
-		// Do a transactional save.
-		$db->startAtomic(__METHOD__);
-		if ($this->data['cid'] > 0) {
-			// Do an update
-			$success = $db->delete(
-				'wiki_claims',
-				['cid' => $this->data['cid']],
-				__METHOD__
-			);
-		}
-
-		// Roll back if there was an error.
-		if (!$success) {
-			$db->cancelAtomic(__METHOD__);
-		} else {
-			$success = true;
-
-			$db->delete(
-				'wiki_claims_answers',
-				['claim_id' => $this->data['cid']],
-				__METHOD__
-			);
-
-			$this->data = [];
-			$this->answers = [];
-		}
-		$db->endAtomic(__METHOD__);
-
-		return $success;
-	}
-
-	/**
 	 * Returns the claim identification number from the database.
 	 *
 	 * @return string	Claim ID
 	 */
 	public function getId() {
 		return $this->data['cid'];
+	}
+
+	/**
+	 * Returns the claim identification number from the database.
+	 *
+	 * @param int $cid
+	 *
+	 * @return string void
+	 */
+	public function setId($cid) {
+		$this->data['cid'] = $cid;
 	}
 
 	/**

@@ -163,8 +163,11 @@ class SpecialWikiClaims extends SpecialPage {
 	 * @return void	[Outputs to screen]
 	 */
 	public function viewClaim() {
-		$this->loadClaim(true);
+		$claimId = $this->wgRequest->getInt('claim_id');
+		$this->claim = WikiClaim::newFromID($claimId, true);
 		if (!$this->claim) {
+			$this->output->addBacklinkSubtitle($this->getPageTitle());
+			$this->content = wfMessage('claim_not_found')->plain();
 			return;
 		}
 
@@ -334,11 +337,9 @@ class SpecialWikiClaims extends SpecialPage {
 	/**
 	 * Load Claim
 	 *
-	 * @param boolean $allowDeleted
-	 *
 	 * @return object	Loaded wikiClaim object.
 	 */
-	private function loadClaim($allowDeleted = false) {
+	private function loadClaim() {
 		$userId = $this->wgRequest->getInt('user_id');
 		$user = User::newFromId($userId);
 		if (!$user->getId()) {
@@ -346,7 +347,7 @@ class SpecialWikiClaims extends SpecialPage {
 			return false;
 		}
 
-		$this->claim = WikiClaim::newFromUser($user, $allowDeleted);
+		$this->claim = WikiClaim::newFromUser($user);
 	}
 
 	/**

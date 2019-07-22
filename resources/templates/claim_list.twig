@@ -32,7 +32,7 @@
 
     {% for claim in claims %}
         <tr class='{{ strtolower(wfMessage(claim.getStatusKey()).plain()) }}'>
-            <td><a href='{{ wikiClaimsPage.getFullURL({'do': 'view', 'user_id': claim.getUser().getId()}) }}'>{{ claim.getUser().getName() }}</a></td>
+            <td><a href='{{ wikiClaimsPage.getFullURL({'do': 'view', 'claim_id': claim.getId()}) }}'>{{ claim.getUser().getName() }}</a></td>
             <td><span data-sort='claim_timestamp'{{ sortKey == 'claim_timestamp' ? " data-selected='true'" : '' }}>{{ claim.getTimestamp('claim') ? date('Y-m-d H:i e', claim.getTimestamp('claim')) : wfMessage('never').escaped() }}</span></td>
             <td><span data-sort='start_timestamp'{{ sortKey == 'start_timestamp' ? " data-selected='true'" : '' }}>{{ claim.getTimestamp('start') ? date('Y-m-d H:i e', claim.getTimestamp('start')) : wfMessage('never').escaped() }}</span></td>
             <td><span data-sort='end_timestamp'{{ sortKey == 'end_timestamp' ? " data-selected='true'" : '' }}>{{ claim.getTimestamp('end') ? date('Y-m-d H:i e', claim.getTimestamp('end')) : wfMessage('never').escaped() }}</span></td>

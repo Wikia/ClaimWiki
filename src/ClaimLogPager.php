@@ -81,8 +81,8 @@ class ClaimLogPager extends ReverseChronologicalPager {
 			[],
 			wfMessage(
 				"claim_log_row",
-				"<a href='{$wikiClaimsURL}?do=view&amp;user_id="
-				. $claim->getUser()->getId() . "'>#" . $row->claim_id . "</a>",
+				"<a href='{$wikiClaimsURL}?do=view&amp;claim_id="
+				. $row->claim_id . "'>#" . $row->claim_id . "</a>",
 				Linker::userLink($claim->getUser()->getId(), $claim->getUser()->getName()),
 				wfMessage('status_' . $row->status)->escaped(),
 				Linker::userLink($actor->getId(), $actor->getName()),

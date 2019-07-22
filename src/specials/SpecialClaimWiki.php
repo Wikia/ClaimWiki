@@ -17,11 +17,9 @@ use ClaimWiki\WikiClaim;
 use ConfigFactory;
 use GlobalVarConfig;
 use HydraCore\SpecialPage;
-use MailAddress;
 use MediaWiki\MediaWikiServices;
 use Title;
 use Twiggy\TwiggyService;
-use UserMailer;
 
 class SpecialClaimWiki extends SpecialPage {
 	/**
@@ -93,6 +91,7 @@ class SpecialClaimWiki extends SpecialPage {
 			$template = $this->twiggy->load('@ClaimWiki/claim_status.twig');
 			return $this->output->addHTML($template->render([
 				'claim' => $this->claim,
+				'errors' => $errors,
 				'wgSiteName' => $wgSiteName,
 				'mainPageURL' => $mainPageURL
 			]));
@@ -125,50 +124,7 @@ class SpecialClaimWiki extends SpecialPage {
 
 		if ($success) {
 			$this->claim->sendNotification('created', $this->getUser());
-			$this->sendClaimCreatedEmail();
 		}
-	}
-
-	/**
-	 * Send Claim Created Email
-	 *
-	 * @return void
-	 */
-	private function sendClaimCreatedEmail() {
-		$wgClaimWikiEmailTo = $this->config->get('ClaimWikiEmailTo');
-		$wgSitename = $this->config->get('Sitename');
-		$wgPasswordSender = $this->config->get('PasswordSender');
-		$wgPasswordSenderName = $this->config->get('PasswordSenderName');
-
-		$emailTo[] = new MailAddress(
-			$wgClaimWikiEmailTo,
-			wfMessage('claimwikiteamemail_sender')->escaped()
-		);
-
-		$emailSubject = wfMessage('claim_wiki_email_subject', $this->claim->getUser()->getName())->text();
-
-		$emailExtra = [
-			'environment' => (!empty($_SERVER['PHP_ENV']) ? $_SERVER['PHP_ENV'] : $_SERVER['SERVER_NAME']),
-			'user'        => $this->wgUser,
-			'claim'       => $this->claim,
-			'site_name'   => $wgSitename
-		];
-
-		$from = new MailAddress($wgPasswordSender, $wgPasswordSenderName);
-
-		$email = new UserMailer();
-
-		$page = Title::newFromText('Special:WikiClaims');
-		$template = $this->twiggy->load('@ClaimWiki/claim_email_created.twig');
-		return $email->send(
-			$emailTo,
-			$from,
-			$emailSubject,
-			[
-				'text' => strip_tags($template->render(['emailExtra' => $emailExtra, 'page' => $page])),
-				'html' => $template->render(['emailExtra' => $emailExtra, 'page' => $page])
-			]
-		);
 	}
 
 	/**
