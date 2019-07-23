@@ -782,7 +782,7 @@ class WikiClaim {
 			$wikiManagers,
 			[
 				'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL([
-					'do' => 'view', 'user_id' => $this->getUser()->getId()
+					'do' => 'view', 'claim_id' => $this->getId()
 				]),
 				'message' => [
 					[
