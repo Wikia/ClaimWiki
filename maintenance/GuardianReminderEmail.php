@@ -4,12 +4,14 @@
  * Claim Wiki
  * Manual Runner for Wiki Guardian Email job.
  *
+ * @package   ClaimWiki
  * @author    Cameron Chunn
  * @copyright (c) 2017 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   Claim Wiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
-**/
+ **/
+
+use ClaimWiki\Jobs\WikiGuardianEmailJob;
 
 require_once dirname(__DIR__, 3) . "/maintenance/Maintenance.php";
 

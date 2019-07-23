@@ -1,0 +1,10 @@
+<div id='claim_wiki_form'>
+    <h3>User Name: <span class='plain'>{{ claim.getUser().getName() }}</span></h3>
+    <h3>Email: <a href='mailto:{{ claim.getUser().getEmail() }}?subject={{ urlencode(wfMessage('claim_questions')) }}'><span class='plain'>{{ claim.getUser().getEmail() }}</span></a></h3>
+    {% for key, answer in claim.getAnswers() %}
+        <h3>{{ wfMessage(key).text() }}</h3>
+        <p>{{ answer }}</p>
+    {% endfor %}
+    <a href='{{ wikiContributionsURL }}/{{ claim.getUser().getName() }}' target='_blank'>{{ wfMessage('claim_user_contributions').escaped() }}</a><br />
+    <a  href='{{ claim.getUser().getUserPage().getFullURL() }}'>View User Page for {{ claim.getUser().getName() }}</a>
+</div>

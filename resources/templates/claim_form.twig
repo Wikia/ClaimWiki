@@ -1,0 +1,25 @@
+{{ claim.getGuidelinesText()|raw }}
+<form id='claim_wiki_form' method='post' action='?do=save'>
+	<fieldset>
+		<h3>User Name: <span class='plain'> {{ claim.getUser().getName() }}</span></h3>
+		<h3>Email: <span class='plain'>{{ claim.getUser().getEmail() }}</span></h3>
+		{% for key, question in claim.getQuestions() %}
+		<label for='{{ key }}' class='label_above'><h3>{{ question['text'] }}</h3></label>
+		{% if errors[key] is defined %}
+			<span class="error">{{ errors[key] }}</span>
+		{% endif %}
+		<textarea id='{{ key }}' name='{{ key }}' type='text'/>{{ question['answer'] }}</textarea>
+		{% endfor %}
+		<p>{{ claim.getAgreementText()|raw }}</p>
+		<label for='agreement'>
+			<input id='agreement' name='agreement' type='checkbox' value='agreed' {% if claim.isAgreed() %} checked='checked' {% endif %}/>{{ wfMessage('claim_agree') }}
+		</label>
+		{% if errors['agreement'] is defined %}
+		<br><span class="error">{{ errors['agreement'] }}</span>
+		{% endif %}
+	</fieldset>
+	<fieldset class='submit'>
+		<input id='user_id' name='user_id' type='hidden' value='{{ claim.getUser().getId() }}'/>
+		<input id='wiki_submit' name='wiki_submit' type='submit' value='{{ wfMessage('send_claim') }}'/>
+	</fieldset>
+</form>

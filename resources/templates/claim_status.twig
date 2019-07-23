@@ -1,0 +1,14 @@
+{% if claim.isDenied() %}
+<div class='errorbox'>{{ wfMessage('claim_denied') }}</div>
+{% endif %}
+{% if claim.isInactive() %}
+<div class='errorbox'>{{ wfMessage('claim_inactive') }}</div>
+{% endif %}
+{% if claim.isNew() %}
+<div class='successbox'>{{ wfMessage('claim_created') }}</div>
+{% endif %}
+{% if claim.isPending() %}
+<div class='successbox'>{{ wfMessage('claim_pending') }}</div>
+{% endif %}
+<br style='clear: both;'/>
+<a href='{{ mainPageURL }}'>{{ wfMessage('returnto', wgSiteName).escaped() }}</a>

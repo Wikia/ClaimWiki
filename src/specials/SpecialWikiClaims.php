@@ -4,20 +4,40 @@
  * Claim Wiki
  * Wiki Claims Special Page
  *
+ * @package   ClaimWiki
  * @author    Alex Smith
  * @copyright (c) 2013 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   Claim Wiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
 **/
 
-class SpecialWikiClaims extends HydraCore\SpecialPage {
+namespace ClaimWiki\Specials;
+
+use ClaimWiki\ClaimLogPager;
+use ClaimWiki\WikiClaim;
+use ConfigFactory;
+use Html;
+use HydraCore;
+use HydraCore\SpecialPage;
+use MediaWiki\MediaWikiServices;
+use Title;
+use Twiggy\TwiggyService;
+use User;
+
+class SpecialWikiClaims extends SpecialPage {
 	/**
 	 * Output HTML
 	 *
 	 * @var string
 	 */
 	private $content;
+
+	/**
+	 * Template Engine
+	 *
+	 * @var TwiggyService
+	 */
+	private $twiggy;
 
 	/**
 	 * Main Constructor
@@ -33,20 +53,17 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Main Executor
 	 *
-	 * @access public
-	 * @param  string	Sub page passed in the URL.
+	 * @param string $subpage Sub page passed in the URL.
+	 *
 	 * @return void	[Outputs to screen]
 	 */
 	public function execute($subpage) {
-		global $wgSitename;
-
-		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$config = ConfigFactory::getDefaultInstance()->makeConfig('main');
 		$wgClaimWikiEnabled = $config->get('ClaimWikiEnabled');
 
 		$this->checkPermissions();
 
-		$this->templateWikiClaims = new TemplateWikiClaims;
-		$this->templateClaimEmails = new TemplateClaimEmails;
+		$this->twiggy = MediaWikiServices::getInstance()->getService('TwiggyService');
 
 		$this->output->addModuleStyles(['ext.claimWiki.styles']);
 		$this->output->addModules(['ext.claimWiki.scripts']);
@@ -81,9 +98,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 				case 'delete':
 					$this->deleteClaim();
 					break;
-				case 'end':
-					$this->endClaim();
-					break;
 				case 'inactive':
 					$this->inactiveClaim();
 					break;
@@ -99,7 +113,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Wiki Claims List
 	 *
-	 * @access public
 	 * @return void	[Outputs to screen]
 	 */
 	public function wikiClaims() {
@@ -116,7 +129,13 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->wgRequest->response()->setcookie('wikiClaimsSortKey', $sortKey, $cookieExpire);
 
 		$sortDir = $this->wgRequest->getVal('sort_dir');
-		if (($this->wgRequest->getCookie('wikiClaimsSortDir') == 'desc' && !$sortDir) || strtolower($sortDir) == 'desc') {
+
+		$claims = WikiClaim::getClaims($start, $itemsPerPage, $sortKey, $sortDir);
+		$claimsCount = WikiClaim::getClaimsCount();
+
+		if (($this->wgRequest->getCookie('wikiClaimsSortDir') == 'desc' && !$sortDir)
+			|| strtolower($sortDir) == 'desc'
+		) {
 			$claims = array_reverse($claims);
 			$sortDir = 'desc';
 		} else {
@@ -124,42 +143,49 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		}
 		$this->wgRequest->response()->setcookie('wikiClaimsSortDir', $sortDir, $cookieExpire);
 
-		$claims = WikiClaim::getClaims($start, $itemsPerPage, $sortKey, $sortDir);
-		$claimsCount = WikiClaim::getClaimsCount();
-
 		$pagination = HydraCore::generatePaginationHtml($this->getFullTitle(), $claimsCount, $itemsPerPage, $start);
 
-		$this->output->setPageTitle(wfMessage('wikiclaims'));
-		$this->content = $this->templateWikiClaims->wikiClaims($claims, $pagination, $sortKey, $sortDir);
+		$template = $this->twiggy->load('@ClaimWiki/claim_list.twig');
+		$this->output->setPageTitle(wfMessage('wiki_claims'));
+		$this->content = $template->render([
+			'claims' => $claims,
+			'pagination' => $pagination,
+			'sortKey' => $sortKey,
+			'sortDir' => $sortDir,
+			'wikiClaimsPage' => SpecialPage::getTitleFor('WikiClaims'),
+			'logUrl' => SpecialPage::getTitleFor('WikiClaims/log')->getFullURL()
+		]);
 	}
 
 	/**
 	 * Wiki Claim View
 	 *
-	 * @access public
 	 * @return void	[Outputs to screen]
 	 */
 	public function viewClaim() {
-		$this->loadClaim();
+		$claimId = $this->wgRequest->getInt('claim_id');
+		$this->claim = WikiClaim::newFromID($claimId, true);
 		if (!$this->claim) {
+			$this->output->addBacklinkSubtitle($this->getPageTitle());
+			$this->content = wfMessage('claim_not_found')->plain();
 			return;
 		}
 
 		$this->output->setPageTitle(wfMessage('view_claim') . ' - ' . $this->claim->getUser()->getName());
 		$this->output->addBacklinkSubtitle($this->getPageTitle());
-		$this->content = $this->templateWikiClaims->viewClaim($this->claim);
+		$template = $this->twiggy->load('@ClaimWiki/claim_view.twig');
+		$this->content = $template->render([
+			'claim' => $this->claim,
+			'wikiContributionsURL' => Title::newFromText('Special:Contributions')->getFullURL()
+		]);
 	}
 
 	/**
 	 * Show Claim Log
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function showLog() {
-		$start = $this->wgRequest->getVal('start');
-		$itemsPerPage = 50;
-
 		$pager = new ClaimLogPager($this->getContext(), []);
 
 		$body = $pager->getBody();
@@ -167,7 +193,9 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->content .= "<div id='contentSub'><span>" . wfMessage('back_to_wiki_claims')->parse() . "</span></div>";
 
 		if ($body) {
-			$this->content .= $pager->getNavigationBar() . Html::rawElement('ul', [], $body) . $pager->getNavigationBar();
+			$this->content .= $pager->getNavigationBar()
+				. Html::rawElement('ul', [], $body)
+				. $pager->getNavigationBar();
 		} else {
 			$this->content .= wfMessage('no_log_entries_found')->escaped();
 		}
@@ -178,7 +206,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Approve Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function approveClaim() {
@@ -193,7 +220,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->addGroup('wiki_guardian');
 
-		$this->sendEmail('approved');
+		$this->claim->sendNotification('approved', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -202,7 +229,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Resume Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function resumeClaim() {
@@ -216,7 +242,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->addGroup('wiki_guardian');
 
-		$this->sendEmail('resumed');
+		$this->claim->sendNotification('resumed', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -225,7 +251,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Deny Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function denyClaim() {
@@ -238,7 +263,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
-		$this->sendEmail('denied');
+		$this->claim->sendNotification('denied', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -247,7 +272,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Pending Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function pendingClaim() {
@@ -260,28 +284,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
-		$this->sendEmail('pending');
-
-		$page = Title::newFromText('Special:WikiClaims');
-		$this->output->redirect($page->getFullURL());
-	}
-
-	/**
-	 * End Claim
-	 *
-	 * @access public
-	 * @return void
-	 */
-	public function endClaim() {
-		$this->loadClaim();
-		if (!$this->claim) {
-			return;
-		}
-
-		$this->claim->setNew();
-		$this->claim->setTimestamp(time(), 'end');
-		$this->claim->save();
-		$this->claim->getUser()->removeGroup('wiki_guardian');
+		$this->claim->sendNotification('pending', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -290,7 +293,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Inactive Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function inactiveClaim() {
@@ -304,7 +306,7 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
 
-		$this->sendEmail('inactive');
+		$this->claim->sendNotification('inactive', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -313,7 +315,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Delete Claim
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function deleteClaim() {
@@ -322,8 +323,12 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 			return;
 		}
 
+		$this->claim->setDeleted();
+		$this->claim->setTimestamp(time(), 'end');
+		$this->claim->save();
 		$this->claim->getUser()->removeGroup('wiki_guardian');
-		$this->claim->delete();
+
+		$this->claim->sendNotification('deleted', $this->getUser());
 
 		$page = Title::newFromText('Special:WikiClaims');
 		$this->output->redirect($page->getFullURL());
@@ -332,7 +337,6 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	/**
 	 * Load Claim
 	 *
-	 * @access private
 	 * @return object	Loaded wikiClaim object.
 	 */
 	private function loadClaim() {
@@ -347,63 +351,8 @@ class SpecialWikiClaims extends HydraCore\SpecialPage {
 	}
 
 	/**
-	 * Send a claim status email.
-	 *
-	 * @access private
-	 * @param  boolean	Approved/Denied
-	 * @return void
-	 */
-	private function sendEmail($status) {
-		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
-		$wgClaimWikiEmailTo = $config->get('ClaimWikiEmailTo');
-
-		if ($_SERVER['PHP_ENV'] != 'development') {
-			$ownerEmail = $this->claim->getUser()->getEmail();
-			if (Sanitizer::validateEmail($ownerEmail)) {
-				$address[] = new MailAddress($ownerEmail, $this->claim->getUser()->getName());
-			}
-			$emailSubject = wfMessage('claim_status_email_subject', wfMessage('subject_' . $status)->text())->text();
-
-			// Copy the approver/denier on the email.
-			$adminEmail = $this->wgUser->getEmail();
-			if (Sanitizer::validateEmail($adminEmail)) {
-				$address[] = new MailAddress($adminEmail, $this->wgUser->getName());
-			}
-		} else {
-			$emailTo = 'Hydra Testers' . " <wikitest@curse.com>";
-			$address[] = new MailAddress("wikitest@curse.com", 'Hydra Testers');
-			$emailSubject = wfMessage('claim_status_email_subject_dev', wfMessage('subject_' . $status)->text())->text();
-		}
-
-		$emailExtra = [
-			'user'			=> $this->wgUser,
-			'claim'			=> $this->claim
-		];
-
-		$from = new MailAddress($wgClaimWikiEmailTo, wfMessage('claimwikiteamemail_sender')->escaped());
-		$address[] = $from;
-
-		$email = new UserMailer();
-		$status = $email->send(
-			$address,
-			$from,
-			$emailSubject,
-			[
-				'text' => strip_tags($this->templateClaimEmails->claimStatusNotice($status, $emailExtra)),
-				'html' => $this->templateClaimEmails->claimStatusNotice($status, $emailExtra)
-			]
-		);
-
-		if ($status->isOK()) {
-			return true;
-		}
-		return false;
-	}
-
-	/**
 	 * Return the group name for this special page.
 	 *
-	 * @access protected
 	 * @return string
 	 */
 	protected function getGroupName() {

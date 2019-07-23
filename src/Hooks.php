@@ -4,14 +4,25 @@
  * Claim Wiki
  * Claim Wiki Hooks
  *
+ * @package   ClaimWiki
  * @author    Alex Smith
  * @copyright (c) 2013 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   Claim Wiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
-**/
+ **/
 
-class ClaimWikiHooks {
+namespace ClaimWiki;
+
+use ConfigFactory;
+use DatabaseUpdater;
+use User;
+use MediaWiki\MediaWikiServices;
+use OutputPage;
+use Skin;
+use SpecialPage;
+use Title;
+
+class Hooks {
 	/**
 	 * Handle special on extension registration bits.
 	 *
@@ -35,9 +46,9 @@ class ClaimWikiHooks {
 	/**
 	 * Add resource loader modules.
 	 *
-	 * @access public
-	 * @param  object	Mediawiki Output Object
-	 * @param  object	Mediawiki Skin Object
+	 * @param object $output MediaWiki Output Object
+	 * @param object $skin   MediaWiki Skin Object
+	 *
 	 * @return boolean True
 	 */
 	public static function onBeforePageDisplay(OutputPage &$output, Skin &$skin) {
@@ -55,13 +66,13 @@ class ClaimWikiHooks {
 	/**
 	 * Claim Wiki Side Bar
 	 *
-	 * @access public
-	 * @param  object  Skin Object
-	 * @param  array	Array of bar contents to modify.
+	 * @param object $skin Skin Object
+	 * @param array  $bar  Array of bar contents to modify.
+	 *
 	 * @return bool	True - Must return true or the site will break.
 	 */
 	public static function onSkinBuildSidebar(Skin $skin, &$bar) {
-		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$config = ConfigFactory::getDefaultInstance()->makeConfig('main');
 		$wgClaimWikiEnabled = $config->get('ClaimWikiEnabled');
 		$wgClaimWikiGuardianTotal = $config->get('ClaimWikiGuardianTotal');
 
@@ -96,19 +107,22 @@ class ClaimWikiHooks {
 	/**
 	 * Detect changes to the user groups and update users in the wiki_guardian group as needed.
 	 *
-	 * @access public
-	 * @param  object	User or UserRightsProxy object changed.
+	 * @param object $user    User or UserRightsProxy object changed.
+	 * @param array  $add
+	 * @param array  $remove
+	 * @param array  ...$args all additional arguments
+	 *
 	 * @return boolean	True
 	 */
-	public static function onUserRights($user, array $add, array $remove) {
+	public static function onUserGroupsChanged($user, array $add, array $remove, ...$args) {
 		if (!$user instanceof User || !$user->getId()) {
 			return true;
 		}
-
 		if (in_array('wiki_guardian', $remove)) {
 			$claim = WikiClaim::newFromUser($user);
-			if ($claim !== false) {
-				$claim->delete();
+			if ($claim !== false && $claim->isLoaded()) {
+				$claim->setDeleted();
+				$claim->save();
 			}
 		}
 		return true;
@@ -117,9 +131,9 @@ class ClaimWikiHooks {
 	/**
 	 * Add sysop to effective groups when the user has wiki_guardian.
 	 *
-	 * @access public
-	 * @param  object	User
-	 * @param  array	"Actual" user groups that should reflect the rows in the database.
+	 * @param object $user        User
+	 * @param array  $aUserGroups "Actual" user groups that should reflect the rows in the database.
+	 *
 	 * @return void
 	 */
 	public static function onUserEffectiveGroups(&$user, &$aUserGroups) {
@@ -132,8 +146,8 @@ class ClaimWikiHooks {
 	/**
 	 * Setups and Modifies Database Information
 	 *
-	 * @access public
-	 * @param  object	[Optional] DatabaseUpdater Object
+	 * @param object $updater [Optional] DatabaseUpdater Object
+	 *
 	 * @return boolean	true
 	 */
 	public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
@@ -141,10 +155,35 @@ class ClaimWikiHooks {
 
 		// Tables
 		// 2015-01-08
-		$updater->addExtensionUpdate(['addTable', 'wiki_claims', "{$extDir}/install/sql/claimwiki_table_wiki_claims.sql", true]);
-		$updater->addExtensionUpdate(['addTable', 'wiki_claims_answers', "{$extDir}/install/sql/claimwiki_table_wiki_claims_answers.sql", true]);
-		$updater->addExtensionUpdate(['addTable', 'wiki_claims_log', "{$extDir}/install/sql/claimwiki_table_wiki_claims_log.sql", true]);
+		$updater->addExtensionUpdate([
+			'addTable',
+			'wiki_claims',
+			"{$extDir}/install/sql/claimwiki_table_wiki_claims.sql", true
+		]);
+		$updater->addExtensionUpdate([
+			'addTable',
+			'wiki_claims_answers',
+			"{$extDir}/install/sql/claimwiki_table_wiki_claims_answers.sql", true
+		]);
+		$updater->addExtensionUpdate([
+			'addTable',
+			'wiki_claims_log',
+			"{$extDir}/install/sql/claimwiki_table_wiki_claims_log.sql", true
+		]);
 
 		return true;
+	}
+
+	/**
+	 * Setup Twig Templates
+	 *
+	 * @param SpecialPage $special
+	 * @param string      $subPage
+	 *
+	 * @return void
+	 */
+	public static function onSpecialPageBeforeExecute(SpecialPage $special, $subPage) {
+		$twig = MediaWikiServices::getInstance()->getService('TwiggyService');
+		$twig->setTemplateLocation('ClaimWiki', __DIR__ . '/../resources/templates');
 	}
 }

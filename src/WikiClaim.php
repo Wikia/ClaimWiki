@@ -2,16 +2,35 @@
 /**
  * Curse Inc.
  * Claim Wiki
- * Wiki Claim Class
  *
+ * @package   ClaimWiki
  * @author    Alex Smith
  * @copyright (c) 2013 Curse Inc.
- * @license   GNU General Public License v2.0 or later
- * @package   Claim Wiki
+ * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
-**/
+ **/
+
+namespace ClaimWiki;
+
+use ConfigFactory;
+use DynamicSettings\Sites;
+use GlobalVarConfig;
+use HydraCore\SpecialPage;
+use InvalidArgumentException;
+use MWException;
+use RedisCache;
+use Reverb\Notification\NotificationBroadcast;
+use Title;
+use User;
 
 class WikiClaim {
+	/**
+	 * New Claim
+	 *
+	 * @var constant
+	 */
+	const CLAIM_CREATED = -1;
+
 	/**
 	 * New Claim
 	 *
@@ -48,6 +67,13 @@ class WikiClaim {
 	const CLAIM_INACTIVE = 4;
 
 	/**
+	 * Deleted Claim
+	 *
+	 * @var constant
+	 */
+	const CLAIM_DELETED = 5;
+
+	/**
 	 * Object Loaded?
 	 *
 	 * @var boolean
@@ -66,7 +92,7 @@ class WikiClaim {
 		'start_timestamp'	=> 0,
 		'end_timestamp'		=> 0,
 		'agreed'			=> 0,
-		'status'			=> 0
+		'status'			=> -1
 	];
 
 	/**
@@ -84,33 +110,39 @@ class WikiClaim {
 	private $answers = [];
 
 	/**
-	 * Mediawiki User object for this claim.
+	 * MediaWiki User object for this claim.
 	 *
 	 * @var object
 	 */
 	private $user = false;
 
 	/**
+	 * Main Configuration
+	 *
+	 * @var GlobalVarConfig
+	 */
+	private $config;
+
+	/**
 	 * Constructor
 	 *
-	 * @access public
-	 * @param  mixed	User or UserRightProxy
 	 * @return void
 	 */
 	public function __construct() {
-		$config = \ConfigFactory::getDefaultInstance()->makeConfig('main');
-
-		$this->settings['number_of_questions'] = $config->get('ClaimWikiNumberOfQuestions');
+		$this->config = ConfigFactory::getDefaultInstance()->makeConfig('main');
+		$this->redis = RedisCache::getClient('cache');
+		$this->settings['number_of_questions'] = $this->config->get('ClaimWikiNumberOfQuestions');
 	}
 
 	/**
 	 * Create a new object from an User object.
 	 *
-	 * @access public
-	 * @param  mixed	User or UserRightProxy
-	 * @return mixed	WikiClaim or false on InvalidArgumentException.
+	 * @param mixed   $user         User or UserRightProxy
+	 * @param boolean $allowDeleted
+	 *
+	 * @return mixed WikiClaim or false on InvalidArgumentException.
 	 */
-	public static function newFromUser(User $user) {
+	public static function newFromUser(User $user, $allowDeleted = false) {
 		$claim = new self;
 
 		if (!$user->getId()) {
@@ -121,7 +153,7 @@ class WikiClaim {
 
 		$claim->newFrom = 'user';
 
-		$claim->load();
+		$claim->load(null, $allowDeleted);
 
 		return $claim;
 	}
@@ -129,16 +161,17 @@ class WikiClaim {
 	/**
 	 * Load a new object from a database row.
 	 *
-	 * @access public
-	 * @param  array	Database Row
-	 * @return mixed	WikiClaim or false on error.
+	 * @param array   $row          Database Row
+	 * @param boolean $allowDeleted
+	 *
+	 * @return mixed WikiClaim or false on error.
 	 */
-	public static function newFromRow($row) {
+	public static function newFromRow($row, $allowDeleted = false) {
 		$claim = new self;
 
 		$claim->newFrom = 'row';
 
-		$claim->load($row);
+		$claim->load($row, $allowDeleted);
 
 		if (!$claim->getId()) {
 			return false;
@@ -148,9 +181,32 @@ class WikiClaim {
 	}
 
 	/**
+	 * Load a new object from a claim id.
+	 *
+	 * @param array   $cid
+	 * @param boolean $allowDeleted
+	 *
+	 * @return mixed WikiClaim or false on error.
+	 */
+	public static function newFromID($cid, $allowDeleted = false) {
+		$claim = new self;
+
+		$claim->newFrom = 'id';
+
+		$claim->setId($cid);
+
+		$claim->load(null, $allowDeleted);
+
+		if (!$claim->isLoaded()) {
+			return false;
+		}
+
+		return $claim;
+	}
+
+	/**
 	 * Get count of wiki claims.
 	 *
-	 * @access public
 	 * @return integer	Count of WikiClaim objects
 	 */
 	public static function getClaimsCount() {
@@ -159,8 +215,7 @@ class WikiClaim {
 		$result = $db->selectField(
 			'wiki_claims',
 			'COUNT(*)',
-			[
-			],
+			['status != 5'],
 			__METHOD__
 		);
 
@@ -170,11 +225,11 @@ class WikiClaim {
 	/**
 	 * Get all wiki claims.
 	 *
-	 * @access public
-	 * @param  integer	[Optional] Database start position.
-	 * @param  integer	[Optional] Maximum claims to retrieve.
-	 * @param  string	[Optional] Database field to sort by.
-	 * @param  string	[Optional] Sort direction.
+	 * @param integer $start     [Optional] Database start position.
+	 * @param integer $maxClaims [Optional] Maximum claims to retrieve.
+	 * @param string  $sortKey   [Optional] Database field to sort by.
+	 * @param string  $sortDir   [Optional] Sort direction.
+	 *
 	 * @return array	WikiClaim objects of [Claim ID => Object].
 	 */
 	public static function getClaims($start = 0, $maxClaims = 25, $sortKey = 'claim_timestamp', $sortDir = 'asc') {
@@ -192,7 +247,7 @@ class WikiClaim {
 			[
 				'wiki_claims.*'
 			],
-			[],
+			['status != 5'],
 			__METHOD__,
 			[
 				'ORDER BY' => 'wiki_claims.' . $sortKey . ' ' . ($sortDir == 'desc' ? 'DESC' : 'ASC'),
@@ -215,13 +270,13 @@ class WikiClaim {
 	/**
 	 * Load the object.
 	 *
-	 * @access private
-	 * @param  array	Raw database row.
+	 * @param array   $row          Raw database row.
+	 * @param boolean $allowDeleted
+	 *
 	 * @return boolean	Success
 	 */
-	private function load($row = null) {
+	private function load($row = null, $allowDeleted = false) {
 		$db = wfGetDB(DB_MASTER);
-
 		if (!$this->isLoaded) {
 			if ($this->newFrom != 'row') {
 				switch ($this->newFrom) {
@@ -237,15 +292,22 @@ class WikiClaim {
 						break;
 				}
 
+				// Allow deleted claims to be loaded.
+				if (!$allowDeleted) {
+					$where[] = 'status != 5';
+				}
+
 				$result = $db->select(
 					['wiki_claims'],
 					['wiki_claims.*'],
 					$where,
-					__METHOD__
+					__METHOD__,
+					[
+						'ORDER BY' => 'wiki_claims.claim_timestamp DESC'
+					]
 				);
 				$row = $result->fetchRow();
 			}
-
 			if ($row['cid'] > 0 && $row['user_id'] > 0) {
 				// Load existing data.
 				$this->data = $row;
@@ -279,7 +341,6 @@ class WikiClaim {
 	/**
 	 * Save data to the database.
 	 *
-	 * @access public
 	 * @return boolean	Successful Save.
 	 */
 	public function save() {
@@ -347,57 +408,12 @@ class WikiClaim {
 				__METHOD__
 			);
 		}
-
 		return true;
-	}
-
-	/**
-	 * Deletes from the database and clears the object.
-	 *
-	 * @access public
-	 * @return boolean	Successful Deletion.
-	 */
-	public function delete() {
-		$db = wfGetDB(DB_MASTER);
-
-		$success = false;
-
-		// Do a transactional save.
-		$db->startAtomic(__METHOD__);
-
-		if ($this->data['cid'] > 0) {
-			// Do an update
-			$success = $db->delete(
-				'wiki_claims',
-				['cid' => $this->data['cid']],
-				__METHOD__
-			);
-		}
-
-		// Roll back if there was an error.
-		if (!$success) {
-			$db->cancelAtomic(__METHOD__);
-		} else {
-			$success = true;
-
-			$db->delete(
-				'wiki_claims_answers',
-				['claim_id' => $this->data['cid']],
-				__METHOD__
-			);
-
-			$this->data = [];
-			$this->answers = [];
-			$db->endAtomic(__METHOD__);
-		}
-
-		return $success;
 	}
 
 	/**
 	 * Returns the claim identification number from the database.
 	 *
-	 * @access public
 	 * @return string	Claim ID
 	 */
 	public function getId() {
@@ -405,11 +421,24 @@ class WikiClaim {
 	}
 
 	/**
+	 * Returns the claim identification number from the database.
+	 *
+	 * @param int $cid
+	 *
+	 * @return string void
+	 */
+	public function setId($cid) {
+		$this->data['cid'] = $cid;
+	}
+
+	/**
 	 * Set the User object.
 	 *
-	 * @access public
-	 * @param  object	Mediawiki User Object
+	 * @param object $user MediaWiki User Object
+	 *
 	 * @throws object	InvalidArgumentException
+	 *
+	 * @return void
 	 */
 	public function setUser(User $user) {
 		if (!$user->getId()) {
@@ -422,8 +451,7 @@ class WikiClaim {
 	/**
 	 * Returns the User object.
 	 *
-	 * @access public
-	 * @return object	Mediawiki User Object
+	 * @return object	MediaWiki User Object
 	 */
 	public function getUser() {
 		return $this->user;
@@ -432,7 +460,6 @@ class WikiClaim {
 	/**
 	 * Returns the loaded questions with filled in information.
 	 *
-	 * @access public
 	 * @return array	Multidimensional array of questions with question text and possible previously entered answer.
 	 */
 	public function getQuestions() {
@@ -449,7 +476,6 @@ class WikiClaim {
 	/**
 	 * Returns the question keys.
 	 *
-	 * @access public
 	 * @return array	Question Keys
 	 */
 	public function getQuestionKeys() {
@@ -462,7 +488,6 @@ class WikiClaim {
 	/**
 	 * Returns the agreement text for the wiki claim terms.
 	 *
-	 * @access public
 	 * @return string	Terms and Agreement Text.
 	 */
 	public function getAgreementText() {
@@ -472,8 +497,7 @@ class WikiClaim {
 	/**
 	 * Returns the guidelines text for the wiki claim terms.
 	 *
-	 * @access public
-	 * @return string	Guidlines Text.
+	 * @return string	Guidelines Text.
 	 */
 	public function getGuidelinesText() {
 		return wfMessage('wiki_claim_more_info')->parseAsBlock();
@@ -482,7 +506,6 @@ class WikiClaim {
 	/**
 	 * Return the status code for this claim.
 	 *
-	 * @access public
 	 * @return integer	Status Code
 	 */
 	public function getStatus() {
@@ -492,7 +515,6 @@ class WikiClaim {
 	/**
 	 * Are the terms accepted by this user?
 	 *
-	 * @access public
 	 * @return boolean	Agreed to the terms?
 	 */
 	public function isAgreed() {
@@ -502,8 +524,8 @@ class WikiClaim {
 	/**
 	 * Set that the wiki claim terms have been agreed to.
 	 *
-	 * @access public
-	 * @param  boolean	[Optional] Agreed to the terms or not.  Defaults to true.
+	 * @param boolean $agreed [Optional] Agreed to the terms or not.  Defaults to true.
+	 *
 	 * @return void
 	 */
 	public function setAgreed($agreed = true) {
@@ -513,7 +535,6 @@ class WikiClaim {
 	/**
 	 * Set the new status on this claim.
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function setNew() {
@@ -523,7 +544,6 @@ class WikiClaim {
 	/**
 	 * Is this claim new?
 	 *
-	 * @access public
 	 * @return boolean
 	 */
 	public function isNew() {
@@ -533,7 +553,6 @@ class WikiClaim {
 	/**
 	 * Set the pending status on this claim.
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function setPending() {
@@ -543,7 +562,6 @@ class WikiClaim {
 	/**
 	 * Is this claim pending?
 	 *
-	 * @access public
 	 * @return boolean
 	 */
 	public function isPending() {
@@ -553,7 +571,6 @@ class WikiClaim {
 	/**
 	 * Set the approved status on this claim.
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function setApproved() {
@@ -563,7 +580,6 @@ class WikiClaim {
 	/**
 	 * Is this claim approved?
 	 *
-	 * @access public
 	 * @return boolean
 	 */
 	public function isApproved() {
@@ -573,7 +589,6 @@ class WikiClaim {
 	/**
 	 * Set the denied status on this claim.
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function setDenied() {
@@ -583,7 +598,6 @@ class WikiClaim {
 	/**
 	 * Is this claim denied?
 	 *
-	 * @access public
 	 * @return boolean
 	 */
 	public function isDenied() {
@@ -593,7 +607,6 @@ class WikiClaim {
 	/**
 	 * Set the inactive status on this claim.
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function setInactive() {
@@ -603,7 +616,6 @@ class WikiClaim {
 	/**
 	 * Is this claim inactive?
 	 *
-	 * @access public
 	 * @return boolean
 	 */
 	public function isInactive() {
@@ -611,11 +623,58 @@ class WikiClaim {
 	}
 
 	/**
+	 * Set the deleted status on this claim.
+	 *
+	 * @return void
+	 */
+	public function setDeleted() {
+		$this->data['status'] = self::CLAIM_DELETED;
+	}
+
+	/**
+	 * Is this claim deleted?
+	 *
+	 * @return boolean
+	 */
+	public function isDeleted() {
+		return $this->data['status'] === self::CLAIM_DELETED;
+	}
+
+	/**
+	 * Determine if the claim is loaded from DB
+	 *
+	 * @return boolean
+	 */
+	public function isLoaded() {
+		return $this->isLoaded;
+	}
+
+	/**
+	 * Return the language key for the current status
+	 *
+	 * @return string
+	 */
+	public function getStatusKey() {
+		switch ($this->data['status']) {
+			case self::CLAIM_PENDING:
+				return 'claim_legend_pending';
+			case self::CLAIM_APPROVED:
+				return 'claim_legend_approved';
+			case self::CLAIM_DENIED:
+				return 'claim_legend_denied';
+			case self::CLAIM_INACTIVE:
+				return 'claim_legend_inactive';
+			default:
+				return 'claim_legend_created';
+		}
+	}
+
+	/**
 	 * Sets an answer for the provided question key.
 	 *
-	 * @access public
-	 * @param  string	Question Key
-	 * @param  mixed	Question Answer
+	 * @param string $key    Question Key
+	 * @param mixed  $answer Question Answer
+	 *
 	 * @return void
 	 */
 	public function setAnswer($key, $answer) {
@@ -629,9 +688,7 @@ class WikiClaim {
 	/**
 	 * Returns the answer array.
 	 *
-	 * @access public
-	 * @param  string	Question Key
-	 * @return array	Array of $questionKey => $answer;
+	 * @return array Array of $questionKey => $answer;
 	 */
 	public function getAnswers() {
 		return $this->answers;
@@ -640,9 +697,9 @@ class WikiClaim {
 	/**
 	 * Set a timestamp for this claim.
 	 *
-	 * @access public
-	 * @param  integer	Epoch based timestamp.
-	 * @param  string	[Optional] Which timestamp to set.  Valid values: claim, start, and end.
+	 * @param integer $timestamp Epoch based timestamp.
+	 * @param string  $type      [Optional] Which timestamp to set.  Valid values: claim, start, and end.
+	 *
 	 * @return void
 	 */
 	public function setTimestamp($timestamp, $type = 'claim') {
@@ -663,29 +720,34 @@ class WikiClaim {
 	/**
 	 * Return a timestamp for this claim.
 	 *
-	 * @access public
-	 * @param  string	[Optional] Which timestamp to get.  Valid values: claim, start, and end.
-	 * @return integer	Epoch based timestamp
+	 * @param string $type [Optional] Which timestamp to get.  Valid values: claim, start, and end.
+	 *
+	 * @return integer Epoch based timestamp
 	 */
 	public function getTimestamp($type = 'claim') {
 		switch ($type) {
 			default:
 			case 'claim':
 				return intval($this->data['claim_timestamp']);
-				break;
 			case 'start':
 				return intval($this->data['start_timestamp']);
-				break;
 			case 'end':
 				return intval($this->data['end_timestamp']);
-				break;
 		}
+	}
+
+	/**
+	 * Get the formatted Date of a claim
+	 *
+	 * @return string
+	 */
+	public function getClaimDate() {
+		return date('c', $this->getTimestamp('claim'));
 	}
 
 	/**
 	 * Figures out what answers are not answers and return a list of errors.
 	 *
-	 * @access public
 	 * @return array	An array of errors of $questionKey => $message.  The array will be empty for no errors.
 	 */
 	public function getErrors() {
@@ -693,9 +755,117 @@ class WikiClaim {
 		$errors = [];
 		foreach ($keys as $key) {
 			if (empty($this->answers[$key])) {
-				$errors[$key] = wfMessage($key . '_error');
+				$errors[$key] = wfMessage($key . '_error')->escaped();
 			}
 		}
 		return $errors;
+	}
+
+	/**
+	 * Send Reverb Notification
+	 *
+	 * @param string $status
+	 * @param User   $performer
+	 *
+	 * @return void
+	 */
+	public function sendNotification($status, $performer) {
+		$wgEmergencyContact = $this->config->get('EmergencyContact');
+		$wgClaimWikiEmailSignature = $this->config->get('ClaimWikiEmailSignature');
+		$noticeboard = Title::newFromText('Project:Admin_noticeboard');
+
+		// handle the Wiki Manager notification
+		$wikiManagers = $this->getWikiManagers();
+		$broadcast = NotificationBroadcast::newMulti(
+			'user-moderation-wiki-claim-' . $status,
+			$this->getUser(),
+			$wikiManagers,
+			[
+				'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL([
+					'do' => 'view', 'user_id' => $this->getUser()->getId()
+				]),
+				'message' => [
+					[
+						'user_note',
+						''
+					],
+					[
+						1,
+						$this->getUser()->getName()
+					],
+					[
+						2,
+						$this->config->get('Sitename')
+					],
+					[
+						3,
+						$performer->getName()
+					]
+				]
+			]
+		);
+		if ($broadcast) {
+			$broadcast->transmit();
+		}
+
+		// no message is sent to the user for created
+		if ($status == 'created') {
+			return;
+		}
+
+		// handle user notification
+		$userNote = wfMessageFallback("claim-email-user-account-{$status}-note", "claim-email-empty-note");
+		$broadcast = NotificationBroadcast::newSingle(
+			'user-account-wiki-claim-' . $status,
+			$performer,
+			$this->getUser(),
+			[
+				'url' => SpecialPage::getTitleFor('ClaimWiki')->getFullURL(),
+				'message' => [
+					[
+						'user_note',
+						$userNote->params([
+							$this->getUser(),
+							$performer,
+							$wgClaimWikiEmailSignature,
+							$wgEmergencyContact,
+							$noticeboard
+						])->parse()
+					],
+					[
+						1,
+						$this->getUser()->getName()
+					],
+					[
+						2,
+						$this->config->get('Sitename')
+					],
+					[
+						3,
+						$performer->getName()
+					]
+
+				]
+			]
+		);
+		if ($broadcast) {
+			$broadcast->transmit();
+		}
+	}
+
+	/**
+	 * Get the list of user in Wiki Managers
+	 *
+	 * @return array
+	 */
+	private function getWikiManagers() {
+		$wikiManagers = Sites::getAllManagers();
+		return array_reduce($wikiManagers, function ($carry, $manager) {
+			$user = $manager['user'];
+			if ($user->getId()) {
+				$carry[] = $user;
+			}
+			return $carry;
+		});
 	}
 }

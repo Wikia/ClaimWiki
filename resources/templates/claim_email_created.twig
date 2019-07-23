@@ -1,0 +1,3 @@
+~*~*~*~*~*~*~*~ {{ strtoupper(emailExtra['environment']) }} ~*~*~*~*~*~*~*~
+<br/><br/>
+{{ wfMessage('claim-email-user-moderation-wiki-claim-created', [emailExtra['user'].getName(), emailExtra['site_name'], emailExtra['claim'].getClaimDate(), page.getFullURL()]).parse()|raw }}

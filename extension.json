@@ -14,7 +14,8 @@
 			"DynamicSettings": ">= 3.0.0",
 			"HydraCore": ">= 3.0.0",
 			"Reverb": "*",
-			"SyncService": ">= 2.0.0"
+			"SyncService": ">= 2.0.0",
+			"Twiggy": ">= 0.0.1"
 		}
 	},
 	"GroupPermissions": {
@@ -30,8 +31,8 @@
 		"wiki_claims"
 	],
 	"SpecialPages": {
-		"ClaimWiki": "SpecialClaimWiki",
-		"WikiClaims": "SpecialWikiClaims"
+		"ClaimWiki": "ClaimWiki\\Specials\\SpecialClaimWiki",
+		"WikiClaims": "ClaimWiki\\Specials\\SpecialWikiClaims"
 	},
 	"MessagesDirs": {
 		"ClaimWiki": [
@@ -41,17 +42,19 @@
 	"ExtensionMessagesFiles": {
 		"SpecialClaimWiki": "ClaimWiki.alias.php"
 	},
-	"AutoloadClasses": {
-		"ClaimWikiHooks": "ClaimWiki.hooks.php",
-		"SpecialClaimWiki": "specials/SpecialClaimWiki.php",
-		"SpecialWikiClaims": "specials/SpecialWikiClaims.php",
-		"WikiClaim": "classes/WikiClaim.php",
-		"ClaimLogPager": "classes/ClaimLog.php",
-		"ClaimLogEntry": "classes/ClaimLog.php",
-		"TemplateClaimEmails": "templates/TemplateClaimEmails.php",
-		"TemplateClaimWiki": "templates/TemplateClaimWiki.php",
-		"TemplateWikiClaims": "templates/TemplateWikiClaims.php",
-		"WikiGuardianEmailJob": "classes/jobs/WikiGuardianEmailJob.php"
+	"AutoloadNamespaces": {
+		"ClaimWiki\\": "src/",
+		"ClaimWiki\\Jobs\\": "src/jobs",
+		"ClaimWiki\\Specials\\": "src/specials",
+		"ClaimWiki\\Templates\\": "src/templates"
+	},
+	"Hooks": {
+		"BeforePageDisplay": "ClaimWiki\\Hooks::onBeforePageDisplay",
+		"SkinBuildSidebar": "ClaimWiki\\Hooks::onSkinBuildSidebar",
+		"LoadExtensionSchemaUpdates": "ClaimWiki\\Hooks::onLoadExtensionSchemaUpdates",
+		"UserEffectiveGroups": "ClaimWiki\\Hooks::onUserEffectiveGroups",
+		"UserGroupsChanged": "ClaimWiki\\Hooks::onUserGroupsChanged",
+		"SpecialPageBeforeExecute": "ClaimWiki\\Hooks::onSpecialPageBeforeExecute"
 	},
 	"ResourceModules": {
 		"ext.claimWiki.styles": {
@@ -75,18 +78,11 @@
 		"localBasePath": "",
 		"remoteExtPath": "ClaimWiki"
 	},
-	"callback": "ClaimWikiHooks::onRegistration",
-	"Hooks": {
-		"BeforePageDisplay": "ClaimWikiHooks::onBeforePageDisplay",
-		"SkinBuildSidebar": "ClaimWikiHooks::onSkinBuildSidebar",
-		"LoadExtensionSchemaUpdates": "ClaimWikiHooks::onLoadExtensionSchemaUpdates",
-		"UserEffectiveGroups": "ClaimWikiHooks::onUserEffectiveGroups",
-		"UserRights": "ClaimWikiHooks::onUserRights"
-	},
+	"callback": "ClaimWiki\\Hooks::onRegistration",
 	"config": {
 		"SyncServices": {
 			"value": [
-				"WikiGuardianEmailJob"
+				"ClaimWiki\\Jobs\\WikiGuardianEmailJob"
 			],
 			"path": false,
 			"descriptionmsg": "claimwiki-syncservices",
@@ -110,6 +106,97 @@
 		},
 		"ClaimWikiEditThreshold": {
 			"value": 5
+		},
+		"TwiggyAllowedPHPFunctions": {
+			"value": [
+				"strtoupper",
+				"strtolower",
+				"ucwords",
+				"is_array",
+				"count",
+				"wfExpandUrl",
+				"date",
+				"urlencode"
+			],
+			"merge_strategy": "array_merge"
+		},
+		"ReverbNotifications": {
+			"value": {
+				"user-moderation-wiki-claim": {
+					"importance": 1,
+					"requires": ["hydra_admin", "wiki_manager"],
+					"defaults": {"email": true, "web": true}
+				},
+				"user-moderation-wiki-claim-created": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-pending": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-denied": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-approved": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-inactive": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-resumed": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-moderation-wiki-claim-deleted": {
+					"important": 1,
+					"use-preference": "user-moderation-wiki-claim",
+					"requires": ["hydra_admin", "wiki_manager"]
+				},
+				"user-account-wiki-claim": {
+					"importance": 9,
+					"defaults": {"email": true, "web": true}
+				},
+				"user-account-wiki-claim-created": {
+					"important": 9,
+					"use-preference": "user-account-wiki-claim"
+				},
+				"user-account-wiki-claim-pending": {
+					"important": 9,
+					"use-preference": "user-account-wiki-claim"
+				},
+				"user-account-wiki-claim-denied": {
+					"important": 9,
+					"use-preference": "user-account-wiki-claim"
+				},
+				"user-account-wiki-claim-approved": {
+					"important": 9,
+					"use-preference": "user-account-wiki-claim"
+				},
+				"user-account-wiki-claim-inactive": {
+					"important": 9,
+					"use-preference": "user-moderation-wiki-claim"
+				},
+				"user-account-wiki-claim-resumed": {
+					"important": 9,
+					"use-preference": "user-moderation-wiki-claim"
+				},
+				"user-account-wiki-claim-deleted": {
+					"important": 9,
+					"use-preference": "user-account-wiki-claim"
+				}
+
+			},
+			"merge_strategy": "array_plus_2d"
 		}
 	},
 	"manifest_version": 2
