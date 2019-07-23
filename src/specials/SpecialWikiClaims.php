@@ -146,7 +146,7 @@ class SpecialWikiClaims extends SpecialPage {
 		$pagination = HydraCore::generatePaginationHtml($this->getFullTitle(), $claimsCount, $itemsPerPage, $start);
 
 		$template = $this->twiggy->load('@ClaimWiki/claim_list.twig');
-		$this->output->setPageTitle(wfMessage('wiki_claims'));
+		$this->output->setPageTitle(wfMessage('wikiclaims'));
 		$this->content = $template->render([
 			'claims' => $claims,
 			'pagination' => $pagination,
