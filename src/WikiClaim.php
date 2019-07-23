@@ -13,12 +13,12 @@
 namespace ClaimWiki;
 
 use ConfigFactory;
+use DynamicSettings\Sites;
 use GlobalVarConfig;
 use HydraCore\SpecialPage;
 use InvalidArgumentException;
 use MWException;
 use RedisCache;
-use RedisException;
 use Reverb\Notification\NotificationBroadcast;
 use Title;
 use User;
@@ -776,7 +776,6 @@ class WikiClaim {
 
 		// handle the Wiki Manager notification
 		$wikiManagers = $this->getWikiManagers();
-
 		$broadcast = NotificationBroadcast::newMulti(
 			'user-moderation-wiki-claim-' . $status,
 			$this->getUser(),
@@ -860,18 +859,9 @@ class WikiClaim {
 	 * @return array
 	 */
 	private function getWikiManagers() {
-		global $dsSiteKey;
-		try {
-			$wikiManagers = unserialize(
-				$this->redis->hGet('dynamicsettings:siteInfo:' . $dsSiteKey, 'wiki_managers')
-			);
-		} catch (RedisException $e) {
-			wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
-		}
-
+		$wikiManagers = Sites::getAllManagers();
 		return array_reduce($wikiManagers, function ($carry, $manager) {
-			$user = User::newFromName($manager);
-			$user->load();
+			$user = $manager['user'];
 			if ($user->getId()) {
 				$carry[] = $user;
 			}
