@@ -128,37 +128,37 @@
 					"defaults": {"email": true, "web": true}
 				},
 				"user-moderation-wiki-claim-created": {
-					"important": 1,
+					"importance": 1,
 					"use-preference": "user-moderation-wiki-claim",
 					"requires": ["hydra_admin", "wiki_manager"]
 				},
 				"user-moderation-wiki-claim-pending": {
-					"important": 1,
+					"importance": 1,
 					"use-preference": "user-moderation-wiki-claim",
 					"requires": ["hydra_admin", "wiki_manager"]
 				},
 				"user-moderation-wiki-claim-denied": {
-					"important": 1,
+					"importance": 1,
 					"use-preference": "user-moderation-wiki-claim",
 					"requires": ["hydra_admin", "wiki_manager"]
 				},
 				"user-moderation-wiki-claim-approved": {
-					"important": 1,
+					"importance": 1,
 					"use-preference": "user-moderation-wiki-claim",
 					"requires": ["hydra_admin", "wiki_manager"]
 				},
 				"user-moderation-wiki-claim-inactive": {
-					"important": 1,
+					"importance": 1,
 					"use-preference": "user-moderation-wiki-claim",
 					"requires": ["hydra_admin", "wiki_manager"]
 				},
 				"user-moderation-wiki-claim-resumed": {
-					"important": 1,
+					"importance": 1,
 					"use-preference": "user-moderation-wiki-claim",
 					"requires": ["hydra_admin", "wiki_manager"]
 				},
 				"user-moderation-wiki-claim-deleted": {
-					"important": 1,
+					"importance": 1,
 					"use-preference": "user-moderation-wiki-claim",
 					"requires": ["hydra_admin", "wiki_manager"]
 				},
@@ -167,31 +167,31 @@
 					"defaults": {"email": true, "web": true}
 				},
 				"user-account-wiki-claim-created": {
-					"important": 9,
+					"importance": 9,
 					"use-preference": "user-account-wiki-claim"
 				},
 				"user-account-wiki-claim-pending": {
-					"important": 9,
+					"importance": 9,
 					"use-preference": "user-account-wiki-claim"
 				},
 				"user-account-wiki-claim-denied": {
-					"important": 9,
+					"importance": 9,
 					"use-preference": "user-account-wiki-claim"
 				},
 				"user-account-wiki-claim-approved": {
-					"important": 9,
+					"importance": 9,
 					"use-preference": "user-account-wiki-claim"
 				},
 				"user-account-wiki-claim-inactive": {
-					"important": 9,
+					"importance": 9,
 					"use-preference": "user-moderation-wiki-claim"
 				},
 				"user-account-wiki-claim-resumed": {
-					"important": 9,
+					"importance": 9,
 					"use-preference": "user-moderation-wiki-claim"
 				},
 				"user-account-wiki-claim-deleted": {
-					"important": 9,
+					"importance": 9,
 					"use-preference": "user-account-wiki-claim"
 				}
 
