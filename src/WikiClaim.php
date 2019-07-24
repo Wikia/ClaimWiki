@@ -808,8 +808,8 @@ class WikiClaim {
 			$broadcast->transmit();
 		}
 
-		// no message is sent to the user for created
-		if ($status == 'created') {
+		// no message is sent to the user for created or deleted actions
+		if ($status == 'created' || $status == 'deleted') {
 			return;
 		}
 
