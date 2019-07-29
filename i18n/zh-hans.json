@@ -4,6 +4,8 @@
 		"Angrydog001"
 		]
 	},
+	"reverb-pref-title-user-moderation-wiki-claim": "Wiki认领",
+	"reverb-pref-tooltip-user-moderation-wiki-claim": "当有人提交、批准或拒绝新的wiki认领时通知我。",
 	"claimwiki_description": "用于认领wiki。",
 	"specialpages-group-claimwiki": "认领Wiki",
 	"claim_this_wiki": "认领此Wiki",
