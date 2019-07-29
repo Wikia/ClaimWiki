@@ -13,7 +13,7 @@
 namespace ClaimWiki;
 
 use ConfigFactory;
-use DynamicSettings\Sites;
+use DynamicSettings\DSDBFactory;
 use GlobalVarConfig;
 use HydraCore\SpecialPage;
 use InvalidArgumentException;
@@ -22,6 +22,7 @@ use RedisCache;
 use Reverb\Notification\NotificationBroadcast;
 use Title;
 use User;
+use MercuryUserAPI;
 
 class WikiClaim {
 	/**
@@ -859,13 +860,35 @@ class WikiClaim {
 	 * @return array
 	 */
 	private function getWikiManagers() {
-		$wikiManagers = Sites::getAllManagers();
-		return array_reduce($wikiManagers, function ($carry, $manager) {
-			$user = $manager['user'];
-			if ($user->getId()) {
-				$carry[] = $user;
-			}
-			return $carry;
-		});
+		$db = DSDBFactory::getMasterDB(DB_MASTER);
+		$groups = ['hydra_admin', 'hydra_staff', 'wiki_manager'];
+		$wikiManagers = [];
+		$result = $db->select(
+			['user_groups', 'user_global', 'user'],
+			['*'],
+			["user_groups.ug_group"	=> $groups],
+			__METHOD__,
+			['GROUP BY' => 'user_global.global_id'],
+			[
+				'user_global' => [
+					'INNER JOIN', 'user_global.user_id = user.user_id'
+				],
+				'user_groups' => [
+					'INNER JOIN', 'user_groups.ug_user = user.user_id'
+				]
+			]
+		);
+
+		while ($row = $result->fetchObject()) {
+			// Get global user data as source of truth
+			$mercury = new MercuryUserAPI();
+			$global_user = $mercury->getUserProfile($row->global_id);
+			// Override with email from Mercury
+			$user = User::newFromName($row->user_name);
+			$user->setEmail($global_user['email']);
+			$wikiManagers[] = $user;
+		}
+
+		return $wikiManagers;
 	}
 }
