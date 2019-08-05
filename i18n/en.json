@@ -9,6 +9,7 @@
 	"wiki_claim_error": "Error - Wiki Claim",
 	"wiki_claim_disabled": "The wiki claims system has been disabled on this wiki.",
 	"send_claim": "Send Claim",
+	"group-wiki_guardian": "Wiki guardians",
 	"wiki_claim_question_0": "Why do you want to become an administrator for this wiki?",
 	"wiki_claim_question_1": "Describe your past experience working on wiki projects:",
 	"wiki_claim_question_2": "Have you ever been an administrator on a wiki before and if so, what project(s)?",
