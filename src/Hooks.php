@@ -151,7 +151,7 @@ class Hooks {
 	 * @return boolean	true
 	 */
 	public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
-		$extDir = __DIR__;
+		$extDir = __DIR__ . '/../';
 
 		// Tables
 		// 2015-01-08
