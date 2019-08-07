@@ -777,14 +777,21 @@ class WikiClaim {
 
 		// handle the Wiki Manager notification
 		$wikiManagers = $this->getWikiManagers();
+		$claimUrl = SpecialPage::getTitleFor('WikiClaims')->getFullURL(
+			[
+				'do' => 'view', 'claim_id' => $this->getId()
+			]
+		);
+
+		$fromUserTitle = Title::makeTitle(NS_USER, $this->getUser()->getName());
+		$performerUserTitle = Title::makeTitle(NS_USER, $performer);
+
 		$broadcast = NotificationBroadcast::newMulti(
 			'user-moderation-wiki-claim-' . $status,
 			$this->getUser(),
 			$wikiManagers,
 			[
-				'url' => SpecialPage::getTitleFor('WikiClaims')->getFullURL([
-					'do' => 'view', 'claim_id' => $this->getId()
-				]),
+				'url' => $claimUrl,
 				'message' => [
 					[
 						'user_note',
@@ -801,6 +808,18 @@ class WikiClaim {
 					[
 						3,
 						$performer->getName()
+					],
+					[
+						4,
+						$claimUrl
+					],
+					[
+						5,
+						$fromUserTitle->getFullURL()
+					],
+					[
+						6,
+						$performerUserTitle->getFullURL()
 					]
 				]
 			]
@@ -814,14 +833,15 @@ class WikiClaim {
 			return;
 		}
 
-		// handle user notification
+		// Handle user notification
+		$claimUrl = SpecialPage::getTitleFor('WikiClaims')->getFullURL();
 		$userNote = wfMessageFallback("claim-email-user-account-{$status}-note", "claim-email-empty-note");
 		$broadcast = NotificationBroadcast::newSingle(
 			'user-account-wiki-claim-' . $status,
 			$performer,
 			$this->getUser(),
 			[
-				'url' => SpecialPage::getTitleFor('ClaimWiki')->getFullURL(),
+				'url' => $claimUrl,
 				'message' => [
 					[
 						'user_note',
@@ -844,6 +864,18 @@ class WikiClaim {
 					[
 						3,
 						$performer->getName()
+					],
+					[
+						4,
+						$claimUrl
+					],
+					[
+						5,
+						$fromUserTitle->getFullURL()
+					],
+					[
+						6,
+						$performerUserTitle->getFullURL()
 					]
 
 				]
