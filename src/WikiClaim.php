@@ -834,7 +834,7 @@ class WikiClaim {
 		}
 
 		// Handle user notification
-		$claimUrl = SpecialPage::getTitleFor('WikiClaims')->getFullURL();
+		$claimUrl = SpecialPage::getTitleFor('ClaimWiki')->getFullURL();
 		$userNote = wfMessageFallback("claim-email-user-account-{$status}-note", "claim-email-empty-note");
 		$broadcast = NotificationBroadcast::newSingle(
 			'user-account-wiki-claim-' . $status,
@@ -893,7 +893,7 @@ class WikiClaim {
 	 */
 	private function getWikiManagers() {
 		$db = DSDBFactory::getMasterDB(DB_MASTER);
-		$groups = ['hydra_admin', 'hydra_staff', 'wiki_manager'];
+		$groups = ['wiki_manager'];
 		$wikiManagers = [];
 		$result = $db->select(
 			['user_groups', 'user_global', 'user'],
