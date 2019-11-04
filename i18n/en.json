@@ -53,6 +53,7 @@
 	"claim_legend_inactive": "Inactive",
 	"claim_legend_pending": "Pending",
 	"claim_legend_deleted": "Deleted",
+	"claim_legend_created": "Created",
 	"status_0": "new",
 	"status_1": "pending",
 	"status_2": "approved",
