@@ -22,7 +22,6 @@ use RedisCache;
 use Reverb\Notification\NotificationBroadcast;
 use Title;
 use User;
-use MercuryUserAPI;
 
 class WikiClaim {
 	/**
