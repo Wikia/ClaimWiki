@@ -896,15 +896,12 @@ class WikiClaim {
 		$groups = ['wiki_manager'];
 		$wikiManagers = [];
 		$result = $db->select(
-			['user_groups', 'user_global', 'user'],
-			['*'],
-			["user_groups.ug_group"	=> $groups],
+			['user_groups', 'user'],
+			['user.*'],
+			['user_groups.ug_group'	=> $groups],
 			__METHOD__,
-			['GROUP BY' => 'user_global.global_id'],
+			['GROUP BY' => 'user.user_id'],
 			[
-				'user_global' => [
-					'INNER JOIN', 'user_global.user_id = user.user_id'
-				],
 				'user_groups' => [
 					'INNER JOIN', 'user_groups.ug_user = user.user_id'
 				]
@@ -912,12 +909,7 @@ class WikiClaim {
 		);
 
 		while ($row = $result->fetchObject()) {
-			// Get global user data as source of truth
-			$mercury = new MercuryUserAPI();
-			$global_user = $mercury->getUserProfile($row->global_id);
-			// Override with email from Mercury
-			$user = User::newFromName($row->user_name);
-			$user->setEmail($global_user['email']);
+			$user = User::newFromRow($row);
 			$wikiManagers[] = $user;
 		}
 
