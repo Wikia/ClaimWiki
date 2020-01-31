@@ -40,7 +40,7 @@ class WikiGuardianEmailJob extends Job {
 			return;
 		}
 
-		$this->DB = wfGetDB(DB_MASTER);
+		$this->DB = wfGetDB(DB_REPLICA);
 		$redis = RedisCache::getClient('cache');
 		$this->twiggy = MediaWikiServices::getInstance()->getService('TwiggyService');
 

@@ -210,7 +210,7 @@ class WikiClaim {
 	 * @return integer	Count of WikiClaim objects
 	 */
 	public static function getClaimsCount() {
-		$db = wfGetDB(DB_MASTER);
+		$db = wfGetDB(DB_REPLICA);
 
 		$result = $db->selectField(
 			'wiki_claims',
@@ -233,7 +233,7 @@ class WikiClaim {
 	 * @return array	WikiClaim objects of [Claim ID => Object].
 	 */
 	public static function getClaims($start = 0, $maxClaims = 25, $sortKey = 'claim_timestamp', $sortDir = 'asc') {
-		$db = wfGetDB(DB_MASTER);
+		$db = wfGetDB(DB_REPLICA);
 
 		$sortKeys = ['claim_timestamp', 'start_timestamp', 'end_timestamp'];
 		if (!in_array($sortKey, $sortKeys)) {
@@ -276,7 +276,7 @@ class WikiClaim {
 	 * @return boolean	Success
 	 */
 	private function load($row = null, $allowDeleted = false) {
-		$db = wfGetDB(DB_MASTER);
+		$db = wfGetDB(DB_REPLICA);
 		if (!$this->isLoaded) {
 			if ($this->newFrom != 'row') {
 				switch ($this->newFrom) {
@@ -891,7 +891,7 @@ class WikiClaim {
 	 * @return array
 	 */
 	private function getWikiManagers() {
-		$db = DSDBFactory::getMasterDB(DB_MASTER);
+		$db = DSDBFactory::getMasterDB(DB_REPLICA);
 		$groups = ['wiki_manager'];
 		$wikiManagers = [];
 		$result = $db->select(
