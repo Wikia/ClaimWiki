@@ -80,7 +80,7 @@ class Hooks {
 			return true;
 		}
 
-		$DB = wfGetDB(DB_MASTER);
+		$DB = wfGetDB(DB_REPLICA);
 		$result = $DB->select(
 			'wiki_claims',
 			['COUNT(*) as total'],
