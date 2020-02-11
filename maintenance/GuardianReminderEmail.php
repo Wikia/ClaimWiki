@@ -9,7 +9,7 @@
  * @copyright (c) 2017 Curse Inc.
  * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
- **/
+ */
 
 use ClaimWiki\Jobs\WikiGuardianEmailJob;
 
@@ -19,7 +19,6 @@ class GuardianReminderEmail extends Maintenance {
 	/**
 	 * Constructor
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function __construct() {
@@ -29,7 +28,6 @@ class GuardianReminderEmail extends Maintenance {
 	/**
 	 * Queue wiki guardian email job
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function execute() {

@@ -8,7 +8,7 @@
  * @copyright (c) 2013 Curse Inc.
  * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
- **/
+ */
 
 namespace ClaimWiki;
 
@@ -29,49 +29,49 @@ class WikiClaim {
 	 *
 	 * @var constant
 	 */
-	const CLAIM_CREATED = -1;
+	public const CLAIM_CREATED = -1;
 
 	/**
 	 * New Claim
 	 *
 	 * @var constant
 	 */
-	const CLAIM_NEW = 0;
+	public const CLAIM_NEW = 0;
 
 	/**
 	 * Pending Claim
 	 *
 	 * @var constant
 	 */
-	const CLAIM_PENDING = 1;
+	public const CLAIM_PENDING = 1;
 
 	/**
 	 * Approved Claim
 	 *
 	 * @var constant
 	 */
-	const CLAIM_APPROVED = 2;
+	public const CLAIM_APPROVED = 2;
 
 	/**
 	 * Denied Claim
 	 *
 	 * @var constant
 	 */
-	const CLAIM_DENIED = 3;
+	public const CLAIM_DENIED = 3;
 
 	/**
 	 * Inactive Claim
 	 *
 	 * @var constant
 	 */
-	const CLAIM_INACTIVE = 4;
+	public const CLAIM_INACTIVE = 4;
 
 	/**
 	 * Deleted Claim
 	 *
 	 * @var constant
 	 */
-	const CLAIM_DELETED = 5;
+	public const CLAIM_DELETED = 5;
 
 	/**
 	 * Object Loaded?

@@ -9,7 +9,7 @@
  * @copyright (c) 2017 Curse Inc.
  * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
-**/
+ */
 
 namespace ClaimWiki\Jobs;
 
@@ -67,11 +67,13 @@ class WikiGuardianEmailJob extends Job {
 			$claim = WikiClaim::newFromUser($user);
 			$redisEmailKey = wfWikiID() . ':guardianReminderEmail:timeSent:' . $user->getId();
 
-			$cheevosUser = Cheevos::getWikiPointLog([
-				'user_id' => $user->getId(),
-				'site_id' => ($dsSiteKey ? $dsSiteKey : null)
-			]);
-			if (isset($cheevosUser[0]) && $cheevosUser[0]->getUser_Id() == $user->getId()) {
+			$cheevosUser = Cheevos::getWikiPointLog(
+				[
+					'site_id' => ($dsSiteKey ? $dsSiteKey : null)
+				],
+				$user
+			);
+			if (isset($cheevosUser[0]) && $cheevosUser[0]->getUser_Id()) {
 				$timestamp = $cheevosUser[0]->getTimestamp();
 				 // Thirty Days
 				$oldTimestamp = time() - 5184000;
