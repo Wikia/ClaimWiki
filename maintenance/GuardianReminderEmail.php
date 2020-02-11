@@ -19,7 +19,6 @@ class GuardianReminderEmail extends Maintenance {
 	/**
 	 * Constructor
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function __construct() {
@@ -29,7 +28,6 @@ class GuardianReminderEmail extends Maintenance {
 	/**
 	 * Queue wiki guardian email job
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function execute() {

@@ -39,7 +39,6 @@ class SpecialClaimWiki extends SpecialPage {
 	/**
 	 * Main Constructor
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function __construct() {

@@ -26,7 +26,6 @@ class Hooks {
 	/**
 	 * Handle special on extension registration bits.
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public static function onRegistration() {
