@@ -8,7 +8,7 @@
  * @copyright (c) 2013 Curse Inc.
  * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
-*/
+ */
 
 namespace ClaimWiki;
 

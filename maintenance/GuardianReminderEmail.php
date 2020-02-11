@@ -9,7 +9,7 @@
  * @copyright (c) 2017 Curse Inc.
  * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
- **/
+ */
 
 use ClaimWiki\Jobs\WikiGuardianEmailJob;
 

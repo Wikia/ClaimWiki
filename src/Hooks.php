@@ -9,18 +9,18 @@
  * @copyright (c) 2013 Curse Inc.
  * @license   GPL-2.0-or-later
  * @link      https://gitlab.com/hydrawiki
-*/
+ */
 
 namespace ClaimWiki;
 
 use ConfigFactory;
 use DatabaseUpdater;
-use User;
 use MediaWiki\MediaWikiServices;
 use OutputPage;
 use Skin;
 use SpecialPage;
 use Title;
+use User;
 
 class Hooks {
 	/**
