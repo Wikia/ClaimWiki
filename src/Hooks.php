@@ -29,7 +29,7 @@ class Hooks {
 	 * @return void
 	 */
 	public static function onRegistration() {
-		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $wgEmergencyContact;
+		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $wgEmergencyContact, $wgReverbNotifications, $wgSyncServices;
 
 		if (!isset($wgClaimWikiEnabled)) {
 			$wgClaimWikiEnabled = true;
@@ -40,6 +40,84 @@ class Hooks {
 		if (!isset($wgClaimWikiEmailTo) || !is_bool($wgClaimWikiEnabled)) {
 			$wgClaimWikiEmailTo = $wgEmergencyContact;
 		}
+
+		$reverbNotifications = [
+			"user-moderation-wiki-claim" => [
+				"importance" => 1,
+				"requires" => ["hydra_admin", "wiki_manager"],
+				"defaults" => ["email" => true, "web" => true]
+			],
+			"user-moderation-wiki-claim-created" => [
+				"importance" => 1,
+				"use-preference" => "user-moderation-wiki-claim",
+				"requires" => ["hydra_admin", "wiki_manager"]
+			],
+			"user-moderation-wiki-claim-pending" => [
+				"importance" => 1,
+				"use-preference" => "user-moderation-wiki-claim",
+				"requires" => ["hydra_admin", "wiki_manager"]
+			],
+			"user-moderation-wiki-claim-denied" => [
+				"importance" => 1,
+				"use-preference" => "user-moderation-wiki-claim",
+				"requires" => ["hydra_admin", "wiki_manager"]
+			],
+			"user-moderation-wiki-claim-approved" => [
+				"importance" => 1,
+				"use-preference" => "user-moderation-wiki-claim",
+				"requires" => ["hydra_admin", "wiki_manager"]
+			],
+			"user-moderation-wiki-claim-inactive" => [
+				"importance" => 1,
+				"use-preference" => "user-moderation-wiki-claim",
+				"requires" => ["hydra_admin", "wiki_manager"]
+			],
+			"user-moderation-wiki-claim-resumed" => [
+				"importance" => 1,
+				"use-preference" => "user-moderation-wiki-claim",
+				"requires" => ["hydra_admin", "wiki_manager"]
+			],
+			"user-moderation-wiki-claim-deleted" => [
+				"importance" => 1,
+				"use-preference" => "user-moderation-wiki-claim",
+				"requires" => ["hydra_admin", "wiki_manager"]
+			],
+			"user-account-wiki-claim" => [
+				"importance" => 9,
+				"defaults" => ["email" => true, "web" => true]
+			],
+			"user-account-wiki-claim-created" => [
+				"importance" => 9,
+				"use-preference" => "user-account-wiki-claim"
+			],
+			"user-account-wiki-claim-pending" => [
+				"importance" => 9,
+				"use-preference" => "user-account-wiki-claim"
+			],
+			"user-account-wiki-claim-denied" => [
+				"importance" => 9,
+				"use-preference" => "user-account-wiki-claim"
+			],
+			"user-account-wiki-claim-approved" => [
+				"importance" => 9,
+				"use-preference" => "user-account-wiki-claim"
+			],
+			"user-account-wiki-claim-inactive" => [
+				"importance" => 9,
+				"use-preference" => "user-moderation-wiki-claim"
+			],
+			"user-account-wiki-claim-resumed" => [
+				"importance" => 9,
+				"use-preference" => "user-moderation-wiki-claim"
+			],
+			"user-account-wiki-claim-deleted" => [
+				"importance" => 9,
+				"use-preference" => "user-account-wiki-claim"
+			]
+		];
+		$wgReverbNotifications = array_merge($wgReverbNotifications, $reverbNotifications);
+
+		$wgSyncServices[] = "ClaimWiki\\Jobs\\WikiGuardianEmailJob";
 	}
 
 	/**
