@@ -29,7 +29,7 @@ class Hooks {
 	 * @return void
 	 */
 	public static function onRegistration() {
-		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $wgEmergencyContact, $wgReverbNotifications, $wgSyncServices;
+		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $wgEmergencyContact, $wgReverbNotifications;
 
 		if (!isset($wgClaimWikiEnabled)) {
 			$wgClaimWikiEnabled = true;
@@ -116,8 +116,6 @@ class Hooks {
 			]
 		];
 		$wgReverbNotifications = array_merge($wgReverbNotifications, $reverbNotifications);
-
-		$wgSyncServices[] = "ClaimWiki\\Jobs\\WikiGuardianEmailJob";
 	}
 
 	/**
