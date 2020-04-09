@@ -14,7 +14,6 @@
 			"DynamicSettings": ">= 3.0.0",
 			"HydraCore": ">= 3.0.0",
 			"Reverb": "*",
-			"SyncService": ">= 2.0.0",
 			"Twiggy": ">= 0.0.1"
 		}
 	},
@@ -47,6 +46,9 @@
 		"ClaimWiki\\Jobs\\": "src/jobs",
 		"ClaimWiki\\Specials\\": "src/specials",
 		"ClaimWiki\\Templates\\": "src/templates"
+	},
+	"JobClasses": {
+		"ClaimWiki\\Job\\WikiGuardianEmailJob": "ClaimWiki\\Job\\WikiGuardianEmailJob"
 	},
 	"Hooks": {
 		"BeforePageDisplay": "ClaimWiki\\Hooks::onBeforePageDisplay",
