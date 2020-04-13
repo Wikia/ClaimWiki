@@ -29,7 +29,8 @@ class Hooks {
 	 * @return void
 	 */
 	public static function onRegistration() {
-		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled, $wgEmergencyContact, $wgReverbNotifications;
+		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled,
+		$wgEmergencyContact, $wgReverbNotifications;
 
 		if (!isset($wgClaimWikiEnabled)) {
 			$wgClaimWikiEnabled = true;
