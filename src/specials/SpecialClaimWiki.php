@@ -188,6 +188,10 @@ class SpecialClaimWiki extends SpecialPage {
 			return ['wiki_claim_error', 'wiki_claim_below_threshhold_contributions'];
 		}
 
+		if ($this->wgUser->isBlocked()) {
+			return ['wiki_claim_error', 'wiki_claim_user_blocked'];
+		}
+
 		return false;
 	}
 
