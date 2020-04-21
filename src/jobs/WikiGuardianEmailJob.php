@@ -15,29 +15,40 @@ namespace ClaimWiki\Jobs;
 
 use Cheevos\Cheevos;
 use ClaimWiki\WikiClaim;
+use Job;
+use JobQueueGroup;
 use MailAddress;
 use MediaWiki\MediaWikiServices;
 use RedisCache;
 use Sanitizer;
-use SyncService\Job;
 use User;
 use UserMailer;
 
 class WikiGuardianEmailJob extends Job {
 	/**
+	 * Queue a new job.
+	 *
+	 * @param array $parameters Named arguments passed by the command that queued this job.
+	 *
+	 * @return void
+	 */
+	public static function queue(array $parameters = []) {
+		$job = new self(__CLASS__, $parameters);
+		JobQueueGroup::singleton()->push($job);
+	}
+
+	/**
 	 * Handles invoking emails for inactive wiki guardians.
 	 *
-	 * @param array $args
-	 *
-	 * @return integer	exit value for this thread
+	 * @return boolean Success
 	 */
-	public function execute($args = []) {
+	public function run() {
 		global $wgEmergencyContact, $wgSitename, $wgClaimWikiEnabled, $dsSiteKey;
-		$this->outputLine("Starting Wiki Guardian Email Job.\n");
+
+		$args = $this->getParams();
 
 		if (!$wgClaimWikiEnabled) {
-			$this->outputLine("Claim Wiki not Enabled. Exiting.\n");
-			return;
+			return true;
 		}
 
 		$this->DB = wfGetDB(DB_REPLICA);
@@ -90,9 +101,6 @@ class WikiGuardianEmailJob extends Job {
 				wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
 			}
 			if ($emailSent > 0 && $emailSent > $emailReminderExpired) {
-				$this->outputLine(
-					"SKIP - Reminder email already send to " . $user->getName() . " and resend is on cool down.\n"
-				);
 				continue;
 			}
 
@@ -127,20 +135,16 @@ class WikiGuardianEmailJob extends Job {
 				);
 
 				if ($status->isOK()) {
-					$this->outputLine("SUCCESS - Reminder email send to " . current($address) . ".\n");
 					try {
 						$redis->set($redisEmailKey, time());
 						$redis->expire($redisEmailKey, 1296000);
 					} catch (RedisException $e) {
 						$this->outputLine(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
 					}
-				} else {
-					$this->outputLine("ERROR - Failed to send a reminder email to " . current($address) . ".\n");
 				}
 			}
 		}
-		$this->outputLine("DONE");
-		return 0;
+		return true;
 	}
 
 	/**
