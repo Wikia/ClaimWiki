@@ -40,6 +40,13 @@ class SpecialWikiClaims extends SpecialPage {
 	private $twiggy;
 
 	/**
+	 * Wiki Claim
+	 *
+	 * @var WikiClaim
+	 */
+	private $claim = null;
+
+	/**
 	 * Main Constructor
 	 *
 	 * @return void

@@ -17,11 +17,12 @@ use DynamicSettings\DSDBFactory;
 use GlobalVarConfig;
 use HydraCore\SpecialPage;
 use InvalidArgumentException;
+use MailAddress;
 use MWException;
 use RedisCache;
-use Reverb\Notification\NotificationBroadcast;
 use Title;
 use User;
+use UserMailer;
 
 class WikiClaim {
 	/**
@@ -308,7 +309,7 @@ class WikiClaim {
 				);
 				$row = $result->fetchRow();
 			}
-			if ($row['cid'] > 0 && $row['user_id'] > 0) {
+			if ($row && $row['cid'] > 0 && $row['user_id'] > 0) {
 				// Load existing data.
 				$this->data = $row;
 				$this->data['status'] = intval($this->data['status']);
@@ -762,7 +763,7 @@ class WikiClaim {
 	}
 
 	/**
-	 * Send Reverb Notification
+	 * Send Email Notification
 	 *
 	 * @param string $status
 	 * @param User   $performer
@@ -774,8 +775,10 @@ class WikiClaim {
 		$wgClaimWikiEmailSignature = $this->config->get('ClaimWikiEmailSignature');
 		$noticeboard = Title::newFromText('Project:Admin_noticeboard');
 
-		// handle the Wiki Manager notification
-		$wikiManagers = $this->getWikiManagers();
+		$from = new MailAddress($wgEmergencyContact);
+		$claimWikiEmail = new MailAddress($this->config->get('ClaimWikiEmailTo'));
+
+		// Handle the Wiki Manager notification
 		$claimUrl = SpecialPage::getTitleFor('WikiClaims')->getFullURL(
 			[
 				'do' => 'view', 'claim_id' => $this->getId()
@@ -785,47 +788,25 @@ class WikiClaim {
 		$fromUserTitle = Title::makeTitle(NS_USER, $this->getUser()->getName());
 		$performerUserTitle = Title::makeTitle(NS_USER, $performer);
 
-		$broadcast = NotificationBroadcast::newMulti(
-			'user-moderation-wiki-claim-' . $status,
-			$this->getUser(),
-			$wikiManagers,
+		$emailBody = wfMessage('user-moderation-wiki-claim-' . $status,
+			$this->getUser()->getName(),
+			$this->config->get('Sitename'),
+			$performer->getName(),
+			$claimUrl,
+			$fromUserTitle->getFullURL(),
+			$performerUserTitle->getFullURL()
+		);
+
+		$email = new UserMailer();
+		$email->send(
+			[$claimWikiEmail],
+			$from,
+			$emailSubject,
 			[
-				'url' => $claimUrl,
-				'message' => [
-					[
-						'user_note',
-						''
-					],
-					[
-						1,
-						$this->getUser()->getName()
-					],
-					[
-						2,
-						$this->config->get('Sitename')
-					],
-					[
-						3,
-						$performer->getName()
-					],
-					[
-						4,
-						$claimUrl
-					],
-					[
-						5,
-						$fromUserTitle->getFullURL()
-					],
-					[
-						6,
-						$performerUserTitle->getFullURL()
-					]
-				]
+				'text' => $emailBody,
+				'html' => $emailBody
 			]
 		);
-		if ($broadcast) {
-			$broadcast->transmit();
-		}
 
 		// no message is sent to the user for created or deleted actions
 		if ($status == 'created' || $status == 'deleted') {
@@ -834,84 +815,29 @@ class WikiClaim {
 
 		// Handle user notification
 		$claimUrl = SpecialPage::getTitleFor('ClaimWiki')->getFullURL();
-		$userNote = wfMessageFallback("claim-email-user-account-{$status}-note", "claim-email-empty-note");
-		$broadcast = NotificationBroadcast::newSingle(
-			'user-account-wiki-claim-' . $status,
-			$performer,
-			$this->getUser(),
-			[
-				'url' => $claimUrl,
-				'message' => [
-					[
-						'user_note',
-						$userNote->params([
-							$this->getUser(),
-							$performer,
-							$wgClaimWikiEmailSignature,
-							$wgEmergencyContact,
-							$noticeboard
-						])->parse()
-					],
-					[
-						1,
-						$this->getUser()->getName()
-					],
-					[
-						2,
-						$this->config->get('Sitename')
-					],
-					[
-						3,
-						$performer->getName()
-					],
-					[
-						4,
-						$claimUrl
-					],
-					[
-						5,
-						$fromUserTitle->getFullURL()
-					],
-					[
-						6,
-						$performerUserTitle->getFullURL()
-					]
-
-				]
-			]
-		);
-		if ($broadcast) {
-			$broadcast->transmit();
-		}
-	}
-
-	/**
-	 * Get the list of user in Wiki Managers
-	 *
-	 * @return array
-	 */
-	private function getWikiManagers() {
-		$db = DSDBFactory::getMasterDB(DB_REPLICA);
-		$groups = ['wiki_manager'];
-		$wikiManagers = [];
-		$result = $db->select(
-			['user_groups', 'user'],
-			['user.*'],
-			['user_groups.ug_group'	=> $groups],
-			__METHOD__,
-			['GROUP BY' => 'user.user_id'],
-			[
-				'user_groups' => [
-					'INNER JOIN', 'user_groups.ug_user = user.user_id'
-				]
-			]
+		$emailBody = wfMessage('user-account-wiki-claim-' . $status,
+			$this->getUser()->getName(),
+			$this->config->get('Sitename'),
+			$performer->getName(),
+			$claimUrl,
+			$fromUserTitle->getFullURL(),
+			$performerUserTitle->getFullURL()
 		);
 
-		while ($row = $result->fetchObject()) {
-			$user = User::newFromRow($row);
-			$wikiManagers[] = $user;
-		}
+		$ownerEmail = $this->getUser()->getEmail();
+		if (Sanitizer::validateEmail($ownerEmail)) {
+			$address[] = new MailAddress($ownerEmail, $claim->getUser()->getName());
 
-		return $wikiManagers;
+			$email = new UserMailer();
+			$email->send(
+				$address,
+				$claimWikiEmail,
+				$emailSubject,
+				[
+					'text' => $emailBody,
+					'html' => $emailBody
+				]
+			);
+		}
 	}
 }
