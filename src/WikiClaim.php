@@ -13,7 +13,6 @@
 namespace ClaimWiki;
 
 use ConfigFactory;
-use DynamicSettings\DSDBFactory;
 use GlobalVarConfig;
 use HydraCore\SpecialPage;
 use InvalidArgumentException;
@@ -788,7 +787,8 @@ class WikiClaim {
 		$fromUserTitle = Title::makeTitle(NS_USER, $this->getUser()->getName());
 		$performerUserTitle = Title::makeTitle(NS_USER, $performer);
 
-		$emailBody = wfMessage('user-moderation-wiki-claim-' . $status,
+		$emailBody = wfMessage(
+			'user-moderation-wiki-claim-' . $status,
 			$this->getUser()->getName(),
 			$this->config->get('Sitename'),
 			$performer->getName(),
@@ -815,7 +815,8 @@ class WikiClaim {
 
 		// Handle user notification
 		$claimUrl = SpecialPage::getTitleFor('ClaimWiki')->getFullURL();
-		$emailBody = wfMessage('user-account-wiki-claim-' . $status,
+		$emailBody = wfMessage(
+			'user-account-wiki-claim-' . $status,
 			$this->getUser()->getName(),
 			$this->config->get('Sitename'),
 			$performer->getName(),
