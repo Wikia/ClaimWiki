@@ -795,13 +795,13 @@ class WikiClaim {
 			$claimUrl,
 			$fromUserTitle->getFullURL(),
 			$performerUserTitle->getFullURL()
-		);
+		)->parse();
 
 		$email = new UserMailer();
 		$email->send(
 			[$claimWikiEmail],
 			$from,
-			$emailSubject,
+			wfMessage('claim_wiki_email_subject', $performer->getName())->parse(),
 			[
 				'text' => $emailBody,
 				'html' => $emailBody
@@ -823,7 +823,7 @@ class WikiClaim {
 			$claimUrl,
 			$fromUserTitle->getFullURL(),
 			$performerUserTitle->getFullURL()
-		);
+		)->parse();
 
 		$ownerEmail = $this->getUser()->getEmail();
 		if (Sanitizer::validateEmail($ownerEmail)) {
@@ -833,7 +833,7 @@ class WikiClaim {
 			$email->send(
 				$address,
 				$claimWikiEmail,
-				$emailSubject,
+				wfMessage('claim_status_email_subject', $status)->parse(),
 				[
 					'text' => $emailBody,
 					'html' => $emailBody

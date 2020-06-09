@@ -28,6 +28,8 @@
 	"claim_created": "Your claim to this wiki has been sent to a global administrator. You will be notified by email when your request is being reviewed. You should receive a response within 24 hours.",
 	"claim_pending": "Your claim to this wiki has been set as pending by a global administrator.",
 	"claim_inactive": "Your claim to this wiki has been set as inactive by a global administrator.",
+	"claim_wiki_email_subject": "A claim has been made on {{SITENAME}} by $1.",
+	"claim_status_email_subject": "Your claim on {{SITENAME}} has been marked as $1.",
 	"approve_claim": "Approve and Promote",
 	"resume_claim": "Resume and Promote",
 	"deny_claim": "Deny Claim",
