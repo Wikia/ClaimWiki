@@ -790,7 +790,7 @@ class WikiClaim {
 		$performerUserTitle = Title::makeTitle(NS_USER, $performer);
 
 		$emailBody = wfMessage(
-			'user-moderation-wiki-claim-' . $status,
+			'long-header-user-moderation-wiki-claim-' . $status,
 			$this->getUser()->getName(),
 			$this->config->get('Sitename'),
 			$performer->getName(),
@@ -818,7 +818,7 @@ class WikiClaim {
 		// Handle user notification
 		$claimUrl = SpecialPage::getTitleFor('ClaimWiki')->getFullURL();
 		$emailBody = wfMessage(
-			'user-account-wiki-claim-' . $status,
+			'long-header-user-account-wiki-claim-' . $status,
 			$this->getUser()->getName(),
 			$this->config->get('Sitename'),
 			$performer->getName(),
