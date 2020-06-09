@@ -20,6 +20,7 @@ use MailAddress;
 use MWException;
 use RedisCache;
 use Sanitizer;
+use SpecialPage;
 use Title;
 use User;
 use UserMailer;
