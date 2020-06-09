@@ -19,6 +19,7 @@ use InvalidArgumentException;
 use MailAddress;
 use MWException;
 use RedisCache;
+use Sanitizer;
 use Title;
 use User;
 use UserMailer;
