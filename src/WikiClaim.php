@@ -14,7 +14,6 @@ namespace ClaimWiki;
 
 use ConfigFactory;
 use GlobalVarConfig;
-use HydraCore\SpecialPage;
 use InvalidArgumentException;
 use MailAddress;
 use MWException;
