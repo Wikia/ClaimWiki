@@ -13,7 +13,6 @@
 		"extensions": {
 			"DynamicSettings": ">= 3.0.0",
 			"HydraCore": ">= 3.0.0",
-			"Reverb": "*",
 			"Twiggy": ">= 0.0.1"
 		}
 	},
