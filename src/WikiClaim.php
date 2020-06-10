@@ -828,7 +828,7 @@ class WikiClaim {
 
 		$ownerEmail = $this->getUser()->getEmail();
 		if (Sanitizer::validateEmail($ownerEmail)) {
-			$address[] = new MailAddress($ownerEmail, $claim->getUser()->getName());
+			$address[] = new MailAddress($ownerEmail, $this->getUser()->getName());
 
 			$email = new UserMailer();
 			$email->send(
