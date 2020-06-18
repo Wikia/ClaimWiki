@@ -38,13 +38,13 @@
             <td><span data-sort='end_timestamp'{{ sortKey == 'end_timestamp' ? " data-selected='true'" : '' }}>{{ claim.getTimestamp('end') ? date('Y-m-d H:i e', claim.getTimestamp('end')) : wfMessage('never').escaped() }}</span></td>
             <td class='controls'>
                 <div class='controls_container'>
-                    <img src='{{ wfExpandUrl('/extensions/ClaimWiki/images/wikilist/tools.png') }}'/>
+                    <img src='{{ wfExpandUrl(wgExtensionAssetsPath~'/ClaimWiki/images/wikilist/tools.png') }}'/>
                     <span class='dropdown'>
                         {% if claim.isNew() or claim.isPending() or claim.isDenied() %}
                         <a
                             href='{{ wikiClaimsPage.getFullURL({'do': 'approve', 'user_id': claim.getUser().getId()}) }}'
                             title='{{ wfMessage('approve_claim').escaped() }}'>
-                                <img src='{{ wfExpandUrl('/extensions/ClaimWiki/images/green_check.png') }}' />
+                                <img src='{{ wfExpandUrl(wgExtensionAssetsPath~'/ClaimWiki/images/green_check.png') }}' />
                                 {{ wfMessage('approve_claim').escaped() }}
                         </a>
                         {% endif %}
@@ -52,7 +52,7 @@
                         <a
                             href='{{ wikiClaimsPage.getFullURL({'do': 'resume', 'user_id': claim.getUser().getId()}) }}'
                             title='{{ wfMessage('resume_claim').escaped() }}'>
-                                <img src='{{ wfExpandUrl('/extensions/ClaimWiki/images/green_check.png') }}' />
+                                <img src='{{ wfExpandUrl(wgExtensionAssetsPath~'/ClaimWiki/images/green_check.png') }}' />
                                 {{ wfMessage('resume_claim').escaped() }}
                         </a>
                         {% endif %}
@@ -60,7 +60,7 @@
                         <a
                             href='{{ wikiClaimsPage.getFullURL({'do': 'inactive', 'user_id': claim.getUser().getId()}) }}'
                             title='{{ wfMessage('mark_inactive').escaped() }}'>
-                                <img src='{{ wfExpandUrl('/extensions/ClaimWiki/images/yellow_check.png') }}'/>
+                                <img src='{{ wfExpandUrl(wgExtensionAssetsPath~'/ClaimWiki/images/yellow_check.png') }}'/>
                                 {{ wfMessage('mark_inactive').escaped() }}
                         </a>
                         {% endif %}
@@ -68,7 +68,7 @@
                         <a
                             href='{{ wikiClaimsPage.getFullURL({'do': 'deny', 'user_id': claim.getUser().getId()}) }}'
                             title='{{ wfMessage('deny_claim').escaped() }}'>
-                                <img src='{{ wfExpandUrl('/extensions/ClaimWiki/images/red-x.png') }}'/>
+                                <img src='{{ wfExpandUrl(wgExtensionAssetsPath~'/ClaimWiki/images/red-x.png') }}'/>
                                 {{ wfMessage('deny_claim').escaped() }}
                         </a>
                         {% endif %}
@@ -77,7 +77,7 @@
                         <a
                             href='{{ wikiClaimsPage.getFullURL({'do': 'pending', 'user_id': claim.getUser().getId()}) }}'
                             title='{{ wfMessage('pending_claim').escaped() }}'>
-                                <img src='{{ wfExpandUrl('/extensions/ClaimWiki/images/pending.png') }}'/>
+                                <img src='{{ wfExpandUrl(wgExtensionAssetsPath~'/ClaimWiki/images/pending.png') }}'/>
                                 {{ wfMessage('pending_claim').escaped() }}
                         </a>
                         {% endif %}
@@ -85,7 +85,7 @@
                         <a
                             href='{{ wikiClaimsPage.getFullURL({'do': 'delete', 'user_id': claim.getUser().getId()}) }}'
                             title='{{ wfMessage('delete_claim').escaped() }}'>
-                                <img src='{{ wfExpandUrl('/extensions/ClaimWiki/images/delete.png') }}'/>
+                                <img src='{{ wfExpandUrl(wgExtensionAssetsPath~'/ClaimWiki/images/delete.png') }}'/>
                                 {{ wfMessage('delete_claim').escaped() }}
                         </a>
                         {% endif %}
