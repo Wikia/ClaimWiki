@@ -122,6 +122,8 @@ class SpecialWikiClaims extends SpecialPage {
 	 * @return void	[Outputs to screen]
 	 */
 	public function wikiClaims() {
+		global $wgExtensionAssetsPath;
+
 		$start = $this->wgRequest->getInt('st');
 		$itemsPerPage = 25;
 		$cookieExpire = time() + 900;
@@ -158,6 +160,7 @@ class SpecialWikiClaims extends SpecialPage {
 			'pagination' => $pagination,
 			'sortKey' => $sortKey,
 			'sortDir' => $sortDir,
+			'wgExtensionAssetsPath' => $wgExtensionAssetsPath,
 			'wikiClaimsPage' => SpecialPage::getTitleFor('WikiClaims'),
 			'logUrl' => SpecialPage::getTitleFor('WikiClaims/log')->getFullURL()
 		]);
