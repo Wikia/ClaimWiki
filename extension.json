@@ -97,19 +97,6 @@
 		},
 		"ClaimWikiEditThreshold": {
 			"value": 5
-		},
-		"TwiggyAllowedPHPFunctions": {
-			"value": [
-				"strtoupper",
-				"strtolower",
-				"ucwords",
-				"is_array",
-				"count",
-				"wfExpandUrl",
-				"date",
-				"urlencode"
-			],
-			"merge_strategy": "array_merge"
 		}
 	},
 	"manifest_version": 2

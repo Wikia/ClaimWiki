@@ -30,7 +30,7 @@ class Hooks {
 	 */
 	public static function onRegistration() {
 		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled,
-		$wgEmergencyContact;
+		$wgEmergencyContact, $wgTwiggyAllowedPHPFunctions;
 
 		if (!isset($wgClaimWikiEnabled)) {
 			$wgClaimWikiEnabled = true;
@@ -41,6 +41,18 @@ class Hooks {
 		if (!isset($wgClaimWikiEmailTo) || !is_bool($wgClaimWikiEnabled)) {
 			$wgClaimWikiEmailTo = $wgEmergencyContact;
 		}
+
+		$twiggyAllowedPHPFunctions = [
+			"strtoupper",
+			"strtolower",
+			"ucwords",
+			"is_array",
+			"count",
+			"wfExpandUrl",
+			"date",
+			"urlencode"
+		];
+		$wgTwiggyAllowedPHPFunctions = array_merge($wgTwiggyAllowedPHPFunctions, $twiggyAllowedPHPFunctions);
 	}
 
 	/**
