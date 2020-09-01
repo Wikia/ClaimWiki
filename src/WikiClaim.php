@@ -311,7 +311,7 @@ class WikiClaim {
 			}
 			if ($row && $row['cid'] > 0 && $row['user_id'] > 0) {
 				// Load existing data.
-				$this->data = $row;
+				$this->data = array_intersect_key($row, $this->data);
 				$this->data['status'] = intval($this->data['status']);
 
 				$this->user = User::newFromId($row['user_id']);
