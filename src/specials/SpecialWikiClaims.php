@@ -15,14 +15,12 @@ namespace ClaimWiki\Specials;
 
 use ClaimWiki\ClaimLogPager;
 use ClaimWiki\WikiClaim;
-use ConfigFactory;
 use Html;
 use HydraCore;
 use HydraCore\SpecialPage;
 use MediaWiki\MediaWikiServices;
 use Title;
 use Twiggy\TwiggyService;
-use User;
 
 class SpecialWikiClaims extends SpecialPage {
 	/**
@@ -46,14 +44,9 @@ class SpecialWikiClaims extends SpecialPage {
 	 */
 	private $claim = null;
 
-	/**
-	 * Main Constructor
-	 *
-	 * @return void
-	 */
 	public function __construct() {
-		global $wgClaimWikiEnabled;
-		parent::__construct('WikiClaims', 'wiki_claims', $wgClaimWikiEnabled);
+		parent::__construct( 'WikiClaims', 'wiki_claims' );
+		$this->twiggy = MediaWikiServices::getInstance()->getService( 'TwiggyService' );
 	}
 
 	/**
@@ -61,30 +54,22 @@ class SpecialWikiClaims extends SpecialPage {
 	 *
 	 * @param string $subpage Sub page passed in the URL.
 	 *
-	 * @return void	[Outputs to screen]
+	 * @return void [Outputs to screen]
 	 */
-	public function execute($subpage) {
-		$config = ConfigFactory::getDefaultInstance()->makeConfig('main');
-		$wgClaimWikiEnabled = $config->get('ClaimWikiEnabled');
-
+	public function execute( $subpage ) {
 		$this->checkPermissions();
 
-		$this->twiggy = MediaWikiServices::getInstance()->getService('TwiggyService');
-
-		$this->output->addModuleStyles(['ext.claimWiki.styles']);
-		$this->output->addModules(['ext.claimWiki.scripts']);
+		$output = $this->getOutput();
+		$output->addModuleStyles( [ 'ext.claimWiki.styles' ] );
+		$output->addModules( [ 'ext.claimWiki.scripts' ] );
 
 		$this->setHeaders();
+		$output = $this->getOutput();
 
-		if (!$wgClaimWikiEnabled) {
-			$this->output->showErrorPage('wiki_claim_error', 'wiki_claim_disabled');
-			return;
-		}
-
-		if ($subpage == 'log') {
+		if ( $subpage == 'log' ) {
 			$this->showLog();
 		} else {
-			switch ($this->wgRequest->getVal('do')) {
+			switch ( $this->getRequest()->getVal( 'do' ) ) {
 				default:
 				case 'claims':
 					$this->wikiClaims();
@@ -113,103 +98,95 @@ class SpecialWikiClaims extends SpecialPage {
 			}
 		}
 
-		$this->output->addHTML($this->content);
+		$output->addHTML( $this->content );
 	}
 
 	/**
 	 * Wiki Claims List
 	 *
-	 * @return void	[Outputs to screen]
+	 * @return void [Outputs to screen]
 	 */
 	public function wikiClaims() {
 		global $wgExtensionAssetsPath;
 
-		$start = $this->wgRequest->getInt('st');
+		$request = $this->getRequest();
+		$start = $request->getInt( 'st' );
 		$itemsPerPage = 25;
 		$cookieExpire = time() + 900;
 
-		if ($this->wgRequest->getCookie('wikiClaimsSortKey') && !$this->wgRequest->getVal('sort')) {
-			$sort = $this->wgRequest->getCookie('wikiClaimsSortKey');
+		if ( $request->getCookie( 'wikiClaimsSortKey' ) && !$request->getVal( 'sort' ) ) {
+			$sort = $request->getCookie( 'wikiClaimsSortKey' );
 		} else {
-			$sort = $this->wgRequest->getVal('sort');
+			$sort = $request->getVal( 'sort' );
 		}
 		$sortKey = $sort;
-		$this->wgRequest->response()->setcookie('wikiClaimsSortKey', $sortKey, $cookieExpire);
+		$request->response()->setcookie( 'wikiClaimsSortKey', $sortKey, $cookieExpire );
 
-		$sortDir = $this->wgRequest->getVal('sort_dir');
+		$sortDir = $request->getVal( 'sort_dir' );
 
-		$claims = WikiClaim::getClaims($start, $itemsPerPage, $sortKey, $sortDir);
+		$claims = WikiClaim::getClaims( $start, $itemsPerPage, $sortKey, $sortDir );
 		$claimsCount = WikiClaim::getClaimsCount();
 
-		if (($this->wgRequest->getCookie('wikiClaimsSortDir') == 'desc' && !$sortDir)
-			|| strtolower($sortDir) == 'desc'
+		if ( ( $request->getCookie( 'wikiClaimsSortDir' ) == 'desc' && !$sortDir )
+			 || strtolower( $sortDir ) == 'desc'
 		) {
-			$claims = array_reverse($claims);
+			$claims = array_reverse( $claims );
 			$sortDir = 'desc';
 		} else {
 			$sortDir = 'asc';
 		}
-		$this->wgRequest->response()->setcookie('wikiClaimsSortDir', $sortDir, $cookieExpire);
+		$request->response()->setcookie( 'wikiClaimsSortDir', $sortDir, $cookieExpire );
 
-		$pagination = HydraCore::generatePaginationHtml($this->getFullTitle(), $claimsCount, $itemsPerPage, $start);
+		$pagination = HydraCore::generatePaginationHtml( $this->getFullTitle(), $claimsCount, $itemsPerPage, $start );
 
-		$template = $this->twiggy->load('@ClaimWiki/claim_list.twig');
-		$this->output->setPageTitle(wfMessage('wikiclaims'));
-		$this->content = $template->render([
+		$template = $this->twiggy->load( '@ClaimWiki/claim_list.twig' );
+		$this->getOutput()->setPageTitle( wfMessage( 'wikiclaims' ) );
+		$this->content = $template->render( [
 			'claims' => $claims,
 			'pagination' => $pagination,
 			'sortKey' => $sortKey,
 			'sortDir' => $sortDir,
 			'wgExtensionAssetsPath' => $wgExtensionAssetsPath,
-			'wikiClaimsPage' => SpecialPage::getTitleFor('WikiClaims'),
-			'logUrl' => SpecialPage::getTitleFor('WikiClaims/log')->getFullURL()
-		]);
+			'wikiClaimsPage' => SpecialPage::getTitleFor( 'WikiClaims' ),
+			'logUrl' => SpecialPage::getTitleFor( 'WikiClaims/log' )->getFullURL(),
+		] );
 	}
 
-	/**
-	 * Wiki Claim View
-	 *
-	 * @return void	[Outputs to screen]
-	 */
 	public function viewClaim() {
-		$claimId = $this->wgRequest->getInt('claim_id');
-		$this->claim = WikiClaim::newFromID($claimId, true);
-		if (!$this->claim) {
-			$this->output->addBacklinkSubtitle($this->getPageTitle());
-			$this->content = wfMessage('claim_not_found')->plain();
+		$claimId = $this->getRequest()->getInt( 'claim_id' );
+		$output = $this->getOutput();
+		$this->claim = WikiClaim::newFromID( $claimId, true );
+		if ( !$this->claim ) {
+			$output->addBacklinkSubtitle( $this->getPageTitle() );
+			$this->content = wfMessage( 'claim_not_found' )->plain();
 			return;
 		}
 
-		$this->output->setPageTitle(wfMessage('view_claim') . ' - ' . $this->claim->getUser()->getName());
-		$this->output->addBacklinkSubtitle($this->getPageTitle());
-		$template = $this->twiggy->load('@ClaimWiki/claim_view.twig');
-		$this->content = $template->render([
+		$output->setPageTitle( wfMessage( 'view_claim' ) . ' - ' . $this->claim->getUser()->getName() );
+		$output->addBacklinkSubtitle( $this->getPageTitle() );
+		$template = $this->twiggy->load( '@ClaimWiki/claim_view.twig' );
+		$this->content = $template->render( [
 			'claim' => $this->claim,
-			'wikiContributionsURL' => Title::newFromText('Special:Contributions')->getFullURL()
-		]);
+			'wikiContributionsURL' => Title::newFromText( 'Special:Contributions' )->getFullURL(),
+		] );
 	}
 
-	/**
-	 * Show Claim Log
-	 *
-	 * @return void
-	 */
 	public function showLog() {
-		$pager = new ClaimLogPager($this->getContext(), []);
+		$pager = new ClaimLogPager( $this->getContext() );
 
 		$body = $pager->getBody();
 
-		$this->content .= "<div id='contentSub'><span>" . wfMessage('back_to_wiki_claims')->parse() . "</span></div>";
+		$this->content .= "<div id='contentSub'><span>" . wfMessage( 'back_to_wiki_claims' )->parse() . "</span></div>";
 
-		if ($body) {
+		if ( $body ) {
 			$this->content .= $pager->getNavigationBar()
-				. Html::rawElement('ul', [], $body)
-				. $pager->getNavigationBar();
+							  . Html::rawElement( 'ul', [], $body )
+							  . $pager->getNavigationBar();
 		} else {
-			$this->content .= wfMessage('no_log_entries_found')->escaped();
+			$this->content .= wfMessage( 'no_log_entries_found' )->escaped();
 		}
 
-		$this->output->setPageTitle(wfMessage('claim_log')->escaped());
+		$this->getOutput()->setPageTitle( wfMessage( 'claim_log' )->escaped() );
 	}
 
 	/**
@@ -219,20 +196,20 @@ class SpecialWikiClaims extends SpecialPage {
 	 */
 	public function approveClaim() {
 		$this->loadClaim();
-		if (!$this->claim) {
+		if ( !$this->claim ) {
 			return;
 		}
 
 		$this->claim->setApproved();
-		$this->claim->setTimestamp(time(), 'start');
-		$this->claim->setTimestamp(0, 'end');
+		$this->claim->setTimestamp( time(), 'start' );
+		$this->claim->setTimestamp( 0, 'end' );
 		$this->claim->save();
-		$this->claim->getUser()->addGroup('wiki_guardian');
+		$this->claim->getUser()->addGroup( 'wiki_guardian' );
 
-		$this->claim->sendNotification('approved', $this->getUser());
+		$this->claim->sendNotification( 'approved', $this->getUser() );
 
-		$page = Title::newFromText('Special:WikiClaims');
-		$this->output->redirect($page->getFullURL());
+		$page = Title::newFromText( 'Special:WikiClaims' );
+		$this->getOutput()->redirect( $page->getFullURL() );
 	}
 
 	/**
@@ -242,19 +219,19 @@ class SpecialWikiClaims extends SpecialPage {
 	 */
 	public function resumeClaim() {
 		$this->loadClaim();
-		if (!$this->claim) {
+		if ( !$this->claim ) {
 			return;
 		}
 
 		$this->claim->setApproved();
-		$this->claim->setTimestamp(0, 'end');
+		$this->claim->setTimestamp( 0, 'end' );
 		$this->claim->save();
-		$this->claim->getUser()->addGroup('wiki_guardian');
+		$this->claim->getUser()->addGroup( 'wiki_guardian' );
 
-		$this->claim->sendNotification('resumed', $this->getUser());
+		$this->claim->sendNotification( 'resumed', $this->getUser() );
 
-		$page = Title::newFromText('Special:WikiClaims');
-		$this->output->redirect($page->getFullURL());
+		$page = Title::newFromText( 'Special:WikiClaims' );
+		$this->getOutput()->redirect( $page->getFullURL() );
 	}
 
 	/**
@@ -264,18 +241,18 @@ class SpecialWikiClaims extends SpecialPage {
 	 */
 	public function denyClaim() {
 		$this->loadClaim();
-		if (!$this->claim) {
+		if ( !$this->claim ) {
 			return;
 		}
 
 		$this->claim->setDenied();
 		$this->claim->save();
-		$this->claim->getUser()->removeGroup('wiki_guardian');
+		$this->claim->getUser()->removeGroup( 'wiki_guardian' );
 
-		$this->claim->sendNotification('denied', $this->getUser());
+		$this->claim->sendNotification( 'denied', $this->getUser() );
 
-		$page = Title::newFromText('Special:WikiClaims');
-		$this->output->redirect($page->getFullURL());
+		$page = Title::newFromText( 'Special:WikiClaims' );
+		$this->getOutput()->redirect( $page->getFullURL() );
 	}
 
 	/**
@@ -285,18 +262,18 @@ class SpecialWikiClaims extends SpecialPage {
 	 */
 	public function pendingClaim() {
 		$this->loadClaim();
-		if (!$this->claim) {
+		if ( !$this->claim ) {
 			return;
 		}
 
 		$this->claim->setPending();
 		$this->claim->save();
-		$this->claim->getUser()->removeGroup('wiki_guardian');
+		$this->claim->getUser()->removeGroup( 'wiki_guardian' );
 
-		$this->claim->sendNotification('pending', $this->getUser());
+		$this->claim->sendNotification( 'pending', $this->getUser() );
 
-		$page = Title::newFromText('Special:WikiClaims');
-		$this->output->redirect($page->getFullURL());
+		$page = Title::newFromText( 'Special:WikiClaims' );
+		$output->redirect( $page->getFullURL() );
 	}
 
 	/**
@@ -306,64 +283,49 @@ class SpecialWikiClaims extends SpecialPage {
 	 */
 	public function inactiveClaim() {
 		$this->loadClaim();
-		if (!$this->claim) {
+		if ( !$this->claim ) {
 			return;
 		}
 
 		$this->claim->setInactive();
-		$this->claim->setTimestamp(time(), 'end');
+		$this->claim->setTimestamp( time(), 'end' );
 		$this->claim->save();
-		$this->claim->getUser()->removeGroup('wiki_guardian');
+		$this->claim->getUser()->removeGroup( 'wiki_guardian' );
 
-		$this->claim->sendNotification('inactive', $this->getUser());
+		$this->claim->sendNotification( 'inactive', $this->getUser() );
 
-		$page = Title::newFromText('Special:WikiClaims');
-		$this->output->redirect($page->getFullURL());
+		$page = Title::newFromText( 'Special:WikiClaims' );
+		$output->redirect( $page->getFullURL() );
 	}
 
-	/**
-	 * Delete Claim
-	 *
-	 * @return void
-	 */
-	public function deleteClaim() {
+	public function deleteClaim(): void {
 		$this->loadClaim();
-		if (!$this->claim) {
+		if ( !$this->claim ) {
 			return;
 		}
 
 		$this->claim->setDeleted();
-		$this->claim->setTimestamp(time(), 'end');
+		$this->claim->setTimestamp( time(), 'end' );
 		$this->claim->save();
-		$this->claim->getUser()->removeGroup('wiki_guardian');
+		$this->claim->getUser()->removeGroup( 'wiki_guardian' );
 
-		$this->claim->sendNotification('deleted', $this->getUser());
+		$this->claim->sendNotification( 'deleted', $this->getUser() );
 
-		$page = Title::newFromText('Special:WikiClaims');
-		$this->output->redirect($page->getFullURL());
+		$page = Title::newFromText( 'Special:WikiClaims' );
+		$this->getOutput()->redirect( $page->getFullURL() );
 	}
 
-	/**
-	 * Load Claim
-	 *
-	 * @return object	Loaded wikiClaim object.
-	 */
-	private function loadClaim() {
-		$userId = $this->wgRequest->getInt('user_id');
-		$user = User::newFromId($userId);
-		if (!$user->getId()) {
-			$this->output->showErrorPage('wiki_claim_error', 'view_claim_bad_user_id');
-			return false;
+	private function loadClaim(): void {
+		$userId = $this->getRequest()->getInt( 'user_id' );
+		$user = MediaWikiServices::getInstance()->getUserFactory()->newFromId( $userId );
+		if ( !$user->getId() ) {
+			$this->getOutput()->showErrorPage( 'wiki_claim_error', 'view_claim_bad_user_id' );
+			return;
 		}
 
-		$this->claim = WikiClaim::newFromUser($user);
+		$this->claim = WikiClaim::newFromUser( $user );
 	}
 
-	/**
-	 * Return the group name for this special page.
-	 *
-	 * @return string
-	 */
 	protected function getGroupName() {
 		return 'claimwiki';
 	}

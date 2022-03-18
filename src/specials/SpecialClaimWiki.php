@@ -14,7 +14,6 @@
 namespace ClaimWiki\Specials;
 
 use ClaimWiki\WikiClaim;
-use ConfigFactory;
 use GlobalVarConfig;
 use HydraCore\SpecialPage;
 use MediaWiki\MediaWikiServices;
@@ -35,6 +34,10 @@ class SpecialClaimWiki extends SpecialPage {
 	 * @var GlobalVarConfig
 	 */
 	private $config;
+	/**
+	 * @var WikiClaim|false|mixed
+	 */
+	private $claim;
 
 	/**
 	 * Main Constructor
@@ -42,7 +45,7 @@ class SpecialClaimWiki extends SpecialPage {
 	 * @return void
 	 */
 	public function __construct() {
-		parent::__construct('ClaimWiki', 'claim_wiki', false);
+		parent::__construct( 'ClaimWiki', 'claim_wiki', false );
 	}
 
 	/**
@@ -52,24 +55,24 @@ class SpecialClaimWiki extends SpecialPage {
 	 *
 	 * @return void [Outputs to screen]
 	 */
-	public function execute($subpage) {
+	public function execute( $subpage ) {
 		$this->checkPermissions();
 
-		$this->config = ConfigFactory::getDefaultInstance()->makeConfig('main');
-		$this->twiggy = MediaWikiServices::getInstance()->getService('TwiggyService');
+		$this->config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'main' );
+		$this->twiggy = MediaWikiServices::getInstance()->getService( 'TwiggyService' );
 
-		$this->output->addModuleStyles(['ext.claimWiki.styles']);
-		$this->output->addModules(['ext.claimWiki.scripts']);
+		$this->getOutput()->addModuleStyles( [ 'ext.claimWiki.styles' ] );
+		$this->getOutput()->addModules( [ 'ext.claimWiki.scripts' ] );
 
 		$this->setHeaders();
 
 		$errors = $this->checkForClaimErrors();
-		if ($errors) {
-			$this->output->showErrorPage(...$errors);
+		if ( !empty( $errors ) ) {
+			$this->getOutput()->showErrorPage( ...$errors );
 			return;
 		}
 
-		$this->claim = WikiClaim::newFromUser($this->getUser());
+		$this->claim = WikiClaim::newFromUser( $this->getUser() );
 		$this->render();
 	}
 
@@ -78,38 +81,42 @@ class SpecialClaimWiki extends SpecialPage {
 	 *
 	 * @return mixed
 	 */
-	private function render() {
-		$this->output->setPageTitle(wfMessage('claim_this_wiki'));
+	private function render(): void {
+		$this->getOutput()->setPageTitle( wfMessage( 'claim_this_wiki' ) );
 		$errors = [];
 
 		// Display claim status
-		if ($this->claim->getStatus() >= 0) {
-			$wgSiteName  = $this->config->get('Sitename');
-			$mainPage    = new Title();
+		if ( $this->claim->getStatus() >= 0 ) {
+			$wgSiteName = $this->config->get( 'Sitename' );
+			$mainPage = Title::newMainPage();
 			$mainPageURL = $mainPage->getFullURL();
-			$template = $this->twiggy->load('@ClaimWiki/claim_status.twig');
-			return $this->output->addHTML($template->render([
-				'claim' => $this->claim,
-				'errors' => $errors,
-				'wgSiteName' => $wgSiteName,
-				'mainPageURL' => $mainPageURL
-			]));
+			$template = $this->twiggy->load( '@ClaimWiki/claim_status.twig' );
+			$this->getOutput()->addHTML(
+				$template->render( [
+					'claim' => $this->claim,
+					'errors' => $errors,
+					'wgSiteName' => $wgSiteName,
+					'mainPageURL' => $mainPageURL,
+				] )
+			);
+			return;
 		}
 
 		// Saving claim
-		if ($this->getRequest()->wasPosted() && $this->getRequest()->getVal('do') === 'save') {
-			$errors = $this->validateRequest($errors);
+		if ( $this->getRequest()->wasPosted() && $this->getRequest()->getVal( 'do' ) === 'save' ) {
+			$errors = $this->validateRequest( $errors );
 			// if no errors save claim and redirect to success
-			if (!$errors) {
+			if ( !$errors ) {
 				$this->claimSave();
-				$page = Title::newFromText('Special:ClaimWiki');
-				return $this->output->redirect($page->getFullURL() . "?success=true");
+				$page = Title::newFromText( 'Special:ClaimWiki' );
+				$this->getOutput()->redirect( $page->getFullURL() . "?success=true" );
+				return;
 			}
 		}
 
 		// Show form
-		$template = $this->twiggy->load('@ClaimWiki/claim_form.twig');
-		return $this->output->addHTML($template->render(['claim' => $this->claim, 'errors' => $errors]));
+		$template = $this->twiggy->load( '@ClaimWiki/claim_form.twig' );
+		$this->getOutput()->addHTML( $template->render( [ 'claim' => $this->claim, 'errors' => $errors ] ) );
 	}
 
 	/**
@@ -121,8 +128,8 @@ class SpecialClaimWiki extends SpecialPage {
 		$this->claim->setNew();
 		$success = $this->claim->save();
 
-		if ($success) {
-			$this->claim->sendNotification('created', $this->getUser());
+		if ( $success ) {
+			$this->claim->sendNotification( 'created', $this->getUser() );
 		}
 	}
 
@@ -133,66 +140,65 @@ class SpecialClaimWiki extends SpecialPage {
 	 *
 	 * @return array
 	 */
-	private function validateRequest($errors) {
+	private function validateRequest( $errors ) {
 		$request = $this->getRequest();
 		$questionKeys = $this->claim->getQuestionKeys();
 		// check for agreement
-		$this->claim->setTimestamp(time(), 'claim');
+		$this->claim->setTimestamp( time(), 'claim' );
 
-		if ($request->getVal('agreement') == 'agreed') {
+		if ( $request->getVal( 'agreement' ) == 'agreed' ) {
 			$this->claim->setAgreed();
 		} else {
-			$errors['agreement'] = wfMessage('claim_agree_error')->escaped();
+			$errors['agreement'] = wfMessage( 'claim_agree_error' )->escaped();
 		}
 		// check that all required questions have answers
-		array_walk($questionKeys, function ($key) use ($request) {
-			$this->claim->setAnswer($key, trim($request->getVal($key)));
-		});
-		return array_merge($errors, $this->claim->getErrors());
+		array_walk( $questionKeys, function ( $key ) use ( $request ) {
+			$this->claim->setAnswer( $key, trim( $request->getVal( $key ) ) );
+		} );
+		return array_merge( $errors, $this->claim->getErrors() );
 	}
 
 	/**
 	 * Check for common claim errors
-	 *
-	 * @return boolean
+	 * @return string[]
 	 */
-	private function checkForClaimErrors() {
-		$wgClaimWikiEnabled = $this->config->get('ClaimWikiEnabled');
-		$wgClaimWikiGuardianTotal = $this->config->get('ClaimWikiGuardianTotal');
-		$wgClaimWikiEditThreshold = $this->config->get('ClaimWikiEditThreshold');
+	private function checkForClaimErrors(): array {
+		$wgClaimWikiEnabled = $this->config->get( 'ClaimWikiEnabled' );
+		$wgClaimWikiGuardianTotal = $this->config->get( 'ClaimWikiGuardianTotal' );
+		$wgClaimWikiEditThreshold = $this->config->get( 'ClaimWikiEditThreshold' );
 
-		if (!$wgClaimWikiEnabled) {
-			return ['wiki_claim_error', 'wiki_claim_disabled'];
+		if ( !$wgClaimWikiEnabled ) {
+			return [ 'wiki_claim_error', 'wiki_claim_disabled' ];
 		}
 
-		if (in_array('wiki_guardian', $this->wgUser->getGroups())) {
-			return ['wiki_claim_error', 'wiki_claim_already_guardian'];
+		if ( in_array( 'wiki_guardian', $this->getUser()->getGroups() ) ) {
+			return [ 'wiki_claim_error', 'wiki_claim_already_guardian' ];
 		}
 
-		$result = $this->DB->select(
+		$db = wfGetDB( DB_PRIMARY );
+		$result = $db->select(
 			'wiki_claims',
-			['COUNT(*) as total'],
+			[ 'COUNT(*) as total' ],
 			[
-				'status' => intval(WikiClaim::CLAIM_APPROVED),
-				'end_timestamp' => 0
+				'status' => intval( WikiClaim::CLAIM_APPROVED ),
+				'end_timestamp' => 0,
 			],
 			__METHOD__
 		);
 		$total = $result->fetchRow();
 
-		if ($total['total'] >= $wgClaimWikiGuardianTotal) {
-			return ['wiki_claim_error', 'wiki_claim_maximum_guardians'];
+		if ( $total['total'] >= $wgClaimWikiGuardianTotal ) {
+			return [ 'wiki_claim_error', 'wiki_claim_maximum_guardians' ];
 		}
 
-		if ($this->wgUser->getEditCount() < $wgClaimWikiEditThreshold) {
-			return ['wiki_claim_error', 'wiki_claim_below_threshhold_contributions'];
+		if ( $this->getUser()->getEditCount() < $wgClaimWikiEditThreshold ) {
+			return [ 'wiki_claim_error', 'wiki_claim_below_threshhold_contributions' ];
 		}
 
-		if ($this->wgUser->isBlocked()) {
-			return ['wiki_claim_error', 'wiki_claim_user_blocked'];
+		if ( $this->getUser()->isBlocked() ) {
+			return [ 'wiki_claim_error', 'wiki_claim_user_blocked' ];
 		}
-
-		return false;
+		return [];
 	}
 
 	/**

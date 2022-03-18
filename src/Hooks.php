@@ -13,7 +13,6 @@
 
 namespace ClaimWiki;
 
-use ConfigFactory;
 use DatabaseUpdater;
 use MediaWiki\MediaWikiServices;
 use OutputPage;
@@ -32,13 +31,13 @@ class Hooks {
 		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled,
 		$wgEmergencyContact, $wgTwiggyAllowedPHPFunctions;
 
-		if (!isset($wgClaimWikiEnabled)) {
+		if ( !isset( $wgClaimWikiEnabled ) ) {
 			$wgClaimWikiEnabled = true;
 		}
 
 		$wgGroupPermissions['wiki_guardian'] = $wgGroupPermissions['sysop'];
 
-		if (!isset($wgClaimWikiEmailTo) || !is_bool($wgClaimWikiEnabled)) {
+		if ( !isset( $wgClaimWikiEmailTo ) || !is_bool( $wgClaimWikiEnabled ) ) {
 			$wgClaimWikiEmailTo = $wgEmergencyContact;
 		}
 
@@ -52,25 +51,25 @@ class Hooks {
 			"date",
 			"urlencode"
 		];
-		$wgTwiggyAllowedPHPFunctions = array_merge($wgTwiggyAllowedPHPFunctions, $twiggyAllowedPHPFunctions);
+		$wgTwiggyAllowedPHPFunctions = array_merge( $wgTwiggyAllowedPHPFunctions, $twiggyAllowedPHPFunctions );
 	}
 
 	/**
 	 * Add resource loader modules.
 	 *
-	 * @param object $output MediaWiki Output Object
-	 * @param object $skin   MediaWiki Skin Object
+	 * @param object &$output MediaWiki Output Object
+	 * @param object &$skin MediaWiki Skin Object
 	 *
-	 * @return boolean True
+	 * @return bool True
 	 */
-	public static function onBeforePageDisplay(OutputPage &$output, Skin &$skin) {
+	public static function onBeforePageDisplay( OutputPage &$output, Skin &$skin ) {
 		global $wgClaimWikiEnabled;
 
-		if (!$wgClaimWikiEnabled) {
+		if ( !$wgClaimWikiEnabled ) {
 			return true;
 		}
 
-		$output->addModules('ext.claimWiki.styles');
+		$output->addModules( 'ext.claimWiki.styles' );
 
 		return true;
 	}
@@ -79,25 +78,25 @@ class Hooks {
 	 * Claim Wiki Side Bar
 	 *
 	 * @param object $skin Skin Object
-	 * @param array  $bar  Array of bar contents to modify.
+	 * @param array &$bar Array of bar contents to modify.
 	 *
 	 * @return bool	True - Must return true or the site will break.
 	 */
-	public static function onSkinBuildSidebar(Skin $skin, &$bar) {
-		$config = ConfigFactory::getDefaultInstance()->makeConfig('main');
-		$wgClaimWikiEnabled = $config->get('ClaimWikiEnabled');
-		$wgClaimWikiGuardianTotal = $config->get('ClaimWikiGuardianTotal');
+	public static function onSkinBuildSidebar( Skin $skin, &$bar ) {
+		$config = MediaWikiServices::getInstance()->getMainConfig();
+		$wgClaimWikiEnabled = $config->get( 'ClaimWikiEnabled' );
+		$wgClaimWikiGuardianTotal = $config->get( 'ClaimWikiGuardianTotal' );
 
-		if (!$wgClaimWikiEnabled) {
+		if ( !$wgClaimWikiEnabled ) {
 			return true;
 		}
 
-		$DB = wfGetDB(DB_REPLICA);
+		$DB = wfGetDB( DB_REPLICA );
 		$result = $DB->select(
 			'wiki_claims',
-			['COUNT(*) as total'],
+			[ 'COUNT(*) as total' ],
 			[
-				'status' => intval(WikiClaim::CLAIM_APPROVED),
+				'status' => intval( WikiClaim::CLAIM_APPROVED ),
 				'end_timestamp' => 0
 			],
 			__METHOD__
@@ -105,12 +104,12 @@ class Hooks {
 
 		$total = $result->fetchRow();
 
-		if ($total['total'] < $wgClaimWikiGuardianTotal) {
-			$page = Title::newFromText('Special:ClaimWiki');
+		if ( $total['total'] < $wgClaimWikiGuardianTotal ) {
+			$page = Title::newFromText( 'Special:ClaimWiki' );
 
 			$claimSidebarContent = "<div class='claimSidebar'><a href='" . $page->getFullURL() . "'>&nbsp;</a></div>";
 			$_bar['claimWiki'] = $claimSidebarContent;
-			$bar = array_merge($_bar, $bar);
+			$bar = array_merge( $_bar, $bar );
 		}
 
 		return true;
@@ -119,20 +118,20 @@ class Hooks {
 	/**
 	 * Detect changes to the user groups and update users in the wiki_guardian group as needed.
 	 *
-	 * @param object $user    User or UserRightsProxy object changed.
-	 * @param array  $add
-	 * @param array  $remove
-	 * @param array  ...$args all additional arguments
+	 * @param object $user User or UserRightsProxy object changed.
+	 * @param array $add
+	 * @param array $remove
+	 * @param array ...$args all additional arguments
 	 *
-	 * @return boolean	True
+	 * @return bool True
 	 */
-	public static function onUserGroupsChanged($user, array $add, array $remove, ...$args) {
-		if (!$user instanceof User || !$user->getId()) {
+	public static function onUserGroupsChanged( $user, array $add, array $remove, ...$args ) {
+		if ( !$user instanceof User || !$user->getId() ) {
 			return true;
 		}
-		if (in_array('wiki_guardian', $remove)) {
-			$claim = WikiClaim::newFromUser($user);
-			if ($claim !== false && $claim->isLoaded()) {
+		if ( in_array( 'wiki_guardian', $remove ) ) {
+			$claim = WikiClaim::newFromUser( $user );
+			if ( $claim !== false && $claim->isLoaded() ) {
 				$claim->setDeleted();
 				$claim->save();
 			}
@@ -143,45 +142,44 @@ class Hooks {
 	/**
 	 * Add sysop to effective groups when the user has wiki_guardian.
 	 *
-	 * @param object $user        User
-	 * @param array  $aUserGroups "Actual" user groups that should reflect the rows in the database.
+	 * @param object &$user User
+	 * @param array &$aUserGroups "Actual" user groups that should reflect the rows in the database.
 	 *
 	 * @return void
 	 */
-	public static function onUserEffectiveGroups(&$user, &$aUserGroups) {
-		if (in_array('wiki_guardian', $aUserGroups)) {
+	public static function onUserEffectiveGroups( &$user, &$aUserGroups ): void {
+		if ( in_array( 'wiki_guardian', $aUserGroups ) ) {
 			$aUserGroups[] = 'sysop';
 		}
-		return true;
 	}
 
 	/**
 	 * Setups and Modifies Database Information
 	 *
-	 * @param object $updater [Optional] DatabaseUpdater Object
+	 * @param object|null $updater [Optional] DatabaseUpdater Object
 	 *
-	 * @return boolean	true
+	 * @return bool true
 	 */
-	public static function onLoadExtensionSchemaUpdates(DatabaseUpdater $updater = null) {
+	public static function onLoadExtensionSchemaUpdates( DatabaseUpdater $updater = null ) {
 		$extDir = __DIR__ . '/../';
 
 		// Tables
 		// 2015-01-08
-		$updater->addExtensionUpdate([
+		$updater->addExtensionUpdate( [
 			'addTable',
 			'wiki_claims',
 			"{$extDir}/install/sql/claimwiki_table_wiki_claims.sql", true
-		]);
-		$updater->addExtensionUpdate([
+		] );
+		$updater->addExtensionUpdate( [
 			'addTable',
 			'wiki_claims_answers',
 			"{$extDir}/install/sql/claimwiki_table_wiki_claims_answers.sql", true
-		]);
-		$updater->addExtensionUpdate([
+		] );
+		$updater->addExtensionUpdate( [
 			'addTable',
 			'wiki_claims_log',
 			"{$extDir}/install/sql/claimwiki_table_wiki_claims_log.sql", true
-		]);
+		] );
 
 		return true;
 	}
@@ -190,12 +188,12 @@ class Hooks {
 	 * Setup Twig Templates
 	 *
 	 * @param SpecialPage $special
-	 * @param string      $subPage
+	 * @param string $subPage
 	 *
 	 * @return void
 	 */
-	public static function onSpecialPageBeforeExecute(SpecialPage $special, $subPage) {
-		$twig = MediaWikiServices::getInstance()->getService('TwiggyService');
-		$twig->setTemplateLocation('ClaimWiki', __DIR__ . '/../resources/templates');
+	public static function onSpecialPageBeforeExecute( SpecialPage $special, $subPage ) {
+		$twig = MediaWikiServices::getInstance()->getService( 'TwiggyService' );
+		$twig->setTemplateLocation( 'ClaimWiki', __DIR__ . '/../resources/templates' );
 	}
 }

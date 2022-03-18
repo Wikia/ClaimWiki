@@ -20,7 +20,7 @@ class ClaimLogEntry {
 	 * Constructor
 	 */
 	public function __construct() {
-		$this->DB = wfGetDB(DB_MASTER);
+		$this->DB = wfGetDB(DB_PRIMARY);
 	}
 
 	/**
