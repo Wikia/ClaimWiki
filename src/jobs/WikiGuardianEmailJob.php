@@ -16,7 +16,6 @@ namespace ClaimWiki\Jobs;
 use Cheevos\Cheevos;
 use ClaimWiki\WikiClaim;
 use Job;
-use JobQueueGroup;
 use MailAddress;
 use MediaWiki\MediaWikiServices;
 use RedisCache;
@@ -32,59 +31,59 @@ class WikiGuardianEmailJob extends Job {
 	 *
 	 * @return void
 	 */
-	public static function queue(array $parameters = []) {
-		$job = new self(__CLASS__, $parameters);
-		JobQueueGroup::singleton()->push($job);
+	public static function queue( array $parameters = [] ) {
+		$job = new self( __CLASS__, $parameters );
+		MediaWikiServices::getInstance()->getJobQueueGroup()->push( $job );
 	}
 
 	/**
 	 * Handles invoking emails for inactive wiki guardians.
 	 *
-	 * @return boolean Success
+	 * @return bool Success
 	 */
 	public function run() {
 		global $wgEmergencyContact, $wgSitename, $wgClaimWikiEnabled, $dsSiteKey;
 
 		$args = $this->getParams();
 
-		if (!$wgClaimWikiEnabled) {
+		if ( !$wgClaimWikiEnabled ) {
 			return true;
 		}
 
-		$this->DB = wfGetDB(DB_REPLICA);
-		$redis = RedisCache::getClient('cache');
-		$this->twiggy = MediaWikiServices::getInstance()->getService('TwiggyService');
+		$this->DB = wfGetDB( DB_REPLICA );
+		$redis = RedisCache::getClient( 'cache' );
+		$this->twiggy = MediaWikiServices::getInstance()->getService( 'TwiggyService' );
 
 		$results = $this->DB->select(
-			['wiki_claims'],
-			['*'],
+			[ 'wiki_claims' ],
+			[ '*' ],
 			[
 				'agreed' => 1,
-				'status' => intval(WikiClaim::CLAIM_APPROVED),
+				'status' => intval( WikiClaim::CLAIM_APPROVED ),
 				'start_timestamp > 0',
 				'end_timestamp' => 0
 			],
 			__METHOD__
 		);
 
-		while ($row = $results->fetchRow()) {
+		while ( $row = $results->fetchRow() ) {
 			$address = [];
 
-			$user = User::newFromId($row['user_id']);
-			if (!$user->getId()) {
+			$user = User::newFromId( $row['user_id'] );
+			if ( !$user->getId() ) {
 				continue;
 			}
 
-			$claim = WikiClaim::newFromUser($user);
+			$claim = WikiClaim::newFromUser( $user );
 			$redisEmailKey = wfWikiID() . ':guardianReminderEmail:timeSent:' . $user->getId();
 
 			$cheevosUser = Cheevos::getWikiPointLog(
 				[
-					'site_id' => ($dsSiteKey ? $dsSiteKey : null)
+					'site_id' => ( $dsSiteKey ? $dsSiteKey : null )
 				],
 				$user
 			);
-			if (isset($cheevosUser[0]) && $cheevosUser[0]->getUser_Id()) {
+			if ( isset( $cheevosUser[0] ) && $cheevosUser[0]->getUser_Id() ) {
 				$timestamp = $cheevosUser[0]->getTimestamp();
 				 // Thirty Days
 				$oldTimestamp = time() - 5184000;
@@ -96,31 +95,31 @@ class WikiGuardianEmailJob extends Job {
 			}
 
 			try {
-				$emailSent = $redis->get($redisEmailKey);
-			} catch (RedisException $e) {
-				wfDebug(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
+				$emailSent = $redis->get( $redisEmailKey );
+			} catch ( RedisException $e ) {
+				wfDebug( __METHOD__ . ": Caught RedisException - " . $e->getMessage() );
 			}
-			if ($emailSent > 0 && $emailSent > $emailReminderExpired) {
+			if ( $emailSent > 0 && $emailSent > $emailReminderExpired ) {
 				continue;
 			}
 
-			if ($timestamp <= $oldTimestamp) {
+			if ( $timestamp <= $oldTimestamp ) {
 				// Send a reminder email.
-				if ($_SERVER['PHP_ENV'] != 'development') {
+				if ( $_SERVER['PHP_ENV'] != 'development' ) {
 					$ownerEmail = $claim->getUser()->getEmail();
-					if (Sanitizer::validateEmail($ownerEmail)) {
-						$address[] = new MailAddress($ownerEmail, $claim->getUser()->getName());
+					if ( Sanitizer::validateEmail( $ownerEmail ) ) {
+						$address[] = new MailAddress( $ownerEmail, $claim->getUser()->getName() );
 					}
 					$emailSubject = 'Inactive Wiki Guardian Notification - ' . $wgSitename;
 				} else {
-					$address[] = new MailAddress("wikitest@curse.com", 'Hydra Testers');
+					$address[] = new MailAddress( "wikitest@curse.com", 'Hydra Testers' );
 					$emailSubject = '~~ DEVELOPMENT WIKI GUARDIAN EMAIL ~~ ' . $wgSitename;
 				}
 
-				$from = new MailAddress($wgEmergencyContact);
+				$from = new MailAddress( $wgEmergencyContact );
 				$address[] = $from;
 
-				$template = $this->twiggy->load('@ClaimWiki/claim_email_inactive.twig');
+				$template = $this->twiggy->load( '@ClaimWiki/claim_email_inactive.twig' );
 				$email = new UserMailer();
 				$status = $email->send(
 					$address,
@@ -128,18 +127,18 @@ class WikiGuardianEmailJob extends Job {
 					$emailSubject,
 					[
 						'text' => strip_tags(
-							$template->render(['username' => $user->getName(), 'sitename' => $wgSitename])
+							$template->render( [ 'username' => $user->getName(), 'sitename' => $wgSitename ] )
 						),
-						'html' => $template->render(['username' => $user->getName(), 'sitename' => $wgSitename])
+						'html' => $template->render( [ 'username' => $user->getName(), 'sitename' => $wgSitename ] )
 					]
 				);
 
-				if ($status->isOK()) {
+				if ( $status->isOK() ) {
 					try {
-						$redis->set($redisEmailKey, time());
-						$redis->expire($redisEmailKey, 1296000);
-					} catch (RedisException $e) {
-						$this->outputLine(__METHOD__ . ": Caught RedisException - " . $e->getMessage());
+						$redis->set( $redisEmailKey, time() );
+						$redis->expire( $redisEmailKey, 1296000 );
+					} catch ( RedisException $e ) {
+						$this->outputLine( __METHOD__ . ": Caught RedisException - " . $e->getMessage() );
 					}
 				}
 			}
