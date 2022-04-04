@@ -29,7 +29,7 @@ class Hooks {
 	 */
 	public static function onRegistration() {
 		global $wgGroupPermissions, $wgClaimWikiEmailTo, $wgClaimWikiEnabled,
-		$wgEmergencyContact, $wgTwiggyAllowedPHPFunctions;
+			   $wgEmergencyContact, $wgTwiggyAllowedPHPFunctions;
 
 		if ( !isset( $wgClaimWikiEnabled ) ) {
 			$wgClaimWikiEnabled = true;
@@ -42,16 +42,17 @@ class Hooks {
 		}
 
 		$twiggyAllowedPHPFunctions = [
-			"strtoupper",
-			"strtolower",
-			"ucwords",
-			"is_array",
-			"count",
-			"wfExpandUrl",
-			"date",
-			"urlencode"
+			'strtoupper',
+			'strtolower',
+			'ucwords',
+			'is_array',
+			'count',
+			'wfExpandUrl',
+			'date',
+			'urlencode',
 		];
-		$wgTwiggyAllowedPHPFunctions = array_merge( $wgTwiggyAllowedPHPFunctions, $twiggyAllowedPHPFunctions );
+		$wgTwiggyAllowedPHPFunctions =
+			array_merge( $wgTwiggyAllowedPHPFunctions, $twiggyAllowedPHPFunctions );
 	}
 
 	/**
@@ -80,10 +81,11 @@ class Hooks {
 	 * @param object $skin Skin Object
 	 * @param array &$bar Array of bar contents to modify.
 	 *
-	 * @return bool	True - Must return true or the site will break.
+	 * @return bool    True - Must return true or the site will break.
 	 */
 	public static function onSkinBuildSidebar( Skin $skin, &$bar ) {
-		$config = MediaWikiServices::getInstance()->getMainConfig();
+		$services = MediaWikiServices::getInstance();
+		$config = $services->getMainConfig();
 		$wgClaimWikiEnabled = $config->get( 'ClaimWikiEnabled' );
 		$wgClaimWikiGuardianTotal = $config->get( 'ClaimWikiGuardianTotal' );
 
@@ -91,13 +93,14 @@ class Hooks {
 			return true;
 		}
 
-		$DB = wfGetDB( DB_REPLICA );
-		$result = $DB->select(
+		$lb = $services->getDBLoadBalancer();
+		$db = $lb->getConnectionRef( DB_REPLICA );
+		$result = $db->select(
 			'wiki_claims',
 			[ 'COUNT(*) as total' ],
 			[
-				'status' => intval( WikiClaim::CLAIM_APPROVED ),
-				'end_timestamp' => 0
+				'status' => WikiClaim::CLAIM_APPROVED,
+				'end_timestamp' => 0,
 			],
 			__METHOD__
 		);
@@ -107,7 +110,8 @@ class Hooks {
 		if ( $total['total'] < $wgClaimWikiGuardianTotal ) {
 			$page = Title::newFromText( 'Special:ClaimWiki' );
 
-			$claimSidebarContent = "<div class='claimSidebar'><a href='" . $page->getFullURL() . "'>&nbsp;</a></div>";
+			$claimSidebarContent =
+				"<div class='claimSidebar'><a href='" . $page->getFullURL() . "'>&nbsp;</a></div>";
 			$_bar['claimWiki'] = $claimSidebarContent;
 			$bar = array_merge( $_bar, $bar );
 		}
@@ -136,6 +140,7 @@ class Hooks {
 				$claim->save();
 			}
 		}
+
 		return true;
 	}
 
@@ -168,17 +173,20 @@ class Hooks {
 		$updater->addExtensionUpdate( [
 			'addTable',
 			'wiki_claims',
-			"{$extDir}/install/sql/claimwiki_table_wiki_claims.sql", true
+			"{$extDir}/install/sql/claimwiki_table_wiki_claims.sql",
+			true,
 		] );
 		$updater->addExtensionUpdate( [
 			'addTable',
 			'wiki_claims_answers',
-			"{$extDir}/install/sql/claimwiki_table_wiki_claims_answers.sql", true
+			"{$extDir}/install/sql/claimwiki_table_wiki_claims_answers.sql",
+			true,
 		] );
 		$updater->addExtensionUpdate( [
 			'addTable',
 			'wiki_claims_log',
-			"{$extDir}/install/sql/claimwiki_table_wiki_claims_log.sql", true
+			"{$extDir}/install/sql/claimwiki_table_wiki_claims_log.sql",
+			true,
 		] );
 
 		return true;

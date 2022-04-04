@@ -17,7 +17,7 @@ use InvalidArgumentException;
 use MailAddress;
 use MediaWiki\MediaWikiServices;
 use MWException;
-use RedisCache;
+use RequestContext;
 use Sanitizer;
 use SpecialPage;
 use Title;
@@ -110,14 +110,21 @@ class WikiClaim {
 	 */
 	private $config;
 
+	/** @var string */
+	private $newFrom;
+
+	/** @var array */
+	private $settings;
+
 	/**
 	 * Constructor
 	 *
 	 * @return void
 	 */
 	public function __construct() {
-		$this->config = MediaWikiServices::getInstance()->getMainConfig();
-		$this->redis = RedisCache::getClient( 'cache' );
+		$services = MediaWikiServices::getInstance();
+		$this->config = $services->getMainConfig();
+		$this->lb = $services->getDBLoadBalancer();
 		$this->settings['number_of_questions'] = $this->config->get( 'ClaimWikiNumberOfQuestions' );
 	}
 
@@ -366,10 +373,9 @@ class WikiClaim {
 
 			$db->endAtomic( __METHOD__ );
 
-			global $wgUser;
-			$logEntry = new ClaimLogEntry();
+			$logEntry = new ClaimLogEntry( $this->lb );
 			$logEntry->setClaim( $this );
-			$logEntry->setActor( $wgUser );
+			$logEntry->setActor( RequestContext::getMain()->getUser() );
 			$logEntry->insert();
 		}
 
@@ -450,7 +456,7 @@ class WikiClaim {
 		foreach ( $keys as $key ) {
 			$this->questions[$key] = [
 				'text'		=> wfMessage( $key ),
-				'answer'	=> isset( $this->answers[$key] ) ? $this->answers[$key] : null
+				'answer'	=> $this->answers[$key] ?? null
 			];
 		}
 		return $this->questions;
@@ -754,8 +760,6 @@ class WikiClaim {
 	 */
 	public function sendNotification( $status, $performer ) {
 		$wgEmergencyContact = $this->config->get( 'EmergencyContact' );
-		$wgClaimWikiEmailSignature = $this->config->get( 'ClaimWikiEmailSignature' );
-		$noticeboard = Title::newFromText( 'Project:Admin_noticeboard' );
 
 		$from = new MailAddress( $wgEmergencyContact );
 		$claimWikiEmail = new MailAddress( $this->config->get( 'ClaimWikiEmailTo' ) );

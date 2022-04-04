@@ -28,8 +28,14 @@
 		"wiki_claims"
 	],
 	"SpecialPages": {
-		"ClaimWiki": "ClaimWiki\\Specials\\SpecialClaimWiki",
-		"WikiClaims": "ClaimWiki\\Specials\\SpecialWikiClaims"
+		"ClaimWiki": {
+			"class": "ClaimWiki\\Specials\\SpecialClaimWiki",
+			"services": [ "DBLoadBalancer", "MainConfig", "UserGroupManager", "TwiggyService" ]
+		},
+		"WikiClaims": {
+			"class": "ClaimWiki\\Specials\\SpecialWikiClaims",
+			"services": [ "UserFactory", "MainConfig", "TwiggyService" ]
+		}
 	},
 	"MessagesDirs": {
 		"ClaimWiki": [
@@ -40,13 +46,10 @@
 		"SpecialClaimWiki": "ClaimWiki.alias.php"
 	},
 	"AutoloadNamespaces": {
-		"ClaimWiki\\": "src/",
-		"ClaimWiki\\Jobs\\": "src/jobs",
-		"ClaimWiki\\Specials\\": "src/specials",
-		"ClaimWiki\\Templates\\": "src/templates"
+		"ClaimWiki\\": "src"
 	},
 	"JobClasses": {
-		"ClaimWiki\\Job\\WikiGuardianEmailJob": "ClaimWiki\\Job\\WikiGuardianEmailJob"
+		"ClaimWiki\\Job\\WikiGuardianEmailJob": "ClaimWiki\\Job\\WikiGuardianEmailJob::newInstance"
 	},
 	"Hooks": {
 		"BeforePageDisplay": "ClaimWiki\\Hooks::onBeforePageDisplay",

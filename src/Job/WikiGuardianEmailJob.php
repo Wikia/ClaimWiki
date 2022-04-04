@@ -16,14 +16,54 @@ namespace ClaimWiki\Jobs;
 use Cheevos\Cheevos;
 use ClaimWiki\WikiClaim;
 use Job;
+use JobSpecification;
 use MailAddress;
+use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\User\UserFactory;
+use Psr\Log\LoggerInterface;
+use Redis;
 use RedisCache;
+use RedisConnRef;
 use Sanitizer;
-use User;
+use Title;
+use Twiggy\TwiggyService;
 use UserMailer;
+use WikiMap;
+use Wikimedia\Rdbms\ILoadBalancer;
 
 class WikiGuardianEmailJob extends Job {
+	/** @var ILoadBalancer */
+	private $lb;
+	/** @var TwiggyService */
+	private $twiggy;
+	/** @var UserFactory */
+	private $userFactory;
+	/** @var RedisConnRef|Redis|bool */
+	private $redis;
+	/** @var LoggerInterface */
+	private $logger;
+
+	public function __construct(
+		$command,
+		$params,
+		ILoadBalancer $lb,
+		UserFactory $userFactory,
+		TwiggyService $twiggy,
+		$redis,
+		LoggerInterface $logger
+	) {
+		parent::__construct(
+			$command,
+			$params
+		);
+		$this->lb = $lb;
+		$this->twiggy = $twiggy;
+		$this->userFactory = $userFactory;
+		$this->redis = $redis;
+		$this->logger = $logger;
+	}
+
 	/**
 	 * Queue a new job.
 	 *
@@ -32,8 +72,19 @@ class WikiGuardianEmailJob extends Job {
 	 * @return void
 	 */
 	public static function queue( array $parameters = [] ) {
-		$job = new self( __CLASS__, $parameters );
+		$job = new JobSpecification( __CLASS__, $parameters );
 		MediaWikiServices::getInstance()->getJobQueueGroup()->push( $job );
+	}
+
+	public static function newInstance( ?Title $title, array $params ): self {
+		$services = MediaWikiServices::getInstance();
+		$lb = $services->getDBLoadBalancer();
+		$twiggy = $services->getService( 'TwiggyService' );
+		$userFactory = $services->getUserFactory();
+		$redis = RedisCache::getClient( 'cache' );
+		$logger = LoggerFactory::getInstance( __CLASS__ );
+
+		return new self( $title, $params, $lb, $userFactory, $twiggy, $redis, $logger );
 	}
 
 	/**
@@ -44,24 +95,20 @@ class WikiGuardianEmailJob extends Job {
 	public function run() {
 		global $wgEmergencyContact, $wgSitename, $wgClaimWikiEnabled, $dsSiteKey;
 
-		$args = $this->getParams();
-
 		if ( !$wgClaimWikiEnabled ) {
 			return true;
 		}
 
-		$this->DB = wfGetDB( DB_REPLICA );
-		$redis = RedisCache::getClient( 'cache' );
-		$this->twiggy = MediaWikiServices::getInstance()->getService( 'TwiggyService' );
+		$db = $this->lb->getConnectionRef( DB_REPLICA );
 
-		$results = $this->DB->select(
+		$results = $db->select(
 			[ 'wiki_claims' ],
 			[ '*' ],
 			[
 				'agreed' => 1,
-				'status' => intval( WikiClaim::CLAIM_APPROVED ),
+				'status' => WikiClaim::CLAIM_APPROVED,
 				'start_timestamp > 0',
-				'end_timestamp' => 0
+				'end_timestamp' => 0,
 			],
 			__METHOD__
 		);
@@ -69,25 +116,25 @@ class WikiGuardianEmailJob extends Job {
 		while ( $row = $results->fetchRow() ) {
 			$address = [];
 
-			$user = User::newFromId( $row['user_id'] );
+			$user = $this->userFactory->newFromId( (int)$row['user_id'] );
 			if ( !$user->getId() ) {
 				continue;
 			}
 
 			$claim = WikiClaim::newFromUser( $user );
-			$redisEmailKey = wfWikiID() . ':guardianReminderEmail:timeSent:' . $user->getId();
+			$redisEmailKey = WikiMap::getCurrentWikiId() . ':guardianReminderEmail:timeSent:' . $user->getId();
 
 			$cheevosUser = Cheevos::getWikiPointLog(
 				[
-					'site_id' => ( $dsSiteKey ? $dsSiteKey : null )
+					'site_id' => ( $dsSiteKey ?: null ),
 				],
 				$user
 			);
 			if ( isset( $cheevosUser[0] ) && $cheevosUser[0]->getUser_Id() ) {
 				$timestamp = $cheevosUser[0]->getTimestamp();
-				 // Thirty Days
+				// Thirty Days
 				$oldTimestamp = time() - 5184000;
-				 // Fifteen Days
+				// Fifteen Days
 				$emailReminderExpired = time() - 1296000;
 			} else {
 				// cant get timestamp
@@ -95,9 +142,11 @@ class WikiGuardianEmailJob extends Job {
 			}
 
 			try {
-				$emailSent = $redis->get( $redisEmailKey );
+				$emailSent = $this->redis->get( $redisEmailKey );
 			} catch ( RedisException $e ) {
-				wfDebug( __METHOD__ . ": Caught RedisException - " . $e->getMessage() );
+				$this->logger->error(
+					__METHOD__ . ": Caught RedisException - " . $e->getMessage()
+				);
 			}
 			if ( $emailSent > 0 && $emailSent > $emailReminderExpired ) {
 				continue;
@@ -112,7 +161,7 @@ class WikiGuardianEmailJob extends Job {
 					}
 					$emailSubject = 'Inactive Wiki Guardian Notification - ' . $wgSitename;
 				} else {
-					$address[] = new MailAddress( "wikitest@curse.com", 'Hydra Testers' );
+					$address[] = new MailAddress( 'platform-l@fandom.com', 'Fandom' );
 					$emailSubject = '~~ DEVELOPMENT WIKI GUARDIAN EMAIL ~~ ' . $wgSitename;
 				}
 
@@ -127,22 +176,27 @@ class WikiGuardianEmailJob extends Job {
 					$emailSubject,
 					[
 						'text' => strip_tags(
-							$template->render( [ 'username' => $user->getName(), 'sitename' => $wgSitename ] )
+							$template->render(
+								[ 'username' => $user->getName(), 'sitename' => $wgSitename ] )
 						),
-						'html' => $template->render( [ 'username' => $user->getName(), 'sitename' => $wgSitename ] )
+						'html' => $template->render(
+							[ 'username' => $user->getName(), 'sitename' => $wgSitename ] ),
 					]
 				);
 
 				if ( $status->isOK() ) {
 					try {
-						$redis->set( $redisEmailKey, time() );
-						$redis->expire( $redisEmailKey, 1296000 );
+						$this->redis->set( $redisEmailKey, time() );
+						$this->redis->expire( $redisEmailKey, 1296000 );
 					} catch ( RedisException $e ) {
-						$this->outputLine( __METHOD__ . ": Caught RedisException - " . $e->getMessage() );
+						$this->logger->error(
+							__METHOD__ . ": Caught RedisException - " . $e->getMessage()
+						);
 					}
 				}
 			}
 		}
+
 		return true;
 	}
 
@@ -159,8 +213,8 @@ class WikiGuardianEmailJob extends Job {
 				'days' => '*',
 				'months' => '*',
 				'weekdays' => '*',
-				'arguments' => []
-			]
+				'arguments' => [],
+			],
 		];
 	}
 }

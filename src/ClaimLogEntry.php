@@ -14,13 +14,23 @@
 namespace ClaimWiki;
 
 use User;
+use Wikimedia\Rdbms\ILoadBalancer;
 
 class ClaimLogEntry {
+	/** @var ILoadBalancer */
+	private $loadBalancer;
+
+	/** @var User */
+	private $actor;
+
+	/** @var wikiClaim */
+	private $claim;
+
 	/**
 	 * Constructor
 	 */
-	public function __construct() {
-		$this->DB = wfGetDB(DB_PRIMARY);
+	public function __construct( ILoadBalancer $loadBalancer ) {
+		$this->loadBalancer = $loadBalancer;
 	}
 
 	/**
@@ -30,7 +40,7 @@ class ClaimLogEntry {
 	 *
 	 * @return void
 	 */
-	public function setClaim(WikiClaim $claim) {
+	public function setClaim( WikiClaim $claim ) {
 		$this->claim = $claim;
 	}
 
@@ -41,7 +51,7 @@ class ClaimLogEntry {
 	 *
 	 * @return void
 	 */
-	public function setActor(User $user) {
+	public function setActor( User $user ) {
 		$this->actor = $user;
 	}
 
@@ -51,17 +61,17 @@ class ClaimLogEntry {
 	 * @return void
 	 */
 	public function insert() {
-		$success = $this->DB->insert(
+		$db = $this->loadBalancer->getConnectionRef( DB_PRIMARY );
+
+		return $db->insert(
 			'wiki_claims_log',
 			[
-				'claim_id'	=> $this->claim->getId(),
-				'actor_id'	=> $this->actor->getId(),
-				'status'	=> $this->claim->getStatus(),
-				'timestamp'	=> time()
+				'claim_id' => $this->claim->getId(),
+				'actor_id' => $this->actor->getId(),
+				'status' => $this->claim->getStatus(),
+				'timestamp' => time(),
 			],
 			__METHOD__
 		);
-
-		return $success;
 	}
 }

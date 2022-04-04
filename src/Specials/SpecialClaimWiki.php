@@ -14,11 +14,13 @@
 namespace ClaimWiki\Specials;
 
 use ClaimWiki\WikiClaim;
+use Config;
 use GlobalVarConfig;
 use HydraCore\SpecialPage;
-use MediaWiki\MediaWikiServices;
+use MediaWiki\User\UserGroupManager;
 use Title;
 use Twiggy\TwiggyService;
+use Wikimedia\Rdbms\ILoadBalancer;
 
 class SpecialClaimWiki extends SpecialPage {
 	/**
@@ -39,13 +41,28 @@ class SpecialClaimWiki extends SpecialPage {
 	 */
 	private $claim;
 
+	/** @var ILoadBalancer */
+	private $lb;
+
+	/** @var UserGroupManager */
+	private $groupManager;
+
 	/**
 	 * Main Constructor
 	 *
 	 * @return void
 	 */
-	public function __construct() {
+	public function __construct(
+		ILoadBalancer $lb,
+		Config $config,
+		UserGroupManager $groupManager,
+		TwiggyService $twiggy
+	) {
 		parent::__construct( 'ClaimWiki', 'claim_wiki', false );
+		$this->lb = $lb;
+		$this->config = $config;
+		$this->twiggy = $twiggy;
+		$this->groupManager = $groupManager;
 	}
 
 	/**
@@ -57,9 +74,6 @@ class SpecialClaimWiki extends SpecialPage {
 	 */
 	public function execute( $subpage ) {
 		$this->checkPermissions();
-
-		$this->config = MediaWikiServices::getInstance()->getConfigFactory()->makeConfig( 'main' );
-		$this->twiggy = MediaWikiServices::getInstance()->getService( 'TwiggyService' );
 
 		$this->getOutput()->addModuleStyles( [ 'ext.claimWiki.styles' ] );
 		$this->getOutput()->addModules( [ 'ext.claimWiki.scripts' ] );
@@ -144,7 +158,7 @@ class SpecialClaimWiki extends SpecialPage {
 		$request = $this->getRequest();
 		$questionKeys = $this->claim->getQuestionKeys();
 		// check for agreement
-		$this->claim->setTimestamp( time(), 'claim' );
+		$this->claim->setTimestamp( time() );
 
 		if ( $request->getVal( 'agreement' ) == 'agreed' ) {
 			$this->claim->setAgreed();
@@ -171,16 +185,17 @@ class SpecialClaimWiki extends SpecialPage {
 			return [ 'wiki_claim_error', 'wiki_claim_disabled' ];
 		}
 
-		if ( in_array( 'wiki_guardian', $this->getUser()->getGroups() ) ) {
+		$userGroups = $this->groupManager->getUserGroups( $this->getUser() );
+		if ( in_array( 'wiki_guardian', $userGroups ) ) {
 			return [ 'wiki_claim_error', 'wiki_claim_already_guardian' ];
 		}
 
-		$db = wfGetDB( DB_PRIMARY );
+		$db = $this->lb->getConnectionRef( DB_REPLICA );
 		$result = $db->select(
 			'wiki_claims',
 			[ 'COUNT(*) as total' ],
 			[
-				'status' => intval( WikiClaim::CLAIM_APPROVED ),
+				'status' => WikiClaim::CLAIM_APPROVED,
 				'end_timestamp' => 0,
 			],
 			__METHOD__
@@ -195,7 +210,8 @@ class SpecialClaimWiki extends SpecialPage {
 			return [ 'wiki_claim_error', 'wiki_claim_below_threshhold_contributions' ];
 		}
 
-		if ( $this->getUser()->isBlocked() ) {
+		$block = $this->getUser()->getBlock();
+		if ( $block && $block->isSitewide() ) {
 			return [ 'wiki_claim_error', 'wiki_claim_user_blocked' ];
 		}
 		return [];

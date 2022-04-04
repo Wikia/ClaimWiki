@@ -15,10 +15,11 @@ namespace ClaimWiki\Specials;
 
 use ClaimWiki\ClaimLogPager;
 use ClaimWiki\WikiClaim;
+use Config;
 use Html;
 use HydraCore;
 use HydraCore\SpecialPage;
-use MediaWiki\MediaWikiServices;
+use MediaWiki\User\UserFactory;
 use Title;
 use Twiggy\TwiggyService;
 
@@ -44,9 +45,21 @@ class SpecialWikiClaims extends SpecialPage {
 	 */
 	private $claim = null;
 
-	public function __construct() {
+	/** @var UserFactory */
+	private $userFactory;
+
+	/** @var Config */
+	private $config;
+
+	public function __construct(
+		UserFactory $userFactory,
+		Config $config,
+		TwiggyService $twiggy
+	) {
 		parent::__construct( 'WikiClaims', 'wiki_claims' );
-		$this->twiggy = MediaWikiServices::getInstance()->getService( 'TwiggyService' );
+		$this->twiggy = $twiggy;
+		$this->userFactory = $userFactory;
+		$this->config = $config;
 	}
 
 	/**
@@ -107,8 +120,6 @@ class SpecialWikiClaims extends SpecialPage {
 	 * @return void [Outputs to screen]
 	 */
 	public function wikiClaims() {
-		global $wgExtensionAssetsPath;
-
 		$request = $this->getRequest();
 		$start = $request->getInt( 'st' );
 		$itemsPerPage = 25;
@@ -137,7 +148,10 @@ class SpecialWikiClaims extends SpecialPage {
 		}
 		$request->response()->setcookie( 'wikiClaimsSortDir', $sortDir, $cookieExpire );
 
-		$pagination = HydraCore::generatePaginationHtml( $this->getFullTitle(), $claimsCount, $itemsPerPage, $start );
+		$pagination = '';
+		if ( $claimsCount > 0 ) {
+			$pagination = HydraCore::generatePaginationHtml( $this->getFullTitle(), $claimsCount, $itemsPerPage, $start );
+		}
 
 		$template = $this->twiggy->load( '@ClaimWiki/claim_list.twig' );
 		$this->getOutput()->setPageTitle( wfMessage( 'wikiclaims' ) );
@@ -146,7 +160,7 @@ class SpecialWikiClaims extends SpecialPage {
 			'pagination' => $pagination,
 			'sortKey' => $sortKey,
 			'sortDir' => $sortDir,
-			'wgExtensionAssetsPath' => $wgExtensionAssetsPath,
+			'wgExtensionAssetsPath' => $this->config->get( 'ExtensionAssetsPath' ),
 			'wikiClaimsPage' => SpecialPage::getTitleFor( 'WikiClaims' ),
 			'logUrl' => SpecialPage::getTitleFor( 'WikiClaims/log' )->getFullURL(),
 		] );
@@ -172,7 +186,7 @@ class SpecialWikiClaims extends SpecialPage {
 	}
 
 	public function showLog() {
-		$pager = new ClaimLogPager( $this->getContext() );
+		$pager = ClaimLogPager::newInstance( $this->getContext() );
 
 		$body = $pager->getBody();
 
@@ -273,7 +287,7 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->claim->sendNotification( 'pending', $this->getUser() );
 
 		$page = Title::newFromText( 'Special:WikiClaims' );
-		$output->redirect( $page->getFullURL() );
+		$this->getOutput()->redirect( $page->getFullURL() );
 	}
 
 	/**
@@ -295,7 +309,7 @@ class SpecialWikiClaims extends SpecialPage {
 		$this->claim->sendNotification( 'inactive', $this->getUser() );
 
 		$page = Title::newFromText( 'Special:WikiClaims' );
-		$output->redirect( $page->getFullURL() );
+		$this->getOutput()->redirect( $page->getFullURL() );
 	}
 
 	public function deleteClaim(): void {
@@ -317,7 +331,7 @@ class SpecialWikiClaims extends SpecialPage {
 
 	private function loadClaim(): void {
 		$userId = $this->getRequest()->getInt( 'user_id' );
-		$user = MediaWikiServices::getInstance()->getUserFactory()->newFromId( $userId );
+		$user = $this->userFactory->newFromId( $userId );
 		if ( !$user->getId() ) {
 			$this->getOutput()->showErrorPage( 'wiki_claim_error', 'view_claim_bad_user_id' );
 			return;
